@@ -1,0 +1,6 @@
+{
+ "url": "https://servicodados.ibge.gov.br/api/v3/malhas/estados/43?intrarregiao=municipio&formato=application/vnd.geo%2Bjson&qualidade=intermediaria",
+ "downloaded_at_utc": "2026-11-03T20:04:51.271352Z",
+ "bytes": 880952,
+ "sha256": "18b8734d915aba772757c73cf9b68e9b0ca71499a6a5856b4424f6a41a431c82"
+}

@@ -1,0 +1,1511 @@
+{
+ "n": {
+  "rows": 363085,
+  "rows_dropped_missing_upstream": 0,
+  "positives": 471,
+  "episodes": 89
+ },
+ "auc": {
+  "EDI": {
+   "AUC": 0.8078661069609947,
+   "CI95": [
+    0.7574222187878987,
+    0.8471407369664014
+   ]
+  },
+  "API": {
+   "AUC": 0.8561827022533726,
+   "CI95": [
+    0.8120222066847251,
+    0.8849652560035026
+   ]
+  },
+  "EDI_bacia": {
+   "AUC": 0.8193623671253215,
+   "CI95": [
+    0.7527294957074891,
+    0.8642917267183394
+   ]
+  },
+  "API_bacia": {
+   "AUC": 0.8618504066433308,
+   "CI95": [
+    0.8129850364169836,
+    0.892911878534891
+   ]
+  }
+ },
+ "out_of_sample": {
+  "LOYO": {
+   "EDI": {
+    "POD": 0.732484076433121,
+    "POFD": 0.23490819438852334,
+    "TSS": 0.49757588204459763,
+    "POD_CI95": [
+     0.6649794868700885,
+     0.7909410801963993
+    ],
+    "POFD_CI95": [
+     0.1967238232184125,
+     0.27574399629121715
+    ],
+    "TSS_CI95": [
+     0.4171661705402644,
+     0.5673483034391059
+    ],
+    "fold_thresholds": [
+     1.249908363444838,
+     1.2666701862842977
+    ]
+   },
+   "EDI_alert": {
+    "POD": 0.18471337579617833,
+    "POFD": 0.021027869856100428,
+    "TSS": 0.1636855059400779,
+    "POD_CI95": [
+     0.11180032882718305,
+     0.23909703143089175
+    ],
+    "POFD_CI95": [
+     0.012861184163362023,
+     0.030534869319570074
+    ],
+    "TSS_CI95": [
+     0.0904331781813693,
+     0.21888949182462825
+    ],
+    "fold_thresholds": [
+     3.1570691511734386,
+     3.4420204547532873
+    ]
+   },
+   "API": {
+    "POD": 0.7070063694267515,
+    "POFD": 0.1538467902507901,
+    "TSS": 0.5531595791759615,
+    "POD_CI95": [
+     0.60742264819252,
+     0.7672447419907068
+    ],
+    "POFD_CI95": [
+     0.12852997020562656,
+     0.1788458405426135
+    ],
+    "TSS_CI95": [
+     0.4495233483631449,
+     0.6190481619198649
+    ],
+    "fold_thresholds": [
+     58.93742355617067,
+     78.3779262418375
+    ]
+   },
+   "API_alert": {
+    "POD": 0.34182590233545646,
+    "POFD": 0.01950283221276619,
+    "TSS": 0.32232307012269024,
+    "POD_CI95": [
+     0.23753562592001004,
+     0.41321069182389936
+    ],
+    "POFD_CI95": [
+     0.013004469493645294,
+     0.026601386698756186
+    ],
+    "TSS_CI95": [
+     0.21655084195898505,
+     0.39382001627372853
+    ],
+    "fold_thresholds": [
+     123.78843406702046,
+     129.42254097783527
+    ]
+   },
+   "EDI_bacia": {
+    "POD": 0.7091295116772823,
+    "POFD": 0.2178321851886579,
+    "TSS": 0.49129732648862445,
+    "POD_CI95": [
+     0.6030879276856417,
+     0.7799144705853186
+    ],
+    "POFD_CI95": [
+     0.17752303934232533,
+     0.25933962294331137
+    ],
+    "TSS_CI95": [
+     0.3750019258728657,
+     0.5733463224742495
+    ],
+    "fold_thresholds": [
+     1.037914543750316,
+     1.3547731463752188
+    ]
+   },
+   "EDI_bacia_alert": {
+    "POD": 0.20382165605095542,
+    "POFD": 0.02183313385583568,
+    "TSS": 0.18198852219511974,
+    "POD_CI95": [
+     0.11379108522661746,
+     0.27517736874330323
+    ],
+    "POFD_CI95": [
+     0.011865259418828534,
+     0.03444776696671774
+    ],
+    "TSS_CI95": [
+     0.08804752675232577,
+     0.2545422472900021
+    ],
+    "fold_thresholds": [
+     2.8431155430007022,
+     3.230359141821158
+    ]
+   },
+   "API_bacia": {
+    "POD": 0.721868365180467,
+    "POFD": 0.1547899419217129,
+    "TSS": 0.5670784232587541,
+    "POD_CI95": [
+     0.6100345583678917,
+     0.7902136600378787
+    ],
+    "POFD_CI95": [
+     0.1280715448941023,
+     0.1805428722009228
+    ],
+    "TSS_CI95": [
+     0.4506686807954969,
+     0.6423032028862402
+    ],
+    "fold_thresholds": [
+     67.05504592424765,
+     71.85074670824946
+    ]
+   },
+   "API_bacia_alert": {
+    "POD": 0.3630573248407643,
+    "POFD": 0.01958832256890247,
+    "TSS": 0.34346900227186183,
+    "POD_CI95": [
+     0.25280319703463455,
+     0.4404059357370615
+    ],
+    "POFD_CI95": [
+     0.012383551770749096,
+     0.027693632415004932
+    ],
+    "TSS_CI95": [
+     0.23196712788352467,
+     0.4233827401631152
+    ],
+    "fold_thresholds": [
+     118.88070037373258,
+     123.97814533422954
+    ]
+   }
+  },
+  "holdout_2013-2020_vs_2021-2024": {
+   "EDI": {
+    "POD": 0.6625,
+    "POFD": 0.1883336853220697,
+    "TSS": 0.47416631467793025,
+    "POD_CI95": [
+     0.47243547681539805,
+     0.7335869824603268
+    ],
+    "POFD_CI95": [
+     0.12269631264599862,
+     0.26776596761741983
+    ],
+    "TSS_CI95": [
+     0.2679195467147407,
+     0.5722048179806772
+    ],
+    "fold_thresholds": [
+     1.2513975536135349,
+     1.2513975536135349
+    ]
+   },
+   "EDI_alert": {
+    "POD": 0.19583333333333333,
+    "POFD": 0.034002111932418165,
+    "TSS": 0.16183122140091516,
+    "POD_CI95": [
+     0.08659167604049493,
+     0.24737232933819694
+    ],
+    "POFD_CI95": [
+     0.014489766650807456,
+     0.05967495940369208
+    ],
+    "TSS_CI95": [
+     0.048235330401009885,
+     0.21924914161199627
+    ],
+    "fold_thresholds": [
+     3.1923260437492567,
+     3.1923260437492567
+    ]
+   },
+   "API": {
+    "POD": 0.7083333333333334,
+    "POFD": 0.15927349524815207,
+    "TSS": 0.5490598380851813,
+    "POD_CI95": [
+     0.44437229437229436,
+     0.7894736842105263
+    ],
+    "POFD_CI95": [
+     0.1152932398306456,
+     0.20741334378389042
+    ],
+    "TSS_CI95": [
+     0.26868495808236276,
+     0.644733414429657
+    ],
+    "fold_thresholds": [
+     64.98419396096479,
+     64.98419396096479
+    ]
+   },
+   "API_alert": {
+    "POD": 0.36666666666666664,
+    "POFD": 0.018922914466737065,
+    "TSS": 0.3477437521999296,
+    "POD_CI95": [
+     0.18178092399403875,
+     0.4202465101804926
+    ],
+    "POFD_CI95": [
+     0.009428902289476921,
+     0.0313004141404268
+    ],
+    "TSS_CI95": [
+     0.1566444025299268,
+     0.4019294938898199
+    ],
+    "fold_thresholds": [
+     127.42301285428724,
+     127.42301285428724
+    ]
+   },
+   "EDI_bacia": {
+    "POD": 0.6958333333333333,
+    "POFD": 0.19487222808870117,
+    "TSS": 0.5009611052446321,
+    "POD_CI95": [
+     0.4264645612343298,
+     0.7973504640456007
+    ],
+    "POFD_CI95": [
+     0.12075890898833193,
+     0.2857264215619713
+    ],
+    "TSS_CI95": [
+     0.20860932042546612,
+     0.6293631616530525
+    ],
+    "fold_thresholds": [
+     1.290132445730221,
+     1.290132445730221
+    ]
+   },
+   "EDI_bacia_alert": {
+    "POD": 0.2833333333333333,
+    "POFD": 0.05166631467793031,
+    "TSS": 0.231667018655403,
+    "POD_CI95": [
+     0.09991935483870969,
+     0.4214309737347854
+    ],
+    "POFD_CI95": [
+     0.021799371415681095,
+     0.09126052994340152
+    ],
+    "TSS_CI95": [
+     0.0346725581584886,
+     0.3701028282334404
+    ],
+    "fold_thresholds": [
+     2.8025701770342475,
+     2.8025701770342475
+    ]
+   },
+   "API_bacia": {
+    "POD": 0.7166666666666667,
+    "POFD": 0.1304582893347413,
+    "TSS": 0.5862083773319253,
+    "POD_CI95": [
+     0.41890512961941534,
+     0.8060941828254847
+    ],
+    "POFD_CI95": [
+     0.08854011564758969,
+     0.1790104800935232
+    ],
+    "TSS_CI95": [
+     0.2754530537605341,
+     0.6891400353189611
+    ],
+    "fold_thresholds": [
+     71.7743083925505,
+     71.7743083925505
+    ]
+   },
+   "API_bacia_alert": {
+    "POD": 0.42083333333333334,
+    "POFD": 0.01977613516367476,
+    "TSS": 0.40105719816965857,
+    "POD_CI95": [
+     0.21332786885245902,
+     0.4816614957137161
+    ],
+    "POFD_CI95": [
+     0.008349408813054647,
+     0.034861854926605595
+    ],
+    "TSS_CI95": [
+     0.19101902454799088,
+     0.4632014448722025
+    ],
+    "fold_thresholds": [
+     121.89278684170789,
+     121.89278684170789
+    ]
+   }
+  }
+ },
+ "paired": {
+  "EDI_bacia-EDI": {
+   "diff": -0.006278555555973175,
+   "CI95": [
+    -0.0704573042317436,
+    0.04419836680086079
+   ],
+   "improves": false
+  },
+  "API_bacia-API": {
+   "diff": 0.013918844082792647,
+   "CI95": [
+    -0.022861366224009725,
+    0.043344123039145144
+   ],
+   "improves": false
+  },
+  "API-EDI": {
+   "diff": 0.05558369713136385,
+   "CI95": [
+    -0.03718975308165085,
+    0.12304708821594974
+   ],
+   "improves": false
+  },
+  "API_bacia-EDI": {
+   "diff": 0.0695025412141565,
+   "CI95": [
+    -0.04020025337722069,
+    0.14424445139638212
+   ],
+   "improves": false
+  }
+ },
+ "final_thresholds_all_years": {
+  "EDI": {
+   "attention": 1.2549083105256167,
+   "attention_CI95": [
+    1.089527524279961,
+    1.4502821132462516
+   ],
+   "POD": 0.7367303609341825,
+   "POFD": 0.23520327400486468,
+   "alert_pofd2pct": 3.3676071356155615,
+   "alert_POD": 0.16985138004246284
+  },
+  "API": {
+   "attention": 72.25482224861302,
+   "attention_CI95": [
+    51.50645933904009,
+    78.31750476070634
+   ],
+   "POD": 0.7091295116772823,
+   "POFD": 0.15125450203246427,
+   "alert_pofd2pct": 127.6129974836106,
+   "alert_POD": 0.33121019108280253
+  },
+  "EDI_bacia": {
+   "attention": 1.260688307183932,
+   "attention_CI95": [
+    0.9442798114704133,
+    1.5475314431341678
+   ],
+   "POD": 0.7261146496815286,
+   "POFD": 0.20889430634228132,
+   "alert_pofd2pct": 3.155442018839968,
+   "alert_POD": 0.18259023354564755
+  },
+  "API_bacia": {
+   "attention": 71.86566605864078,
+   "attention_CI95": [
+    60.41884827795841,
+    82.02639127939216
+   ],
+   "POD": 0.7197452229299363,
+   "POFD": 0.14748189534877307,
+   "alert_pofd2pct": 122.44612453250241,
+   "alert_POD": 0.3630573248407643
+  }
+ },
+ "test_2025": {
+  "events": 68,
+  "episodes": 12,
+  "EDI": {
+   "POD": 0.4117647058823529,
+   "POFD": 0.18789819767639945,
+   "TSS": 0.22386650820595347,
+   "POD_CI95": [
+    0.2830188679245283,
+    0.7446808510638298
+   ],
+   "POFD_CI95": [
+    0.10134380737024683,
+    0.2734407436379505
+   ],
+   "TSS_CI95": [
+    0.06189125023049043,
+    0.5691562482810196
+   ]
+  },
+  "EDI_alert": {
+   "POD": 0.1323529411764706,
+   "POFD": 0.01788695444788934,
+   "TSS": 0.11446598672858124,
+   "POD_CI95": [
+    0.0,
+    0.4666666666666667
+   ],
+   "POFD_CI95": [
+    0.005790927959417601,
+    0.0323313792114429
+   ],
+   "TSS_CI95": [
+    -0.02375415416611893,
+    0.44640150654686916
+   ]
+  },
+  "API": {
+   "POD": 0.6470588235294118,
+   "POFD": 0.1535552451364519,
+   "TSS": 0.4935035783929599,
+   "POD_CI95": [
+    0.19986111111111113,
+    0.7666666666666667
+   ],
+   "POFD_CI95": [
+    0.08840665212864186,
+    0.22278366420212264
+   ],
+   "TSS_CI95": [
+    0.035272949876839245,
+    0.6338487041041535
+   ]
+  },
+  "API_alert": {
+   "POD": 0.3088235294117647,
+   "POFD": 0.01601308302953903,
+   "TSS": 0.2928104463822257,
+   "POD_CI95": [
+    0.13875,
+    0.5652173913043478
+   ],
+   "POFD_CI95": [
+    0.00356417659284267,
+    0.03728744171713683
+   ],
+   "TSS_CI95": [
+    0.12270941785151009,
+    0.5508182109879138
+   ]
+  },
+  "EDI_bacia": {
+   "POD": 0.36764705882352944,
+   "POFD": 0.13709924704439372,
+   "TSS": 0.23054781177913572,
+   "POD_CI95": [
+    0.16666666666666666,
+    0.6740007012622716
+   ],
+   "POFD_CI95": [
+    0.06902191307954157,
+    0.20470093466106043
+   ],
+   "TSS_CI95": [
+    0.03274934390272305,
+    0.5526499238065313
+   ]
+  },
+  "EDI_bacia_alert": {
+   "POD": 0.07352941176470588,
+   "POFD": 0.009880412933119826,
+   "TSS": 0.06364899883158606,
+   "POD_CI95": [
+    0.0,
+    0.3333333333333333
+   ],
+   "POFD_CI95": [
+    0.003380122954977458,
+    0.016998741450042716
+   ],
+   "TSS_CI95": [
+    -0.014996713588117536,
+    0.3218270522737004
+   ]
+  },
+  "API_bacia": {
+   "POD": 0.6911764705882353,
+   "POFD": 0.1396204558618105,
+   "TSS": 0.5515560147264248,
+   "POD_CI95": [
+    0.2631265664160401,
+    0.7887323943661971
+   ],
+   "POFD_CI95": [
+    0.0800336004913747,
+    0.20192686345264288
+   ],
+   "TSS_CI95": [
+    0.1153512389782137,
+    0.6745460122295076
+   ]
+  },
+  "API_bacia_alert": {
+   "POD": 0.36764705882352944,
+   "POFD": 0.015127252904500699,
+   "TSS": 0.35251980591902876,
+   "POD_CI95": [
+    0.07692307692307693,
+    0.45
+   ],
+   "POFD_CI95": [
+    0.002838093310329253,
+    0.037452249359696606
+   ],
+   "TSS_CI95": [
+    0.060592835461193706,
+    0.43902299891940316
+   ]
+  },
+  "paired": {
+   "EDI_bacia-EDI": {
+    "diff": 0.006681303573182251,
+    "CI95": [
+     -0.1900700848940412,
+     0.055283285343334126
+    ],
+    "improves": false
+   },
+   "API_bacia-API": {
+    "diff": 0.05805243633346491,
+    "CI95": [
+     0.007548874512523781,
+     0.09669019634537313
+    ],
+    "improves": true
+   },
+   "API-EDI": {
+    "diff": 0.26963707018700644,
+    "CI95": [
+     -0.1734637009183284,
+     0.4313852489382426
+    ],
+    "improves": false
+   }
+  },
+  "by_episode": {
+   "EP-20250614": {
+    "events": 41,
+    "EDI_at_watch": 0.2926829268292683,
+    "API_at_watch": 0.7317073170731707,
+    "EDI_bacia_at_watch": 0.2926829268292683,
+    "API_bacia_at_watch": 0.7804878048780488
+   },
+   "EP-20250822": {
+    "events": 10,
+    "EDI_at_watch": 0.9,
+    "API_at_watch": 0.9,
+    "EDI_bacia_at_watch": 0.9,
+    "API_bacia_at_watch": 0.9
+   },
+   "EP-20251208": {
+    "events": 7,
+    "EDI_at_watch": 0.42857142857142855,
+    "API_at_watch": 0.14285714285714285,
+    "EDI_bacia_at_watch": 0.2857142857142857,
+    "API_bacia_at_watch": 0.2857142857142857
+   }
+  }
+ },
+ "units": [
+  {
+   "codarea": "4300406",
+   "nome": "Alegrete",
+   "corridors": "290",
+   "seed_basins": 110,
+   "upstream_basins": 690,
+   "upstream_km2": 47060.04329905572,
+   "municipality_km2": 7801.928446637292,
+   "ratio": 6.031847590109476
+  },
+  {
+   "codarea": "4300471",
+   "nome": "Almirante Tamandar\u00e9 do Sul",
+   "corridors": "386",
+   "seed_basins": 9,
+   "upstream_basins": 18,
+   "upstream_km2": 1522.4121310157088,
+   "municipality_km2": 262.7691333675064,
+   "ratio": 5.793725128615002
+  },
+  {
+   "codarea": "4300851",
+   "nome": "Arambar\u00e9",
+   "corridors": "116",
+   "seed_basins": 17,
+   "upstream_basins": 36,
+   "upstream_km2": 2183.532128753975,
+   "municipality_km2": 519.1853623127514,
+   "ratio": 4.20568892587276
+  },
+  {
+   "codarea": "4301107",
+   "nome": "Arroio dos Ratos",
+   "corridors": "290",
+   "seed_basins": 7,
+   "upstream_basins": 292,
+   "upstream_km2": 70926.90456765711,
+   "municipality_km2": 425.4423253676705,
+   "ratio": 166.71332478817556
+  },
+  {
+   "codarea": "4301305",
+   "nome": "Arroio Grande",
+   "corridors": "116",
+   "seed_basins": 27,
+   "upstream_basins": 556,
+   "upstream_km2": 55900.52921965321,
+   "municipality_km2": 2504.876399045546,
+   "ratio": 22.31668166978357
+  },
+  {
+   "codarea": "4301909",
+   "nome": "Barra do Ribeiro",
+   "corridors": "116",
+   "seed_basins": 18,
+   "upstream_basins": 35,
+   "upstream_km2": 1660.338631418187,
+   "municipality_km2": 729.3720505920656,
+   "ratio": 2.2763946466969935
+  },
+  {
+   "codarea": "4302154",
+   "nome": "Boa Vista das Miss\u00f5es",
+   "corridors": "386",
+   "seed_basins": 4,
+   "upstream_basins": 4,
+   "upstream_km2": 936.9966380540791,
+   "municipality_km2": 193.67352567943496,
+   "ratio": 4.838021277130977
+  },
+  {
+   "codarea": "4302402",
+   "nome": "Bom Retiro do Sul",
+   "corridors": "386",
+   "seed_basins": 3,
+   "upstream_basins": 77,
+   "upstream_km2": 26049.44965283664,
+   "municipality_km2": 103.2582813532225,
+   "ratio": 252.27467774451472
+  },
+  {
+   "codarea": "4302709",
+   "nome": "Buti\u00e1",
+   "corridors": "290",
+   "seed_basins": 8,
+   "upstream_basins": 205,
+   "upstream_km2": 42825.725803441754,
+   "municipality_km2": 751.5506831559269,
+   "ratio": 56.983150655398376
+  },
+  {
+   "codarea": "4302808",
+   "nome": "Ca\u00e7apava do Sul",
+   "corridors": "290",
+   "seed_basins": 22,
+   "upstream_basins": 38,
+   "upstream_km2": 8499.173684297502,
+   "municipality_km2": 3048.729667371944,
+   "ratio": 2.7877754381627193
+  },
+  {
+   "codarea": "4302907",
+   "nome": "Cacequi",
+   "corridors": "290",
+   "seed_basins": 42,
+   "upstream_basins": 316,
+   "upstream_km2": 22091.02586986706,
+   "municipality_km2": 2372.7351217621062,
+   "ratio": 9.310363245881913
+  },
+  {
+   "codarea": "4303004",
+   "nome": "Cachoeira do Sul",
+   "corridors": "290",
+   "seed_basins": 28,
+   "upstream_basins": 166,
+   "upstream_km2": 34185.898787360784,
+   "municipality_km2": 3736.2645840645687,
+   "ratio": 9.149753187492676
+  },
+  {
+   "codarea": "4303103",
+   "nome": "Cachoeirinha",
+   "corridors": "290",
+   "seed_basins": 2,
+   "upstream_basins": 10,
+   "upstream_km2": 2068.9567751597097,
+   "municipality_km2": 44.23743184602854,
+   "ratio": 46.76936903482231
+  },
+  {
+   "codarea": "4303509",
+   "nome": "Camaqu\u00e3",
+   "corridors": "116",
+   "seed_basins": 35,
+   "upstream_basins": 115,
+   "upstream_km2": 18855.94760634547,
+   "municipality_km2": 1679.6561689139219,
+   "ratio": 11.226075881076225
+  },
+  {
+   "codarea": "4303673",
+   "nome": "Campestre da Serra",
+   "corridors": "116",
+   "seed_basins": 3,
+   "upstream_basins": 10,
+   "upstream_km2": 8825.766568394496,
+   "municipality_km2": 539.2167527645952,
+   "ratio": 16.367752899264136
+  },
+  {
+   "codarea": "4304606",
+   "nome": "Canoas",
+   "corridors": "116/386",
+   "seed_basins": 4,
+   "upstream_basins": 436,
+   "upstream_km2": 82435.88621150456,
+   "municipality_km2": 131.35717421105073,
+   "ratio": 627.5704902044813
+  },
+  {
+   "codarea": "4304663",
+   "nome": "Cap\u00e3o do Le\u00e3o",
+   "corridors": "116",
+   "seed_basins": 27,
+   "upstream_basins": 583,
+   "upstream_km2": 56881.83004215454,
+   "municipality_km2": 783.6700628162702,
+   "ratio": 72.58390072697006
+  },
+  {
+   "codarea": "4304705",
+   "nome": "Carazinho",
+   "corridors": "386",
+   "seed_basins": 11,
+   "upstream_basins": 14,
+   "upstream_km2": 3209.938755896314,
+   "municipality_km2": 667.1363783529844,
+   "ratio": 4.811518094427648
+  },
+  {
+   "codarea": "4305108",
+   "nome": "Caxias do Sul",
+   "corridors": "116",
+   "seed_basins": 16,
+   "upstream_basins": 33,
+   "upstream_km2": 10509.371933807484,
+   "municipality_km2": 1656.21572612593,
+   "ratio": 6.345412477389076
+  },
+  {
+   "codarea": "4305850",
+   "nome": "Coqueiros do Sul",
+   "corridors": "386",
+   "seed_basins": 6,
+   "upstream_basins": 11,
+   "upstream_km2": 1125.9091069594194,
+   "municipality_km2": 277.591796028943,
+   "ratio": 4.05598840839672
+  },
+  {
+   "codarea": "4306056",
+   "nome": "Cristal",
+   "corridors": "116",
+   "seed_basins": 15,
+   "upstream_basins": 74,
+   "upstream_km2": 16992.36584084706,
+   "municipality_km2": 680.8045352255501,
+   "ratio": 24.95924301564398
+  },
+  {
+   "codarea": "4306403",
+   "nome": "Dois Irm\u00e3os",
+   "corridors": "116",
+   "seed_basins": 1,
+   "upstream_basins": 1,
+   "upstream_km2": 275.09389178184097,
+   "municipality_km2": 65.85798967184326,
+   "ratio": 4.177076967465556
+  },
+  {
+   "codarea": "4306767",
+   "nome": "Eldorado do Sul",
+   "corridors": "116/290",
+   "seed_basins": 8,
+   "upstream_basins": 308,
+   "upstream_km2": 72001.58061278681,
+   "municipality_km2": 510.55740990406963,
+   "ratio": 141.02543458592723
+  },
+  {
+   "codarea": "4306908",
+   "nome": "Encruzilhada do Sul",
+   "corridors": "290",
+   "seed_basins": 16,
+   "upstream_basins": 60,
+   "upstream_km2": 16393.719218546208,
+   "municipality_km2": 3347.9917156854485,
+   "ratio": 4.896582969946165
+  },
+  {
+   "codarea": "4307609",
+   "nome": "Est\u00e2ncia Velha",
+   "corridors": "116",
+   "seed_basins": 2,
+   "upstream_basins": 52,
+   "upstream_km2": 3316.187594124959,
+   "municipality_km2": 50.47371048191912,
+   "ratio": 65.7012841430173
+  },
+  {
+   "codarea": "4307708",
+   "nome": "Esteio",
+   "corridors": "116",
+   "seed_basins": 2,
+   "upstream_basins": 54,
+   "upstream_km2": 3628.9237414845898,
+   "municipality_km2": 27.44048708076937,
+   "ratio": 132.24706000309246
+  },
+  {
+   "codarea": "4307807",
+   "nome": "Estrela",
+   "corridors": "386",
+   "seed_basins": 3,
+   "upstream_basins": 73,
+   "upstream_km2": 23929.058178825562,
+   "municipality_km2": 185.63444866241034,
+   "ratio": 128.90418966547682
+  },
+  {
+   "codarea": "4308078",
+   "nome": "Fazenda Vilanova",
+   "corridors": "386",
+   "seed_basins": 2,
+   "upstream_basins": 77,
+   "upstream_km2": 26049.44965283664,
+   "municipality_km2": 83.75609385514757,
+   "ratio": 311.01557455494526
+  },
+  {
+   "codarea": "4308300",
+   "nome": "Fontoura Xavier",
+   "corridors": "386",
+   "seed_basins": 4,
+   "upstream_basins": 5,
+   "upstream_km2": 1897.0095719633966,
+   "municipality_km2": 585.2972277028654,
+   "ratio": 3.2411046596079918
+  },
+  {
+   "codarea": "4308508",
+   "nome": "Frederico Westphalen",
+   "corridors": "386",
+   "seed_basins": 9,
+   "upstream_basins": 81,
+   "upstream_km2": 5751.613336974463,
+   "municipality_km2": 264.9599284925763,
+   "ratio": 21.70748373045252
+  },
+  {
+   "codarea": "4309050",
+   "nome": "Glorinha",
+   "corridors": "290",
+   "seed_basins": 3,
+   "upstream_basins": 4,
+   "upstream_km2": 945.6467323767001,
+   "municipality_km2": 324.6599064129231,
+   "ratio": 2.9127302561775723
+  },
+  {
+   "codarea": "4309209",
+   "nome": "Gravata\u00ed",
+   "corridors": "290",
+   "seed_basins": 7,
+   "upstream_basins": 61,
+   "upstream_km2": 5255.768684545829,
+   "municipality_km2": 467.9104832972061,
+   "ratio": 11.232423448840501
+  },
+  {
+   "codarea": "4309308",
+   "nome": "Gua\u00edba",
+   "corridors": "116",
+   "seed_basins": 16,
+   "upstream_basins": 22,
+   "upstream_km2": 702.2956599728761,
+   "municipality_km2": 376.73849513447897,
+   "ratio": 1.8641462686795192
+  },
+  {
+   "codarea": "4310504",
+   "nome": "Ira\u00ed",
+   "corridors": "386",
+   "seed_basins": 7,
+   "upstream_basins": 1694,
+   "upstream_km2": 67826.71808723372,
+   "municipality_km2": 183.00980088517983,
+   "ratio": 370.61795466237425
+  },
+  {
+   "codarea": "4310801",
+   "nome": "Ivoti",
+   "corridors": "116",
+   "seed_basins": 1,
+   "upstream_basins": 1,
+   "upstream_km2": 275.09389178184097,
+   "municipality_km2": 63.81581661010803,
+   "ratio": 4.310747811354776
+  },
+  {
+   "codarea": "4310850",
+   "nome": "Jaboticaba",
+   "corridors": "386",
+   "seed_basins": 4,
+   "upstream_basins": 6,
+   "upstream_km2": 352.14714440087016,
+   "municipality_km2": 128.06739053215324,
+   "ratio": 2.7497018791247902
+  },
+  {
+   "codarea": "4311007",
+   "nome": "Jaguar\u00e3o",
+   "corridors": "116",
+   "seed_basins": 28,
+   "upstream_basins": 437,
+   "upstream_km2": 42523.69360580314,
+   "municipality_km2": 2051.7301638688514,
+   "ratio": 20.725772986452668
+  },
+  {
+   "codarea": "4311403",
+   "nome": "Lajeado",
+   "corridors": "386",
+   "seed_basins": 4,
+   "upstream_basins": 73,
+   "upstream_km2": 23929.058178825562,
+   "municipality_km2": 90.94674565816953,
+   "ratio": 263.1106589428147
+  },
+  {
+   "codarea": "4311429",
+   "nome": "Lajeado do Bugre",
+   "corridors": "386",
+   "seed_basins": 3,
+   "upstream_basins": 58,
+   "upstream_km2": 4072.4619932462365,
+   "municipality_km2": 68.00768276614168,
+   "ratio": 59.88238133697673
+  },
+  {
+   "codarea": "4312054",
+   "nome": "Marques de Souza",
+   "corridors": "386",
+   "seed_basins": 3,
+   "upstream_basins": 8,
+   "upstream_km2": 2811.28802393884,
+   "municipality_km2": 126.04700391227514,
+   "ratio": 22.303489465687026
+  },
+  {
+   "codarea": "4312252",
+   "nome": "Minas do Le\u00e3o",
+   "corridors": "290",
+   "seed_basins": 3,
+   "upstream_basins": 200,
+   "upstream_km2": 42048.43380152561,
+   "municipality_km2": 424.0479394107702,
+   "ratio": 99.159622989687
+  },
+  {
+   "codarea": "4312401",
+   "nome": "Montenegro",
+   "corridors": "386",
+   "seed_basins": 9,
+   "upstream_basins": 67,
+   "upstream_km2": 5396.831440390634,
+   "municipality_km2": 426.28965842416994,
+   "ratio": 12.660010238908114
+  },
+  {
+   "codarea": "4312427",
+   "nome": "Morma\u00e7o",
+   "corridors": "386",
+   "seed_basins": 2,
+   "upstream_basins": 3,
+   "upstream_km2": 3063.0238708698203,
+   "municipality_km2": 146.33495618977608,
+   "ratio": 20.931593862627768
+  },
+  {
+   "codarea": "4312476",
+   "nome": "Morro Reuter",
+   "corridors": "116",
+   "seed_basins": 4,
+   "upstream_basins": 6,
+   "upstream_km2": 789.1386752870092,
+   "municipality_km2": 88.4023481428692,
+   "ratio": 8.92667097497979
+  },
+  {
+   "codarea": "4313201",
+   "nome": "Nova Petr\u00f3polis",
+   "corridors": "116",
+   "seed_basins": 9,
+   "upstream_basins": 31,
+   "upstream_km2": 2790.0034060370813,
+   "municipality_km2": 290.7822782869232,
+   "ratio": 9.594819266406962
+  },
+  {
+   "codarea": "4313375",
+   "nome": "Nova Santa Rita",
+   "corridors": "386",
+   "seed_basins": 6,
+   "upstream_basins": 426,
+   "upstream_km2": 80437.85610932793,
+   "municipality_km2": 218.4532162386469,
+   "ratio": 368.21548107332256
+  },
+  {
+   "codarea": "4313409",
+   "nome": "Novo Hamburgo",
+   "corridors": "116",
+   "seed_basins": 2,
+   "upstream_basins": 51,
+   "upstream_km2": 3186.8119093861205,
+   "municipality_km2": 222.4272685921922,
+   "ratio": 14.327433545160147
+  },
+  {
+   "codarea": "4313466",
+   "nome": "Novo Xingu",
+   "corridors": "386",
+   "seed_basins": 2,
+   "upstream_basins": 55,
+   "upstream_km2": 3463.271827499075,
+   "municipality_km2": 79.9114996433904,
+   "ratio": 43.33884163048024
+  },
+  {
+   "codarea": "4313508",
+   "nome": "Os\u00f3rio",
+   "corridors": "290",
+   "seed_basins": 9,
+   "upstream_basins": 15,
+   "upstream_km2": 3545.9746066638736,
+   "municipality_km2": 665.019327682514,
+   "ratio": 5.332137667368297
+  },
+  {
+   "codarea": "4313953",
+   "nome": "Pantano Grande",
+   "corridors": "290",
+   "seed_basins": 12,
+   "upstream_basins": 182,
+   "upstream_km2": 36799.6385299496,
+   "municipality_km2": 841.1274239921582,
+   "ratio": 43.75037298783006
+  },
+  {
+   "codarea": "4314159",
+   "nome": "Paverama",
+   "corridors": "386",
+   "seed_basins": 3,
+   "upstream_basins": 78,
+   "upstream_km2": 26402.543639391526,
+   "municipality_km2": 171.24334516588098,
+   "ratio": 154.18142885386735
+  },
+  {
+   "codarea": "4314209",
+   "nome": "Pedro Os\u00f3rio",
+   "corridors": "116",
+   "seed_basins": 8,
+   "upstream_basins": 535,
+   "upstream_km2": 54269.842436420455,
+   "municipality_km2": 604.1895356743371,
+   "ratio": 89.82254612511582
+  },
+  {
+   "codarea": "4314407",
+   "nome": "Pelotas",
+   "corridors": "116",
+   "seed_basins": 55,
+   "upstream_basins": 649,
+   "upstream_km2": 59022.3450308459,
+   "municipality_km2": 1613.395071680503,
+   "ratio": 36.582698228629496
+  },
+  {
+   "codarea": "4314423",
+   "nome": "Picada Caf\u00e9",
+   "corridors": "116",
+   "seed_basins": 4,
+   "upstream_basins": 5,
+   "upstream_km2": 514.0447835051682,
+   "municipality_km2": 84.40195754244866,
+   "ratio": 6.09043674427382
+  },
+  {
+   "codarea": "4314902",
+   "nome": "Porto Alegre",
+   "corridors": "116/290",
+   "seed_basins": 6,
+   "upstream_basins": 439,
+   "upstream_km2": 83154.49666771982,
+   "municipality_km2": 493.0849033080569,
+   "ratio": 168.64133561957524
+  },
+  {
+   "codarea": "4315131",
+   "nome": "Pouso Novo",
+   "corridors": "386",
+   "seed_basins": 3,
+   "upstream_basins": 6,
+   "upstream_km2": 2079.0405962494906,
+   "municipality_km2": 104.23963637372968,
+   "ratio": 19.944818195599993
+  },
+  {
+   "codarea": "4315701",
+   "nome": "Rio Pardo",
+   "corridors": "290",
+   "seed_basins": 25,
+   "upstream_basins": 198,
+   "upstream_km2": 41064.692244898695,
+   "municipality_km2": 2053.4599080486773,
+   "ratio": 19.997805695617824
+  },
+  {
+   "codarea": "4316402",
+   "nome": "Ros\u00e1rio do Sul",
+   "corridors": "290",
+   "seed_basins": 80,
+   "upstream_basins": 235,
+   "upstream_km2": 18726.489109001974,
+   "municipality_km2": 4344.514086025429,
+   "ratio": 4.310375967990904
+  },
+  {
+   "codarea": "4316428",
+   "nome": "Sagrada Fam\u00edlia",
+   "corridors": "386",
+   "seed_basins": 1,
+   "upstream_basins": 55,
+   "upstream_km2": 3463.271827499075,
+   "municipality_km2": 77.79313157008089,
+   "ratio": 44.51899232748002
+  },
+  {
+   "codarea": "4316972",
+   "nome": "Santa Margarida do Sul",
+   "corridors": "290",
+   "seed_basins": 4,
+   "upstream_basins": 8,
+   "upstream_km2": 2944.183978869976,
+   "municipality_km2": 953.7101079287183,
+   "ratio": 3.0870848011291376
+  },
+  {
+   "codarea": "4317608",
+   "nome": "Santo Ant\u00f4nio da Patrulha",
+   "corridors": "290",
+   "seed_basins": 15,
+   "upstream_basins": 23,
+   "upstream_km2": 2666.618280533805,
+   "municipality_km2": 1050.7020687141978,
+   "ratio": 2.537939497727546
+  },
+  {
+   "codarea": "4317756",
+   "nome": "Santo Ant\u00f4nio do Planalto",
+   "corridors": "386",
+   "seed_basins": 2,
+   "upstream_basins": 2,
+   "upstream_km2": 865.8120120454282,
+   "municipality_km2": 202.76417744431276,
+   "ratio": 4.2700442600775235
+  },
+  {
+   "codarea": "4318309",
+   "nome": "S\u00e3o Gabriel",
+   "corridors": "290",
+   "seed_basins": 34,
+   "upstream_basins": 99,
+   "upstream_km2": 12506.047992790116,
+   "municipality_km2": 5056.004282828535,
+   "ratio": 2.47350423243584
+  },
+  {
+   "codarea": "4318408",
+   "nome": "S\u00e3o Jer\u00f4nimo",
+   "corridors": "290",
+   "seed_basins": 9,
+   "upstream_basins": 290,
+   "upstream_km2": 71005.43564238113,
+   "municipality_km2": 935.9188814687061,
+   "ratio": 75.86708319310182
+  },
+  {
+   "codarea": "4318457",
+   "nome": "S\u00e3o Jos\u00e9 das Miss\u00f5es",
+   "corridors": "386",
+   "seed_basins": 2,
+   "upstream_basins": 55,
+   "upstream_km2": 3463.271827499075,
+   "municipality_km2": 96.9727046801896,
+   "ratio": 35.71388298305947
+  },
+  {
+   "codarea": "4318465",
+   "nome": "S\u00e3o Jos\u00e9 do Herval",
+   "corridors": "386",
+   "seed_basins": 2,
+   "upstream_basins": 2,
+   "upstream_km2": 940.508749178686,
+   "municipality_km2": 103.36485973923762,
+   "ratio": 9.098921544046425
+  },
+  {
+   "codarea": "4318705",
+   "nome": "S\u00e3o Leopoldo",
+   "corridors": "116",
+   "seed_basins": 2,
+   "upstream_basins": 52,
+   "upstream_km2": 3316.187594124959,
+   "municipality_km2": 102.82575317602429,
+   "ratio": 32.25055486292503
+  },
+  {
+   "codarea": "4318804",
+   "nome": "S\u00e3o Louren\u00e7o do Sul",
+   "corridors": "116",
+   "seed_basins": 59,
+   "upstream_basins": 159,
+   "upstream_km2": 18137.79334703016,
+   "municipality_km2": 2035.8305189392463,
+   "ratio": 8.909284529480734
+  },
+  {
+   "codarea": "4319000",
+   "nome": "S\u00e3o Marcos",
+   "corridors": "116",
+   "seed_basins": 1,
+   "upstream_basins": 9,
+   "upstream_km2": 8347.359441695373,
+   "municipality_km2": 255.19495617773956,
+   "ratio": 32.70973520292289
+  },
+  {
+   "codarea": "4319364",
+   "nome": "S\u00e3o Pedro das Miss\u00f5es",
+   "corridors": "386",
+   "seed_basins": 3,
+   "upstream_basins": 57,
+   "upstream_km2": 4345.8848862548375,
+   "municipality_km2": 80.89386167484011,
+   "ratio": 53.72329613492181
+  },
+  {
+   "codarea": "4319604",
+   "nome": "S\u00e3o Sep\u00e9",
+   "corridors": "290",
+   "seed_basins": 21,
+   "upstream_basins": 64,
+   "upstream_km2": 9968.10349611505,
+   "municipality_km2": 2201.5268171858793,
+   "ratio": 4.5278137964528025
+  },
+  {
+   "codarea": "4320008",
+   "nome": "Sapucaia do Sul",
+   "corridors": "116",
+   "seed_basins": 3,
+   "upstream_basins": 54,
+   "upstream_km2": 3628.9237414845898,
+   "municipality_km2": 59.43999261732968,
+   "ratio": 61.0518874867185
+  },
+  {
+   "codarea": "4320107",
+   "nome": "Sarandi",
+   "corridors": "386",
+   "seed_basins": 12,
+   "upstream_basins": 52,
+   "upstream_km2": 2727.2229929823516,
+   "municipality_km2": 354.31488524238887,
+   "ratio": 7.697173069984465
+  },
+  {
+   "codarea": "4320206",
+   "nome": "Seberi",
+   "corridors": "386",
+   "seed_basins": 7,
+   "upstream_basins": 8,
+   "upstream_km2": 1011.155673231478,
+   "municipality_km2": 302.4172175856815,
+   "ratio": 3.34357838916693
+  },
+  {
+   "codarea": "4320354",
+   "nome": "Sentinela do Sul",
+   "corridors": "116",
+   "seed_basins": 14,
+   "upstream_basins": 20,
+   "upstream_km2": 1741.4264770552898,
+   "municipality_km2": 282.47673990688554,
+   "ratio": 6.164849104493794
+  },
+  {
+   "codarea": "4320800",
+   "nome": "Soledade",
+   "corridors": "386",
+   "seed_basins": 8,
+   "upstream_basins": 9,
+   "upstream_km2": 6031.997676159755,
+   "municipality_km2": 1212.2976064235306,
+   "ratio": 4.975673996383694
+  },
+  {
+   "codarea": "4320859",
+   "nome": "Taba\u00ed",
+   "corridors": "386",
+   "seed_basins": 2,
+   "upstream_basins": 78,
+   "upstream_km2": 26402.543639391526,
+   "municipality_km2": 95.55195288267143,
+   "ratio": 276.3161070272556
+  },
+  {
+   "codarea": "4321105",
+   "nome": "Tapes",
+   "corridors": "116",
+   "seed_basins": 22,
+   "upstream_basins": 36,
+   "upstream_km2": 2024.432397632679,
+   "municipality_km2": 805.1914776522345,
+   "ratio": 2.514224819586379
+  },
+  {
+   "codarea": "4321303",
+   "nome": "Taquari",
+   "corridors": "386",
+   "seed_basins": 2,
+   "upstream_basins": 78,
+   "upstream_km2": 26402.543639391526,
+   "municipality_km2": 351.01218455877233,
+   "ratio": 75.21831093293791
+  },
+  {
+   "codarea": "4321469",
+   "nome": "Tio Hugo",
+   "corridors": "386",
+   "seed_basins": 1,
+   "upstream_basins": 1,
+   "upstream_km2": 1838.045165683899,
+   "municipality_km2": 114.08511983830874,
+   "ratio": 16.111173554350778
+  },
+  {
+   "codarea": "4322004",
+   "nome": "Triunfo",
+   "corridors": "386",
+   "seed_basins": 13,
+   "upstream_basins": 368,
+   "upstream_km2": 76721.40237672531,
+   "municipality_km2": 817.8350056115581,
+   "ratio": 93.81036743389923
+  },
+  {
+   "codarea": "4322327",
+   "nome": "Turu\u00e7u",
+   "corridors": "116",
+   "seed_basins": 14,
+   "upstream_basins": 63,
+   "upstream_km2": 1144.188621035971,
+   "municipality_km2": 252.31623189142275,
+   "ratio": 4.534740442415693
+  },
+  {
+   "codarea": "4322400",
+   "nome": "Uruguaiana",
+   "corridors": "290",
+   "seed_basins": 203,
+   "upstream_basins": 3325,
+   "upstream_km2": 197124.23872789647,
+   "municipality_km2": 5708.074271201952,
+   "ratio": 34.534280628129935
+  },
+  {
+   "codarea": "4322509",
+   "nome": "Vacaria",
+   "corridors": "116",
+   "seed_basins": 46,
+   "upstream_basins": 515,
+   "upstream_km2": 13065.121537119652,
+   "municipality_km2": 2128.0176598592966,
+   "ratio": 6.139573831348519
+  },
+  {
+   "codarea": "4323200",
+   "nome": "Victor Graeff",
+   "corridors": "386",
+   "seed_basins": 2,
+   "upstream_basins": 2,
+   "upstream_km2": 2603.904333687948,
+   "municipality_km2": 237.76786765189885,
+   "ratio": 10.951455970073141
+  },
+  {
+   "codarea": "4323457",
+   "nome": "Vila Nova do Sul",
+   "corridors": "290",
+   "seed_basins": 6,
+   "upstream_basins": 15,
+   "upstream_km2": 3926.1578086444865,
+   "municipality_km2": 509.2977995368658,
+   "ratio": 7.708962835132551
+  }
+ ]
+}

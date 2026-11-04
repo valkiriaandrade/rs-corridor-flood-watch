@@ -1,0 +1,769 @@
+{
+ "stations": [
+  {
+   "station": "74100000",
+   "name": "IRA\u00cd",
+   "river": "RIO URUGUAI",
+   "codarea": "4310504",
+   "municipio": "Ira\u00ed",
+   "drainage_km2": 61900.0,
+   "used": true,
+   "valid_share": 0.999771845767739,
+   "years_ok": 12,
+   "threshold_cm": 971.0,
+   "days_over": 21.0
+  },
+  {
+   "station": "74205000",
+   "name": "LINHA CESCON",
+   "river": "ARROIO CATURETE",
+   "codarea": "4320107",
+   "municipio": "Sarandi",
+   "drainage_km2": 437.0,
+   "used": true,
+   "valid_share": 1.0,
+   "years_ok": 12,
+   "threshold_cm": 556.5,
+   "days_over": 14.0
+  },
+  {
+   "station": "74270000",
+   "name": "PASSO RIO DA V\u00c1RZEA",
+   "river": "RIO DA V\u00c1RZEA",
+   "codarea": "4308508",
+   "municipio": "Frederico Westphalen",
+   "drainage_km2": 5340.0,
+   "used": true,
+   "valid_share": 1.0,
+   "years_ok": 12,
+   "threshold_cm": 881.5,
+   "days_over": 25.0
+  },
+  {
+   "station": "76300000",
+   "name": "PONTE IBICUI DA ARMADA",
+   "river": "RIO IBICU\u00cd DA ARMADA",
+   "codarea": "4316402",
+   "municipio": "Ros\u00e1rio do Sul",
+   "drainage_km2": 6010.0,
+   "used": true,
+   "valid_share": 1.0,
+   "years_ok": 12,
+   "threshold_cm": 598.5,
+   "days_over": 56.0
+  },
+  {
+   "station": "76310000",
+   "name": "ROS\u00c1RIO DO SUL",
+   "river": "RIO SANTA MARIA",
+   "codarea": "4316402",
+   "municipio": "Ros\u00e1rio do Sul",
+   "drainage_km2": 12100.0,
+   "used": true,
+   "valid_share": 1.0,
+   "years_ok": 12,
+   "threshold_cm": 636.5,
+   "days_over": 63.0
+  },
+  {
+   "station": "76500000",
+   "name": "JACAQU\u00c1",
+   "river": "RIO IBICU\u00cd",
+   "codarea": "4300406",
+   "municipio": "Alegrete",
+   "drainage_km2": 27800.0,
+   "used": true,
+   "valid_share": 0.9844855122062515,
+   "years_ok": 11,
+   "threshold_cm": 878.0,
+   "days_over": 67.0
+  },
+  {
+   "station": "76742000",
+   "name": "PASSO DO OS\u00d3RIO",
+   "river": "ARROIO CAVER\u00c1",
+   "codarea": "4300406",
+   "municipio": "Alegrete",
+   "drainage_km2": 1160.0,
+   "used": true,
+   "valid_share": 0.9977184576773899,
+   "years_ok": 12,
+   "threshold_cm": 622.5,
+   "days_over": 12.0
+  },
+  {
+   "station": "76750000",
+   "name": "ALEGRETE",
+   "river": "RIO IBIRAPUIT\u00c3",
+   "codarea": "4300406",
+   "municipio": "Alegrete",
+   "drainage_km2": 5867.0,
+   "used": true,
+   "valid_share": 1.0,
+   "years_ok": 12,
+   "threshold_cm": 1221.5,
+   "days_over": 30.0
+  },
+  {
+   "station": "77150000",
+   "name": "URUGUAIANA",
+   "river": "RIO URUGUAI",
+   "codarea": "4322400",
+   "municipio": "Uruguaiana",
+   "drainage_km2": 190000.0,
+   "used": true,
+   "valid_share": 0.9988592288386949,
+   "years_ok": 12,
+   "threshold_cm": 1024.5,
+   "days_over": 103.0
+  },
+  {
+   "station": "85470000",
+   "name": "PONTE S\u00c3O GABRIEL",
+   "river": "RIO VACACA\u00cd",
+   "codarea": "4318309",
+   "municipio": "S\u00e3o Gabriel",
+   "drainage_km2": 965.0,
+   "used": true,
+   "valid_share": 1.0,
+   "years_ok": 12,
+   "threshold_cm": 661.5,
+   "days_over": 33.0
+  },
+  {
+   "station": "85480000",
+   "name": "PASSO DO ROCHA",
+   "river": "RIO VACACA\u00cd",
+   "codarea": "4323457",
+   "municipio": "Vila Nova do Sul",
+   "drainage_km2": 2970.0,
+   "used": true,
+   "valid_share": 0.9929272187999088,
+   "years_ok": 12,
+   "threshold_cm": 686.0,
+   "days_over": 41.0
+  },
+  {
+   "station": "85623000",
+   "name": "S\u00c3O SEP\u00c9 - MONTANTE",
+   "river": "RIO S\u00c3O SEP\u00c9",
+   "codarea": "4319604",
+   "municipio": "S\u00e3o Sep\u00e9",
+   "drainage_km2": 690.0,
+   "used": true,
+   "valid_share": 0.9915582934063427,
+   "years_ok": 12,
+   "threshold_cm": 812.0,
+   "days_over": 11.0
+  },
+  {
+   "station": "85642000",
+   "name": "PASSO S\u00c3O LOUREN\u00c7O",
+   "river": "RIO JACU\u00cd",
+   "codarea": "4303004",
+   "municipio": "Cachoeira do Sul",
+   "drainage_km2": 27300.0,
+   "used": true,
+   "valid_share": 0.9981747661419119,
+   "years_ok": 12,
+   "threshold_cm": 1003.5,
+   "days_over": 40.0
+  },
+  {
+   "station": "85900000",
+   "name": "RIO PARDO",
+   "river": "RIO JACU\u00cd",
+   "codarea": "4315701",
+   "municipio": "Rio Pardo",
+   "drainage_km2": 38700.0,
+   "used": true,
+   "valid_share": 1.0,
+   "years_ok": 12,
+   "threshold_cm": 1130.0,
+   "days_over": 69.0
+  },
+  {
+   "station": "86881000",
+   "name": NaN,
+   "river": NaN,
+   "codarea": NaN,
+   "municipio": NaN,
+   "drainage_km2": NaN,
+   "used": false,
+   "valid_share": 0.2651152178872918,
+   "years_ok": 3,
+   "threshold_cm": NaN,
+   "days_over": NaN
+  },
+  {
+   "station": "86950000",
+   "name": "TAQUARI",
+   "river": "RIO TAQUARI",
+   "codarea": "4321303",
+   "municipio": "Taquari",
+   "drainage_km2": 25900.0,
+   "used": true,
+   "valid_share": 0.9940679899612138,
+   "years_ok": 12,
+   "threshold_cm": 939.0,
+   "days_over": 25.0
+  },
+  {
+   "station": "87020000",
+   "name": "S\u00c3O JER\u00d4NIMO",
+   "river": "RIO JACU\u00cd",
+   "codarea": "4318408",
+   "municipio": "S\u00e3o Jer\u00f4nimo",
+   "drainage_km2": 68600.0,
+   "used": true,
+   "valid_share": 0.9584759297284965,
+   "years_ok": 11,
+   "threshold_cm": 662.0,
+   "days_over": 21.0
+  },
+  {
+   "station": "87150000",
+   "name": "LINHA GONZAGA",
+   "river": "RIO CA\u00cd",
+   "codarea": "4305108",
+   "municipio": "Caxias do Sul",
+   "drainage_km2": 1350.0,
+   "used": true,
+   "valid_share": 0.9780971937029432,
+   "years_ok": 11,
+   "threshold_cm": 411.0,
+   "days_over": 13.0
+  },
+  {
+   "station": "87160000",
+   "name": "NOVA PALMIRA",
+   "river": "RIO CA\u00cd",
+   "codarea": "4305108",
+   "municipio": "Caxias do Sul",
+   "drainage_km2": 2030.0,
+   "used": true,
+   "valid_share": 0.999315537303217,
+   "years_ok": 12,
+   "threshold_cm": 497.5,
+   "days_over": 13.0
+  },
+  {
+   "station": "87290000",
+   "name": "PONTE DO CAI - BR-386",
+   "river": "RIO CA\u00cd",
+   "codarea": "4313375",
+   "municipio": "Nova Santa Rita",
+   "drainage_km2": 4810.0,
+   "used": true,
+   "valid_share": 0.7688797627195985,
+   "years_ok": 8,
+   "threshold_cm": 474.5,
+   "days_over": 35.0
+  },
+  {
+   "station": "87382000",
+   "name": "S\u00c3O LEOPOLDO",
+   "river": "RIO DOS SINOS",
+   "codarea": "4318705",
+   "municipio": "S\u00e3o Leopoldo",
+   "drainage_km2": 3130.0,
+   "used": true,
+   "valid_share": 1.0,
+   "years_ok": 12,
+   "threshold_cm": 504.0,
+   "days_over": 65.0
+  },
+  {
+   "station": "87398800",
+   "name": "PASSO GRANDE",
+   "river": "ARROIO PASSO GRANDE",
+   "codarea": "4309050",
+   "municipio": "Glorinha",
+   "drainage_km2": 120.0,
+   "used": true,
+   "valid_share": 0.9931553730321697,
+   "years_ok": 12,
+   "threshold_cm": 404.5,
+   "days_over": 10.0
+  },
+  {
+   "station": "87399000",
+   "name": "PASSO DAS CANOAS - AUXILIAR",
+   "river": "RIO GRAVATA\u00cd",
+   "codarea": "4309209",
+   "municipio": "Gravata\u00ed",
+   "drainage_km2": 1410.0,
+   "used": true,
+   "valid_share": 1.0,
+   "years_ok": 12,
+   "threshold_cm": 484.0,
+   "days_over": 114.0
+  },
+  {
+   "station": "87406000",
+   "name": "ALBATROZ",
+   "river": "RIO GRAVATA\u00cd",
+   "codarea": "4304606",
+   "municipio": "Canoas",
+   "drainage_km2": 2010.0,
+   "used": true,
+   "valid_share": 0.8571754506046088,
+   "years_ok": 10,
+   "threshold_cm": 283.0,
+   "days_over": 39.0
+  },
+  {
+   "station": "87450005",
+   "name": "ILHA DA PINTADA",
+   "river": "RIO GUA\u00cdBA",
+   "codarea": "4314902",
+   "municipio": "Porto Alegre",
+   "drainage_km2": 82500.0,
+   "used": true,
+   "valid_share": 0.8311658681268538,
+   "years_ok": 8,
+   "threshold_cm": 215.5,
+   "days_over": 66.0
+  },
+  {
+   "station": "87460007",
+   "name": NaN,
+   "river": NaN,
+   "codarea": NaN,
+   "municipio": NaN,
+   "drainage_km2": NaN,
+   "used": false,
+   "valid_share": 0.7985398129135296,
+   "years_ok": 7,
+   "threshold_cm": NaN,
+   "days_over": NaN
+  },
+  {
+   "station": "87460120",
+   "name": NaN,
+   "river": NaN,
+   "codarea": NaN,
+   "municipio": NaN,
+   "drainage_km2": NaN,
+   "used": false,
+   "valid_share": 0.7736710015970796,
+   "years_ok": 7,
+   "threshold_cm": NaN,
+   "days_over": NaN
+  },
+  {
+   "station": "87500020",
+   "name": "PONTA DOS COATIS",
+   "river": "RIO GUA\u00cdBA",
+   "codarea": "4314902",
+   "municipio": "Porto Alegre",
+   "drainage_km2": 84800.0,
+   "used": true,
+   "valid_share": 0.9826602783481634,
+   "years_ok": 12,
+   "threshold_cm": 178.0,
+   "days_over": 98.0
+  },
+  {
+   "station": "87905000",
+   "name": "PASSO DO MENDON\u00c7A",
+   "river": "RIO CAMAQU\u00c3",
+   "codarea": "4306056",
+   "municipio": "Cristal",
+   "drainage_km2": 15600.0,
+   "used": true,
+   "valid_share": 0.9425051334702259,
+   "years_ok": 11,
+   "threshold_cm": 650.0,
+   "days_over": 29.0
+  },
+  {
+   "station": "87915000",
+   "name": "PACHECA",
+   "river": "RIO CAMAQU\u00c3",
+   "codarea": "4303509",
+   "municipio": "Camaqu\u00e3",
+   "drainage_km2": 17200.0,
+   "used": true,
+   "valid_share": 0.9591603924252795,
+   "years_ok": 11,
+   "threshold_cm": 800.0,
+   "days_over": 48.0
+  },
+  {
+   "station": "87955000",
+   "name": "LARANJAL",
+   "river": "LAGOA DOS PATOS",
+   "codarea": "4314407",
+   "municipio": "Pelotas",
+   "drainage_km2": 58200.0,
+   "used": true,
+   "valid_share": 0.9682865617157198,
+   "years_ok": 11,
+   "threshold_cm": 145.0,
+   "days_over": 87.0
+  },
+  {
+   "station": "88300000",
+   "name": "PONTE JAGUAR\u00c3O",
+   "river": "RIO JAGUAR\u00c3O",
+   "codarea": "4311007",
+   "municipio": "Jaguar\u00e3o",
+   "drainage_km2": 6968.0,
+   "used": true,
+   "valid_share": 0.9217430983344741,
+   "years_ok": 10,
+   "threshold_cm": 442.5,
+   "days_over": 24.0
+  },
+  {
+   "station": "88641000",
+   "name": "PEDRO OS\u00d3RIO",
+   "river": "RIO PIRATINI",
+   "codarea": "4314209",
+   "municipio": "Pedro Os\u00f3rio",
+   "drainage_km2": 4700.0,
+   "used": true,
+   "valid_share": 1.0,
+   "years_ok": 12,
+   "threshold_cm": 954.0,
+   "days_over": 10.0
+  },
+  {
+   "station": "88750000",
+   "name": "PASSO DOS CARROS",
+   "river": "ARROIO FRAGATA",
+   "codarea": "4314407",
+   "municipio": "Pelotas",
+   "drainage_km2": 131.0,
+   "used": true,
+   "valid_share": 0.9972621492128679,
+   "years_ok": 12,
+   "threshold_cm": 387.0,
+   "days_over": 17.0
+  },
+  {
+   "station": "88850000",
+   "name": "PONTE CORDEIRO DE FARIAS",
+   "river": "ARROIO PELOTAS",
+   "codarea": "4314407",
+   "municipio": "Pelotas",
+   "drainage_km2": 386.0,
+   "used": true,
+   "valid_share": 1.0,
+   "years_ok": 12,
+   "threshold_cm": 504.0,
+   "days_over": 13.0
+  }
+ ],
+ "municipalities": 25,
+ "events": 257,
+ "episodes": 51,
+ "negatives": 98594,
+ "frozen_thresholds": {
+  "P30": {
+   "attention": 189.45634693254803,
+   "alert": 313.0456442559469
+  },
+  "EDI": {
+   "attention": 1.2549083105256167,
+   "alert": 3.3676071356155615
+  },
+  "API": {
+   "attention": 72.25482224861302,
+   "alert": 127.6129974836106
+  },
+  "EDI_bacia": {
+   "attention": 1.260688307183932,
+   "alert": 3.155442018839968
+  },
+  "API_bacia": {
+   "attention": 71.86566605864078,
+   "alert": 122.44612453250241
+  }
+ },
+ "auc": {
+  "P30": {
+   "AUC": 0.9134272225466715,
+   "CI95": [
+    0.8778825054377593,
+    0.9371122451069941
+   ]
+  },
+  "EDI": {
+   "AUC": 0.8958082941882716,
+   "CI95": [
+    0.8604790685141266,
+    0.9218364349356
+   ]
+  },
+  "API": {
+   "AUC": 0.9486518583580866,
+   "CI95": [
+    0.931245666758692,
+    0.9627174747130103
+   ]
+  },
+  "EDI_bacia": {
+   "AUC": 0.9090215827531197,
+   "CI95": [
+    0.8731667053138638,
+    0.9348180321742967
+   ]
+  },
+  "API_bacia": {
+   "AUC": 0.9674024962174398,
+   "CI95": [
+    0.9554931844816561,
+    0.9759698964272864
+   ]
+  }
+ },
+ "scores": {
+  "P30": {
+   "POD": 0.7821011673151751,
+   "POFD": 0.12855751871310628,
+   "TSS": 0.6535436486020688,
+   "POD_CI95": [
+    0.6895150679117148,
+    0.8466905312953026
+   ],
+   "POFD_CI95": [
+    0.10433975056138034,
+    0.1548890312212419
+   ],
+   "TSS_CI95": [
+    0.5596367103397978,
+    0.7230860181622984
+   ]
+  },
+  "EDI": {
+   "POD": 0.8599221789883269,
+   "POFD": 0.21943525975211473,
+   "TSS": 0.6404869192362121,
+   "POD_CI95": [
+    0.7835035130343424,
+    0.9148303298892706
+   ],
+   "POFD_CI95": [
+    0.18154234228757404,
+    0.2609263599399605
+   ],
+   "TSS_CI95": [
+    0.5553434845461401,
+    0.7073437589848851
+   ]
+  },
+  "EDI_alert": {
+   "POD": 0.2607003891050584,
+   "POFD": 0.009290626204434348,
+   "TSS": 0.25140976290062406,
+   "POD_CI95": [
+    0.18501911728035908,
+    0.3236350258786915
+   ],
+   "POFD_CI95": [
+    0.006111757761784104,
+    0.013313526622690267
+   ],
+   "TSS_CI95": [
+    0.17553970766007432,
+    0.31568056134850075
+   ]
+  },
+  "API": {
+   "POD": 0.9027237354085603,
+   "POFD": 0.12323265107410188,
+   "TSS": 0.7794910843344585,
+   "POD_CI95": [
+    0.8599962121212121,
+    0.9386816519060454
+   ],
+   "POFD_CI95": [
+    0.1057499543802561,
+    0.14347702022641384
+   ],
+   "TSS_CI95": [
+    0.7318618943329342,
+    0.8184933073097106
+   ]
+  },
+  "API_alert": {
+   "POD": 0.5525291828793775,
+   "POFD": 0.010751161328275555,
+   "TSS": 0.5417780215511019,
+   "POD_CI95": [
+    0.45069899595593366,
+    0.6428776683087027
+   ],
+   "POFD_CI95": [
+    0.007957395797430798,
+    0.013957425109052284
+   ],
+   "TSS_CI95": [
+    0.4411938164248179,
+    0.6307586986689464
+   ]
+  },
+  "EDI_bacia": {
+   "POD": 0.8560311284046692,
+   "POFD": 0.1764306144390125,
+   "TSS": 0.6796005139656567,
+   "POD_CI95": [
+    0.7835462924172601,
+    0.9078973684210526
+   ],
+   "POFD_CI95": [
+    0.13995773644651258,
+    0.21774829594379488
+   ],
+   "TSS_CI95": [
+    0.603034162454295,
+    0.7428906214393487
+   ]
+  },
+  "EDI_bacia_alert": {
+   "POD": 0.2607003891050584,
+   "POFD": 0.005690001419964704,
+   "TSS": 0.25501038768509365,
+   "POD_CI95": [
+    0.1484302662037037,
+    0.3622121062992126
+   ],
+   "POFD_CI95": [
+    0.0031104925029638375,
+    0.00887344579432545
+   ],
+   "TSS_CI95": [
+    0.14356284684516035,
+    0.3563899231735075
+   ]
+  },
+  "API_bacia": {
+   "POD": 0.9105058365758755,
+   "POFD": 0.11248148974582632,
+   "TSS": 0.7980243468300492,
+   "POD_CI95": [
+    0.8705851874428528,
+    0.9387773454705624
+   ],
+   "POFD_CI95": [
+    0.09538555047175867,
+    0.13187345671988482
+   ],
+   "TSS_CI95": [
+    0.753849215602908,
+    0.8301530737596494
+   ]
+  },
+  "API_bacia_alert": {
+   "POD": 0.5797665369649806,
+   "POFD": 0.007464957299632838,
+   "TSS": 0.5723015796653478,
+   "POD_CI95": [
+    0.484159887359199,
+    0.658275621495686
+   ],
+   "POFD_CI95": [
+    0.005135891071906688,
+    0.010276040969270352
+   ],
+   "TSS_CI95": [
+    0.47712583362058825,
+    0.6500940083685095
+   ]
+  },
+  "EDI_bacia_rule": {
+   "POD": 0.9066147859922179,
+   "POFD": 0.19097511004726453,
+   "TSS": 0.7156396759449534,
+   "POD_CI95": [
+    0.8586339620837219,
+    0.9432393646992534
+   ],
+   "POFD_CI95": [
+    0.15584080188713936,
+    0.2313006901138417
+   ],
+   "TSS_CI95": [
+    0.6548930219852227,
+    0.7666290736496152
+   ]
+  },
+  "API_bacia_rule": {
+   "POD": 0.9105058365758755,
+   "POFD": 0.11248148974582632,
+   "TSS": 0.7980243468300492,
+   "POD_CI95": [
+    0.8705851874428528,
+    0.9387773454705624
+   ],
+   "POFD_CI95": [
+    0.09538555047175867,
+    0.13187345671988482
+   ],
+   "TSS_CI95": [
+    0.753849215602908,
+    0.8301530737596494
+   ]
+  }
+ },
+ "paired": {
+  "API-EDI": {
+   "diff": 0.1390041650982463,
+   "CI95": [
+    0.06692906294918853,
+    0.22758395137936288
+   ],
+   "improves": true
+  },
+  "EDI_bacia-EDI": {
+   "diff": 0.039113594729444534,
+   "CI95": [
+    -0.006341969300555461,
+    0.08402208420440732
+   ],
+   "improves": false
+  },
+  "API_bacia-API": {
+   "diff": 0.01853326249559073,
+   "CI95": [
+    -0.017389134580104867,
+    0.05262911155644186
+   ],
+   "improves": false
+  },
+  "EDI-P30": {
+   "diff": -0.013056729365856667,
+   "CI95": [
+    -0.09641461139693652,
+    0.08637879796098766
+   ],
+   "improves": false
+  }
+ },
+ "dashboard_rule": {
+  "EDI": {
+   "index_attention": 1.260688307183932,
+   "P3_mm": 60.673542673642935
+  },
+  "API": {
+   "index_attention": 71.86566605864078,
+   "P3_mm": 80.33617264760579
+  }
+ },
+ "events_by_year": {
+  "2013": 13,
+  "2014": 10,
+  "2015": 46,
+  "2016": 16,
+  "2017": 23,
+  "2018": 5,
+  "2019": 23,
+  "2020": 8,
+  "2021": 1,
+  "2022": 8,
+  "2023": 55,
+  "2024": 49
+ }
+}

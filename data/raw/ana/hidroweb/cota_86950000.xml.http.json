@@ -1,0 +1,7 @@
+{
+ "url": "http://telemetriaws1.ana.gov.br/ServiceANA.asmx/HidroSerieHistorica?codEstacao=86950000&dataInicio=01/01/2012&dataFim=31/12/2025&tipoDados=1&nivelConsistencia=",
+ "downloaded_at_utc": "2026-11-04T18:00:36.315455+00:00",
+ "bytes": 1608264,
+ "sha256": "b966f58ebb9fb47c66bf29490992b828e21310119312b5b6d05ea11c987816ad",
+ "last_modified": null
+}

@@ -1,0 +1,6 @@
+# data refresh and full rebuild (fetch, merge_cube, study, validation_2025, forecast, forecast_skill)
+-r requirements.txt
+requests==2.34.2
+urllib3==2.8.0
+eccodes==2.50.0
+climate-indices==3.0.0

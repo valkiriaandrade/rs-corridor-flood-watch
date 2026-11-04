@@ -1,0 +1,34 @@
+{
+ "source": "ANA BHO 2017 5k, Ottobacias n\u00edvel 6 (geoft_bho_ach_otto_nivel_06.gpkg)",
+ "units": 86,
+ "min_seed_km2": 5.0,
+ "basins_used": 4689,
+ "bounds": [
+  -57.3273024,
+  -34.4379162,
+  -49.2806529,
+  -26.241183799999998
+ ],
+ "grid_rows": [
+  256,
+  339
+ ],
+ "grid_cols": [
+  627,
+  708
+ ],
+ "rain": {
+  "first_day": "1998-01-01",
+  "last_day": "2026-11-04",
+  "status_counts": {
+   "final": 9861,
+   "late": 670,
+   "early": 3,
+   "missing": 1
+  },
+  "not_ok_days_to_2024": [
+   "1998-01-01"
+  ],
+  "rule": "area-weighted mean; day valid only with >= 99% of the upstream area in valid cells"
+ }
+}

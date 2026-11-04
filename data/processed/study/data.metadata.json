@@ -1,0 +1,37 @@
+{
+ "protocol": "docs/protocol.md",
+ "units": 86,
+ "calibration": [
+  1999,
+  2012
+ ],
+ "rainfall": "MERGE V07B final, area-weighted mean over the upstream basin (ANA ottobacias level 6)",
+ "period": [
+  "2013-01-01",
+  "2024-12-31"
+ ],
+ "codes": [
+  12100,
+  12200,
+  12300,
+  13214
+ ],
+ "atlas_records_corridor_period": 490,
+ "events_after_dedup": 471,
+ "episodes": 89,
+ "samples": {
+  "positives": 471,
+  "negatives": 362614
+ },
+ "positives_with_all_predictors": 471,
+ "rain_missing_days_by_unit_max": 0,
+ "index_meta_example": {
+  "missing_rain_days": 1,
+  "pe_valid_days": 9498,
+  "edi_valid_days": 9498,
+  "calibration_pe_samples_per_calendar_position": {
+   "min": 14,
+   "max": 14
+  }
+ }
+}

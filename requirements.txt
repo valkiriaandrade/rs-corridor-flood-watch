@@ -1,0 +1,11 @@
+# Python 3.11 · app runtime (pinned to the versions used for the published results)
+streamlit==1.66.1
+pandas==3.1.0
+numpy==2.4.6
+geopandas==1.2.0
+shapely==2.2.0
+pyogrio==0.13.0
+pyproj==3.7.2
+pydeck==0.9.3
+altair==6.3.0
+matplotlib==3.11.2

@@ -1,0 +1,39 @@
+{
+ "population": "todos os munic\u00edpio-dias 2013-2024 com EDI v\u00e1lido (in-sample: regra final)",
+ "index": "EDI",
+ "rule": {
+  "index": "EDI",
+  "attention": 1.260688307183932,
+  "alert": 3.155442018839968,
+  "trigger_p3_mm": 60.673542673642935
+ },
+ "n_days": 376938,
+ "n_onsets": 471,
+ "base_rate": 0.0012495423650573834,
+ "normal": {
+  "share_days": 0.7587375112087399,
+  "share_events": 0.22717622080679406,
+  "event_rate": 0.0003741297985643206,
+  "lift_vs_base": 0.29941345649944345
+ },
+ "atencao": {
+  "share_days": 0.2173381298781232,
+  "share_events": 0.5902335456475584,
+  "event_rate": 0.003393430416366588,
+  "lift_vs_base": 2.7157385865910597
+ },
+ "alerta": {
+  "share_days": 0.02392435891313691,
+  "share_events": 0.18259023354564755,
+  "event_rate": 0.009536482590374805,
+  "lift_vs_base": 7.631980200956897
+ },
+ "atencao_ou_alerta": {
+  "share_days": 0.2412624887912601,
+  "share_events": 0.772823779193206,
+  "event_rate": 0.004002595089123717,
+  "lift_vs_base": 3.2032488061658513
+ },
+ "alert_pofd_all_non_onset_days": 0.02372585113701865,
+ "attention_or_alert_pofd_all_non_onset_days": 0.24059744944444
+}

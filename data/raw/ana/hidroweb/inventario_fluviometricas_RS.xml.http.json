@@ -1,0 +1,7 @@
+{
+ "url": "http://telemetriaws1.ana.gov.br/ServiceANA.asmx/HidroInventario?codEstDE=&codEstATE=&tpEst=1&nmEst=&nmRio=&codSubBacia=&codBacia=&nmMunicipio=&nmEstado=RIO%20GRANDE%20DO%20SUL&sgResp=&sgOper=&telemetrica=",
+ "downloaded_at_utc": "2026-11-04T17:59:01.829952+00:00",
+ "bytes": 5152368,
+ "sha256": "87715982a5a2cc8f76f75e3590f6a2961ece69867bc7ce40896f9890412953d5",
+ "last_modified": null
+}

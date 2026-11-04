@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Raw inputs are downloaded by `python -m floodwatch.fetch` (large / third-party)
+data/raw/merge/
+data/raw/atlas/*.csv
+data/raw/atlas/*.pdf
+data/raw/forecast_api/
+
+# Large derived study files (rebuilt by the pipeline)
+data/processed/study/merge_rs_cube.npz
+data/processed/study/samples.csv.gz
+data/processed/study/municipal_pe.csv.gz
+data/processed/study/municipal_edi.csv.gz
+data/processed/study/municipal_api.csv.gz
+
+# Kept in git (small, needed by the app): data/raw/spatial, data/raw/road_impacts, data/processed/study results,
+# data/processed/forecast/latest.json and only the latest run folder (force-added by scripts/daily_update.ps1)
+data/processed/forecast/runs/
+
+# Internal tests (not deployed)
+experiments/
+data/raw/chirps/
+data/processed/study/chirps_test.json
+data/processed/study/municipal_rain_chirps.csv.gz
+data/raw/forecast_archive/
+logs/
+data/processed/forecast/forecasts.sqlite
+
+# ANA raw downloads (large / third-party)
+data/raw/ana/bho/
+data/raw/ana/hidroweb/*.xml

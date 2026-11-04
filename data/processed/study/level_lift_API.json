@@ -1,0 +1,39 @@
+{
+ "population": "todos os munic\u00edpio-dias 2013-2024 com API v\u00e1lido (in-sample: regra final)",
+ "index": "API",
+ "rule": {
+  "index": "API",
+  "attention": 71.86566605864078,
+  "alert": 122.44612453250241,
+  "trigger_p3_mm": 80.33617264760579
+ },
+ "n_days": 376938,
+ "n_onsets": 471,
+ "base_rate": 0.0012495423650573834,
+ "normal": {
+  "share_days": 0.8384110914792353,
+  "share_events": 0.2802547770700637,
+  "event_rate": 0.0004176831873024311,
+  "lift_vs_base": 0.33426892835542205
+ },
+ "atencao": {
+  "share_days": 0.1352981126869671,
+  "share_events": 0.35668789808917195,
+  "event_rate": 0.003294182238867429,
+  "lift_vs_base": 2.636310965507879
+ },
+ "alerta": {
+  "share_days": 0.0262907958337976,
+  "share_events": 0.3630573248407643,
+  "event_rate": 0.01725529767911201,
+  "lift_vs_base": 13.809293835603233
+ },
+ "atencao_ou_alerta": {
+  "share_days": 0.16158890852076468,
+  "share_events": 0.7197452229299363,
+  "event_rate": 0.0055656799487760426,
+  "lift_vs_base": 4.454174667795635
+ },
+ "alert_pofd_all_non_onset_days": 0.025869465318341316,
+ "attention_or_alert_pofd_all_non_onset_days": 0.160890595988493
+}
