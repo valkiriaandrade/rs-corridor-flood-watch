@@ -31,7 +31,7 @@ export FLOODWATCH_MERGE_ARCHIVE=data/raw/merge        # folder holding the 1998-
 | 16 | `python -m floodwatch.forecast_skill download` then `evaluate` | ECMWF × GFS verification (paced; can take hours) | hours |
 | 17 | `python -m floodwatch.forecast` | `data/processed/forecast/runs/<utc>/` + SQLite archive | ~3 min |
 | 18 | `streamlit run app.py` | http://localhost:8501 | – |
-| – | `pytest -q` | 14 focused tests | < 1 min |
+| – | `pytest -q` | 15 focused tests | < 1 min |
 
 Order matters: step 12 must follow step 10 (it needs the final thresholds), and steps 13 and 17 read the rule built from
 both (`floodwatch/rules.py`).
@@ -46,6 +46,14 @@ honoured) and applies the frozen rules. If CPTEC is unreachable the local MERGE 
   catches up after the PC was off, also on battery) that runs `scripts/daily_update.ps1`: forecast, log in
   `logs/daily_update.log`, local run folders older than 30 days pruned. Remove it with
   `Unregister-ScheduledTask -TaskName 'RS Corridor Flood Watch - daily update'`.
+- **Catch-up.** `python -m floodwatch.forecast` first reconstructs the issuances of days without a run (computer off),
+  up to 14 days back, from each day's 12 UTC runs (Open-Meteo keeps past runs) and the rainfall observed up to that day
+  (`backfill: true` in the run metadata), then makes today's run. `--no-catchup` skips the reconstruction.
+- **Flood occurrences.** Preliminary reports go in `data/raw/reports/preliminary_reports.csv`
+  (`date,municipio,tipo,fonte,url,observacao`; types alagamento, enxurrada, inundação). Each run checks, at most once a
+  week, the Atlas Digital download page (`floodwatch.official_records`); a new S2iD release is downloaded with
+  provenance, loaded into the archive and replaces the preliminary reports for the dates it covers
+  (`data/raw/atlas/official_release.json`). `python -m floodwatch.official_records` forces the check.
 - **Publishing.** When the folder is a git repository with a remote, the same script keeps only the newest run folder
   in git (`data/processed/forecast/runs/` is ignored; the latest one is force-added), commits it as
   `Daily forecast <run id>` and pushes. Streamlit Community Cloud redeploys from the push, so the hosted app shows the

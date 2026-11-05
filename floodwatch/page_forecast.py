@@ -191,10 +191,14 @@ def verification_section(ix):
         names = ''
         if c and c['false_alarm_names']:
             names += f'<p class="note"><b>{tr("Alarme falso", "False alarm")}:</b> {T.esc(", ".join(c["false_alarm_names"]))}</p>'
+        if c and c.get('false_alarm_reported'):
+            names += (f'<p class="note"><b>{tr("…mas com inundação relatada", "…but with a reported flood")}:</b> '
+                      f'{T.esc(", ".join(c["false_alarm_reported"]))}</p>')
         if c and c['missed']:
             names += f'<p class="note"><b>{tr("Perdidos", "Missed")}:</b> {T.esc(", ".join(c["missed"]))}</p>'
         col.markdown(f'<div class="card"><div class="section">{model} · {ix}</div>'
                      + T.detail_rows(rows) + names + '</div>', unsafe_allow_html=True)
+    occurrence_card(s, ix)
     # accumulated, by lead
     body = ''
     for model, leads in s['by_lead'].items():
@@ -225,6 +229,45 @@ def verification_section(ix):
             f'recent observed rainfall is the preliminary MERGE version, refined over the following days. The sample is still small: the '
             f'numbers only settle after months. Detection = municipalities at observed Watch that the forecast also put at Watch; '
             f'alarms not confirmed = forecast Watch without observed Watch.') + '</p></div>', unsafe_allow_html=True)
+
+
+def occurrence_card(s, ix):
+    """Reported floods (official S2iD records, or preliminary reports until they are published) vs the forecast level."""
+    tr = T.tr
+    occ = s.get('occurrences') or {'items': [], 'by_model': {}}
+    rel = s.get('official_release') or {}
+    cover = rel.get('coverage_end')
+    released = pd.Timestamp(rel['released']).strftime(tr('%d/%m/%Y', '%d %b %Y')) if rel.get('released') else '–'
+    source_note = tr(
+        f'Registros oficiais do S2iD (Atlas Digital, versão de {released}) cobrem até {cover[:4] if cover else "–"}; '
+        f'depois disso valem os relatos preliminares (boletins da Defesa Civil e imprensa), substituídos automaticamente quando sair a '
+        f'próxima versão oficial. Só contam alagamento, enxurrada e inundação; granizo e vendaval não.',
+        f'Official S2iD records (Atlas Digital, release of {released}) cover up to {cover[:4] if cover else "–"}; after '
+        f'that, preliminary reports (Civil Defence bulletins and press) are used, replaced automatically when the next official release '
+        f'comes out. Only urban flooding, flash floods and riverine floods count; hail and wind do not.')
+    lv = {-1: tr('sem dado', 'no data'), 0: 'Normal', 1: tr('Atenção', 'Watch'), 2: tr('Alerta', 'Warning')}
+    if not occ['items']:
+        body = '<p>' + tr('Nenhuma inundação relatada nos municípios dos corredores nos dias verificados.',
+                          'No flood reported in the corridor municipalities on the verified days.') + '</p>'
+    else:
+        head = tr('<tr><th>Dia</th><th>Município</th><th>Modelo</th><th>Nível previsto</th><th>Nível com a chuva observada</th><th>Fonte</th></tr>',
+                  '<tr><th>Day</th><th>Municipality</th><th>Model</th><th>Forecast level</th><th>Level with observed rain</th><th>Source</th></tr>')
+        rows = ''
+        for it in sorted(occ['items'], key=lambda x: (x['date'], x['nome'], x['model']), reverse=True)[:30]:
+            f, o = it[ix]['forecast'], it[ix]['observed']
+            src = T.esc(it['fonte'] or it['source'])
+            if it['url']:
+                src = f'<a href="{T.esc(it["url"])}" target="_blank">{src}</a>'
+            rows += (f'<tr><td>{dm(it["date"])}</td><td>{T.esc(it["nome"])}</td><td>{it["model"]} D+{it["lead_days"]}</td>'
+                     f'<td>{lv.get(int(f), "–") if f == f and f is not None else "–"}</td>'
+                     f'<td>{lv.get(int(o), "–") if o == o and o is not None else "–"}</td>'
+                     f'<td>{src}{tr(" (preliminar)", " (preliminary)") if it["source"] == "preliminar" else ""}</td></tr>')
+        tot = ' · '.join(f'{m}: {x[ix]["at_watch"]}/{x[ix]["n"]}' for m, x in occ['by_model'].items() if ix in x)
+        body = (f'<p>{tr("Inundações relatadas que a previsão pôs em atenção ou alerta", "Reported floods the forecast put at Watch or Warning")}: '
+                f'<b>{tot}</b></p><table class="t">{head}{rows}</table>')
+    st.markdown('<div class="card" style="margin-top:10px"><div class="section">'
+                + tr('Inundações relatadas × previsão', 'Reported floods vs forecast') + f'</div>{body}'
+                + f'<p class="note">{source_note}</p></div>', unsafe_allow_html=True)
 
 
 def dm(d):

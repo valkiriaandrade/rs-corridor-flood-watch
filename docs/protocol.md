@@ -171,6 +171,7 @@ For each index (`floodwatch/rules.py`):
 | 2026-11-04 | **Second trigger adopted in the dashboard rule for both indices** (§10). | after §9.3 results |
 | 2026-11-04 | Dashboard rule scored against gauged river floods (§8.2), frozen thresholds, descriptive. Forecast archive gains `rain_mm` (daily rainfall of the day; `P1` is the two-day maximum). | after §9.3 results |
 | 2026-11-05 | Prospective forecast verification shown on the forecast page (`verification.json`): each forecast level vs the same rule on later MERGE rainfall, by model and lead; descriptive, nothing is fitted on it. | before results accumulate |
+| 2026-11-05 | Reported floods added to the prospective verification: official S2iD records where a release covers the date, preliminary reports (alagamento, enxurrada, inundação only) after that; automatic weekly check for new releases. Missing issuances reconstructed from past 12 UTC runs (`backfill`). | before results accumulate |
 
 ## 12. Known limitations
 

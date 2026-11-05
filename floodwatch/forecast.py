@@ -6,7 +6,12 @@ Rainfall of each municipality is the area-weighted mean over its upstream basin 
             upstream basin, summed over the 12-12 UTC window (MERGE convention) and aggregated to each basin by area
 EDI (calibration 1999-2012) and API (k = 0.90) are computed on observed + forecast rainfall and classified with
 floodwatch.rules (Watch / Warning thresholds plus the frozen 3-day trigger).
-Run: python -m floodwatch.forecast
+
+Catch-up: days without a run (computer off) are reconstructed first, each from that day's 12 UTC runs (Open-Meteo
+keeps past runs) and the observed rainfall up to that day, so the verification archive has no gaps. Their metadata
+says `backfill: true`; the observed rainfall used is the version available when they were processed.
+    python -m floodwatch.forecast                 # catch up missing days (up to 14), then today's run
+    python -m floodwatch.forecast --no-catchup    # today's run only
 """
 from datetime import datetime, timezone
 import json
@@ -23,6 +28,7 @@ from .paths import FORECAST as OUT, FORECAST_RAW as RAWF, ROOT
 
 MODELS = {'ECMWF': ('ecmwf_ifs', 'ecmwf_ifs'), 'GFS': ('gfs_global', 'ncep_gfs013')}  # Open-Meteo model, metadata id
 FORECAST_DAYS = 10
+BACKFILL_DAYS = 14  # how far back missing issuances are reconstructed
 OBSERVED_DAYS_KEPT = 3  # last observed days stored with each run (verification of earlier forecasts)
 
 
@@ -56,10 +62,12 @@ def _get(url, tries=4):
         return r
 
 
-def forecast_daily(points, model, stamp, batch_size=50, pause=1.0):
-    """Daily 12-12 UTC forecast rainfall (date x point id) for `points` (columns point, lat, lon); raw JSON archived."""
+def forecast_daily(points, model, stamp, run=None, batch_size=50, pause=1.0):
+    """Daily 12-12 UTC forecast rainfall (date x point id) for `points` (columns point, lat, lon); raw JSON archived.
+
+    run: initialisation time (UTC); default = the latest 12 UTC run published for the model."""
     identifier, meta_id = MODELS[model]
-    run = latest_run(meta_id)
+    run = latest_run(meta_id) if run is None else pd.Timestamp(run)
     pts = list(zip(points.point, points.lat, points.lon))
     rows = []
     for off in range(0, len(pts), batch_size):
@@ -107,26 +115,46 @@ def index_table(series):
     return study.predictors(series, frame(pe), frame(edi), frame(api))
 
 
-def run():
-    stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
-    units = gpd.read_file(study.OUT / 'units.geojson')
-    units['codarea'] = units.codarea.astype(str)
-    try:  # refresh recent MERGE (missing days, 'early' -> newer versions); offline keeps the local files
+def refresh_merge(days):
+    """Refresh recent MERGE files (missing days, 'early' -> newer versions); offline keeps the local files."""
+    try:
         from .fetch import merge as fetch_merge
         today = pd.Timestamp.now(tz='UTC').tz_localize(None).normalize()
-        fetch_merge(today - pd.Timedelta(days=14), today)
+        fetch_merge(today - pd.Timedelta(days=days), today)
     except Exception as error:
         print('MERGE recente não atualizado:', type(error).__name__)
+
+
+def observed_rain():
+    """Observed basin rainfall: study series to 2024 + recomputed MERGE from 2025; and the MERGE product per day."""
     hist = study.study_rain('2024-12-31')
     recent, states = upstream.compute_rain('2025-01-01')
-    observed = pd.concat([hist, recent[hist.columns]])
+    return pd.concat([hist, recent[hist.columns]]), states
+
+
+def run(issue=None, observed=None, states=None):
+    """One forecast run. issue=None: today's run (latest 12 UTC runs, every observed day). issue=date: reconstructs
+    the issuance of that date (its 12 UTC runs, observed rainfall up to that day); latest.json is not touched."""
+    stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
+    while (OUT / 'runs' / stamp).exists():
+        time.sleep(1)
+        stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
+    units = gpd.read_file(study.OUT / 'units.geojson')
+    units['codarea'] = units.codarea.astype(str)
+    if observed is None:
+        refresh_merge(BACKFILL_DAYS)
+        observed, states = observed_rain()
+    if issue is not None:
+        issue = pd.Timestamp(issue).normalize()
+        observed = observed.loc[:issue]
     cutoff = observed.index.max()
+    init = None if issue is None else (issue + pd.Timedelta(hours=12)).tz_localize('UTC')
     points, point_weights = upstream.forecast_grid()
     rule = rules.load_rules()
     tables, runs = [], {}
     for model in MODELS:
-        fc_points, init = forecast_daily(points, model, stamp)
-        runs[model] = init.isoformat()
+        fc_points, model_init = forecast_daily(points, model, stamp, run=init)
+        runs[model] = model_init.isoformat()
         fc = basin_mean(fc_points, point_weights)
         fc = fc.loc[fc.index > cutoff, observed.columns]
         gap = pd.date_range(cutoff + pd.Timedelta(days=1), fc.index.min() - pd.Timedelta(days=1)) if len(fc) else []
@@ -150,17 +178,60 @@ def run():
             'rainfall': f'upstream-basin mean (ANA ottobacias); forecast on a 0.25-degree grid of {len(points)} points',
             'antecedent_product_last_30d': last30.value_counts().to_dict(),
             'rules': {ix: r.as_dict() for ix, r in rule.items()}, 'api_k': indices.API_K, 'units': len(units),
+            'backfill': issue is not None,
             'note': 'Regras validadas com chuva observada (MERGE V07B final, 2013-2024); na previsão herdam o erro do modelo.'}
     (run_dir / 'metadata.json').write_text(json.dumps(meta, indent=1, default=str), encoding='utf-8')
-    (OUT / 'latest.json').write_text(json.dumps({'run': run_dir.relative_to(ROOT).as_posix()}), encoding='utf-8')
+    if issue is None:
+        (OUT / 'latest.json').write_text(json.dumps({'run': run_dir.relative_to(ROOT).as_posix()}), encoding='utf-8')
     try:  # archive for later verification (sql/validation.sql); never blocks the forecast itself
-        from .forecast_db import ingest, write_summary
+        from .forecast_db import ingest
         ingest(run_dir)
-        write_summary()  # forecast vs observed so far -> verification.json (published with the run)
     except Exception as error:
         print('forecast_db ingest failed:', error)
-    print(json.dumps(meta, indent=1, default=str))
+    print(('backfill ' if issue is not None else '') + f'run {stamp}: observed to {cutoff.date()}, models {runs}')
+    return run_dir
+
+
+def missing_issues(today_run):
+    """Issuance dates (12 UTC runs) without an archived run, from BACKFILL_DAYS ago up to the day before today_run."""
+    from .forecast_db import connect
+    con = connect()
+    have = {pd.Timestamp(r[0]).tz_convert(None).normalize() if pd.Timestamp(r[0]).tzinfo else pd.Timestamp(r[0]).normalize()
+            for r in con.execute('SELECT ecmwf_run FROM runs WHERE ecmwf_run IS NOT NULL')}
+    con.close()
+    if not have:
+        return []  # a fresh archive starts today; nothing to reconstruct
+    last = pd.Timestamp(today_run).tz_convert(None).normalize()
+    start = max(max(have) + pd.Timedelta(days=1), last - pd.Timedelta(days=BACKFILL_DAYS))
+    return [d for d in pd.date_range(start, last - pd.Timedelta(days=1)) if d not in have]
+
+
+def daily(catchup=True):
+    """What the scheduled task runs: reconstruct the missing issuances, then today's run; refresh the summaries."""
+    today_run = latest_run(MODELS['ECMWF'][1])
+    todo = missing_issues(today_run) if catchup else []
+    if todo:
+        print('reconstructing', [str(d.date()) for d in todo])
+    refresh_merge(BACKFILL_DAYS + 2)
+    observed, states = observed_rain()
+    for d in todo:
+        try:
+            run(issue=d, observed=observed, states=states)
+        except Exception as error:  # a missing past run never blocks today's forecast
+            print(f'backfill {d.date()} failed:', type(error).__name__, error)
+    run(observed=observed, states=states)
+    try:
+        from . import official_records
+        official_records.update()
+    except Exception as error:
+        print('official records not updated:', type(error).__name__, error)
+    try:
+        from .forecast_db import write_summary
+        write_summary()  # forecast vs observed (and reported floods) -> verification.json, published with the run
+    except Exception as error:
+        print('verification summary failed:', type(error).__name__, error)
 
 
 if __name__ == '__main__':
-    run()
+    import sys
+    daily(catchup='--no-catchup' not in sys.argv)

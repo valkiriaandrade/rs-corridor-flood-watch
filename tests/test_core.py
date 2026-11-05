@@ -129,3 +129,15 @@ def test_forecast_verification_counts_watch_and_skips_missing_levels():
     c = _contingency(fc, obs)
     assert (c['n'], c['hits'], c['false_alarms'], c['misses'], c['correct_negatives']) == (5, 2, 1, 1, 1)
     assert c['POD'] == pytest.approx(2 / 3) and c['FAR'] == pytest.approx(1 / 3)
+
+
+def test_preliminary_reports_keep_only_water_events_in_corridor_municipalities(tmp_path, monkeypatch):
+    from floodwatch import official_records
+    f = tmp_path / 'reports.csv'
+    f.write_text('date,municipio,tipo,fonte,url,observacao\n'
+                 '2026-11-05,caxias do sul,Alagamento,x,,\n'      # accents/case-insensitive match, kept
+                 '2026-11-05,Lajeado,granizo,x,,\n'               # hail is not a flood type, dropped
+                 '2026-11-05,Tapera,inundação,x,,\n', encoding='utf-8')  # outside the corridors, dropped
+    monkeypatch.setattr(official_records, 'REPORTS', f)
+    r = official_records.preliminary_reports()
+    assert r.nome.tolist() == ['Caxias do Sul'] and r.date.tolist() == ['2026-11-05']

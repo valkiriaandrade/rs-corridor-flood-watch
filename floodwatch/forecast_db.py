@@ -153,6 +153,38 @@ def _rain(v):
             'heavy_forecast': int((v.fc_rain >= 20).sum())}
 
 
+def occurrences(con):
+    """Flood occurrences for verification: official S2iD records (events table) where an official release covers the
+    date, preliminary reports after that. Columns: date, codarea, source ('S2iD' | 'preliminar'), tipo, fonte, url."""
+    from .official_records import coverage_end, preliminary_reports
+    end = coverage_end()
+    off = pd.read_sql_query('SELECT date, codarea, cobrade FROM events', con)
+    off = off.assign(source='S2iD', tipo='COBRADE ' + off.cobrade.astype(str), fonte='S2iD', url='')
+    pre = preliminary_reports().assign(source='preliminar')
+    if end is not None:
+        off = off[pd.to_datetime(off.date) <= end]
+        pre = pre[pd.to_datetime(pre.date) > end]
+    cols = ['date', 'codarea', 'source', 'tipo', 'fonte', 'url']
+    return pd.concat([off[cols], pre[cols]], ignore_index=True).drop_duplicates(['date', 'codarea', 'source'])
+
+
+def _occurrence_block(v, occ):
+    """Each occurrence on a verified day with the level of the latest forecast issued before that day, per model."""
+    if occ.empty:
+        return {'items': [], 'by_model': {}}
+    last = v[v.run_id == v.groupby(['date', 'model']).run_id.transform('max')]
+    m = last.merge(occ, on=['date', 'codarea'], how='inner')
+    items = [{'date': r.date, 'nome': r.nome, 'model': r.model, 'lead_days': int(r.lead_days), 'source': r.source,
+              'tipo': r.tipo, 'fonte': r.fonte, 'url': r.url,
+              'EDI': {'forecast': r.fc_level, 'observed': r.obs_level},
+              'API': {'forecast': r.fc_level_api, 'observed': r.obs_level_api}} for r in m.itertuples()]
+    by_model = {}
+    for model, g in m.groupby('model'):
+        by_model[model] = {ix: {'n': int(g[fc].notna().sum()), 'at_watch': int((g[fc] >= 1).sum()),
+                                'at_warning': int((g[fc] == 2).sum())} for ix, (fc, _) in LEVEL_COLS.items()}
+    return {'items': items, 'by_model': by_model}
+
+
 def summary(con=None):
     """Forecast vs observed, from the archive: accumulated by model and lead, plus the most recent verified day.
 
@@ -161,11 +193,15 @@ def summary(con=None):
     con = con or connect()
     v = pd.read_sql_query('SELECT * FROM verification', con)
     runs = pd.read_sql_query('SELECT run_id, ecmwf_run, gfs_run, observed_cutoff FROM runs', con).set_index('run_id')
+    occ = occurrences(con)
     if own:
         con.close()
-    out = {'verified_days': sorted(v.date.unique().tolist()), 'issuances': int(v.run_id.nunique()), 'by_lead': {}, 'latest': None}
+    from .official_records import state
+    out = {'verified_days': sorted(v.date.unique().tolist()), 'issuances': int(v.run_id.nunique()), 'by_lead': {}, 'latest': None,
+           'official_release': {k: state().get(k) for k in ('file', 'released', 'coverage_end', 'checked_utc')}}
     if v.empty:
         return out
+    out['occurrences'] = _occurrence_block(v, occ)
     v['lead'] = v.lead_days.clip(upper=4)  # D+4 and beyond pooled
     for (model, lead), g in v.groupby(['model', 'lead']):
         out['by_lead'].setdefault(model, {})[str(int(lead))] = {
@@ -189,6 +225,8 @@ def summary(con=None):
             c = _contingency(g[fc], g[ob])
             c['missed'] = sorted(g.loc[(g[fc] == 0) & (g[ob] >= 1), 'nome'].tolist())
             c['false_alarm_names'] = sorted(g.loc[(g[fc] >= 1) & (g[ob] == 0), 'nome'].tolist())
+            reported = set(occ.loc[occ.date == day, 'codarea'])  # a flood was reported there: not a false alarm in practice
+            c['false_alarm_reported'] = sorted(g.loc[(g[fc] >= 1) & (g[ob] == 0) & g.codarea.isin(reported), 'nome'].tolist())
             c['forecast_watch'], c['observed_watch'] = int((g[fc] >= 1).sum()), int((g[ob] >= 1).sum())
             r[ix] = c
         latest['models'][model] = r

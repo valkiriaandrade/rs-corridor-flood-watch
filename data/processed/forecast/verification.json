@@ -140,6 +140,7 @@
       "São Jerônimo",
       "Triunfo"
      ],
+     "false_alarm_reported": [],
      "forecast_watch": 35,
      "observed_watch": 29
     },
@@ -162,6 +163,7 @@
       "São Marcos",
       "Triunfo"
      ],
+     "false_alarm_reported": [],
      "forecast_watch": 43,
      "observed_watch": 35
     }
@@ -202,6 +204,7 @@
       "São José das Missões",
       "São Pedro das Missões"
      ],
+     "false_alarm_reported": [],
      "forecast_watch": 39,
      "observed_watch": 29
     },
@@ -221,10 +224,21 @@
       "Nova Petrópolis",
       "São Marcos"
      ],
+     "false_alarm_reported": [],
      "forecast_watch": 40,
      "observed_watch": 35
     }
    }
   }
+ },
+ "official_release": {
+  "file": "BD_Atlas_1991_2025_v1.1_2026.08.06_Consolidado.csv",
+  "released": "2026-08-06",
+  "coverage_end": "2025-12-31",
+  "checked_utc": "2026-11-05T17:41:41.022004+00:00"
+ },
+ "occurrences": {
+  "items": [],
+  "by_model": {}
  }
 }

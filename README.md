@@ -103,6 +103,10 @@ Streamlit, two pages, Portuguese and English (`?lang=en`), light corporate theme
 - **Forecast vs observed**, updated every day: the latest verified day per model (forecast vs observed rainfall, municipalities
   at Watch forecast vs observed, false alarms and misses by name) and the accumulated detection, unconfirmed alarms and
   rainfall bias by lead time. *Observed* = the same rule computed later with MERGE rainfall.
+- **Reported floods vs forecast:** every flood reported in a corridor municipality on a verified day, with the forecast
+  level and the level with observed rain. Official S2iD records are used where an official release covers the date;
+  after that, preliminary reports (Civil Defence bulletins, press) from `data/raw/reports/preliminary_reports.csv`.
+  A new official release is detected and loaded automatically.
 - **Model verification** panel: which model forecast heavy rain better, by lead time (archived runs 2024–2026).
 - **Executive briefing (PDF, A4, two pages):**
   - *page 1:* bottom line per corridor, map, municipalities to watch, logistics references, model agreement and
@@ -265,7 +269,8 @@ flowchart LR
 | `figures` | Derived tables for the study page (ROC, risk multiplier, May-2024 timeline, leads, road check) |
 | `forecast_skill` | ECMWF vs GFS verification against MERGE, pre-registered |
 | `forecast` | Daily run: refresh MERGE, basin rainfall, ECMWF/GFS 12 UTC runs (paced requests), apply the rules |
-| `forecast_db` | SQLite archive of every run (schema in `sql/`), observed vs forecast verification views |
+| `forecast_db` | SQLite archive of every run (schema in `sql/`), observed vs forecast verification views, `verification.json` |
+| `official_records` | Weekly check of the Atlas Digital download page for a new S2iD release (auto-loaded); preliminary flood reports |
 | `page_forecast`, `page_study`, `briefing`, `ui_theme`, `exposure` | Streamlit pages, the PDF briefing, the shared visual system and public logistics references |
 
 ### Data layout
@@ -292,9 +297,9 @@ the levels computed from forecast rainfall are verified prospectively, from Nove
 
 ### Quality
 
-- `pytest -q`: 14 focused tests, covering block bootstrap and scores, event chaining, the 12 UTC window, the rule and
+- `pytest -q`: 15 focused tests, covering block bootstrap and scores, event chaining, the 12 UTC window, the rule and
   trigger, rule compatibility with older runs, the Pfafstetter upstream rule, basin means, GRIB cropping, EDI
-  calibration, API recursion and missing days, forecast-verification counts, and module reachability.
+  calibration, API recursion and missing days, forecast-verification counts, preliminary-report filtering, and module reachability.
 - `pyflakes` clean. External requests are paced, honour `Retry-After` and never retry aggressively.
 
 ---
@@ -311,7 +316,8 @@ streamlit run app.py                                # uses the bundled processed
   updates MERGE for the last 14 days, fetches the latest ECMWF/GFS runs and applies the frozen rules.
 - **Rebuild everything from raw data:** 18 steps, listed in [docs/runbook.md](docs/runbook.md).
 - **Daily operation:** `scripts/install_daily_task.ps1` registers a Windows task that runs the forecast every evening
-  and publishes the new run.
+  and publishes the new run. If the computer was off, the next run first reconstructs every missing day (up to 14),
+  each from that day's 12 UTC model runs and the rainfall observed up to that day, so the verification has no gaps.
 - **Tests:** `pip install -r requirements-dev.txt && pytest -q`.
 
 ---

@@ -32,12 +32,13 @@ foreach ($dir in @('data\processed\forecast\runs', 'data\raw\forecast_api')) {
 
 # publish: git keeps only the latest run folder (runs/ is ignored; the latest one is force-added)
 $isRepo = Test-Path (Join-Path $root '.git')
-$hasRemote = $isRepo -and ((& git remote) -ne $null)
+$hasRemote = $isRepo -and ($null -ne (& git remote))
 if ($NoPublish -or -not $hasRemote) { Log 'publish skipped'; exit 0 }
 foreach ($old in (& git ls-files 'data/processed/forecast/runs' | Where-Object { $_ -notlike "$latest/*" })) {
     & git rm --cached --quiet -- $old 2>&1 | ForEach-Object { Log $_ }
 }
-& git add -f -- 'data/processed/forecast/latest.json' 'data/processed/forecast/verification.json' $latest 2>&1 | ForEach-Object { Log $_ }
+& git add -f -- 'data/processed/forecast/latest.json' 'data/processed/forecast/verification.json' $latest `
+    'data/raw/reports/preliminary_reports.csv' 'data/raw/atlas/official_release.json' 2>&1 | ForEach-Object { Log $_ }
 & git diff --cached --quiet
 if ($LASTEXITCODE -eq 0) { Log 'publish: nothing new'; exit 0 }
 & git commit --quiet -m "Daily forecast $keep" 2>&1 | ForEach-Object { Log $_ }
