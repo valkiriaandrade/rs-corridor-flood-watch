@@ -238,7 +238,69 @@
   "checked_utc": "2026-11-05T17:41:41.022004+00:00"
  },
  "occurrences": {
-  "items": [],
-  "by_model": {}
+  "items": [
+   {
+    "date": "2026-11-04",
+    "nome": "Santo Antônio do Planalto",
+    "model": "ECMWF",
+    "lead_days": 1,
+    "source": "S2iD",
+    "tipo": "COBRADE 13214",
+    "fonte": "S2iD RS-F-4317756-13214-20261104",
+    "url": "",
+    "EDI": {
+     "forecast": 1,
+     "observed": 1
+    },
+    "API": {
+     "forecast": NaN,
+     "observed": 1
+    }
+   },
+   {
+    "date": "2026-11-04",
+    "nome": "Santo Antônio do Planalto",
+    "model": "GFS",
+    "lead_days": 1,
+    "source": "S2iD",
+    "tipo": "COBRADE 13214",
+    "fonte": "S2iD RS-F-4317756-13214-20261104",
+    "url": "",
+    "EDI": {
+     "forecast": 1,
+     "observed": 1
+    },
+    "API": {
+     "forecast": NaN,
+     "observed": 1
+    }
+   }
+  ],
+  "by_model": {
+   "ECMWF": {
+    "EDI": {
+     "n": 1,
+     "at_watch": 1,
+     "at_warning": 0
+    },
+    "API": {
+     "n": 0,
+     "at_watch": 0,
+     "at_warning": 0
+    }
+   },
+   "GFS": {
+    "EDI": {
+     "n": 1,
+     "at_watch": 1,
+     "at_warning": 0
+    },
+    "API": {
+     "n": 0,
+     "at_watch": 0,
+     "at_warning": 0
+    }
+   }
+  }
  }
 }

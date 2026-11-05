@@ -4,5 +4,7 @@
  "released": "2026-08-06",
  "coverage_end": "2025-12-31",
  "records_loaded": 829,
- "loaded_utc": "2026-11-05T17:41:41.022004+00:00"
+ "loaded_utc": "2026-11-05T17:41:41.022004+00:00",
+ "s2id_checked_utc": "2026-11-05T17:55:16.594619+00:00",
+ "s2id_corridor_records": 15
 }
