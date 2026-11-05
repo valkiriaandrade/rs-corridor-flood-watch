@@ -31,7 +31,7 @@ export FLOODWATCH_MERGE_ARCHIVE=data/raw/merge        # folder holding the 1998-
 | 16 | `python -m floodwatch.forecast_skill download` then `evaluate` | ECMWF × GFS verification (paced; can take hours) | hours |
 | 17 | `python -m floodwatch.forecast` | `data/processed/forecast/runs/<utc>/` + SQLite archive | ~3 min |
 | 18 | `streamlit run app.py` | http://localhost:8501 | – |
-| – | `pytest -q` | 13 focused tests | < 1 min |
+| – | `pytest -q` | 14 focused tests | < 1 min |
 
 Order matters: step 12 must follow step 10 (it needs the final thresholds), and steps 13 and 17 read the rule built from
 both (`floodwatch/rules.py`).

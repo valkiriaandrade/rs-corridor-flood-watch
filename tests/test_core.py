@@ -5,6 +5,7 @@ import pytest
 
 from floodwatch import indices, merge_cube, rules, stats, study
 from floodwatch.forecast import basin_mean, daily_12utc
+from floodwatch.forecast_db import _contingency
 from floodwatch.upstream import upstream_mask
 
 
@@ -120,3 +121,11 @@ def test_api_is_the_library_recursion_and_propagates_gaps():
 def test_study_keeps_indices_module_reachable():
     # regression: a function named `indices` once shadowed the module and broke `--stage data`
     assert callable(study.indices.compute) and callable(study.compute_indices)
+
+
+def test_forecast_verification_counts_watch_and_skips_missing_levels():
+    fc = pd.Series([2, 1, 0, 0, 1, -1])
+    obs = pd.Series([1, 0, 1, 0, 2, 1])   # the last pair has no forecast level and is excluded
+    c = _contingency(fc, obs)
+    assert (c['n'], c['hits'], c['false_alarms'], c['misses'], c['correct_negatives']) == (5, 2, 1, 1, 1)
+    assert c['POD'] == pytest.approx(2 / 3) and c['FAR'] == pytest.approx(1 / 3)

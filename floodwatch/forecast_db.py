@@ -8,6 +8,7 @@ covers the period: `python -m floodwatch.forecast_db events <atlas.csv>`.
     python -m floodwatch.forecast_db ingest-all          # (re)load every run folder
     python -m floodwatch.forecast_db events PATH.csv     # load official records for verification
     python -m floodwatch.forecast_db report              # runs sql/validation.sql
+    python -m floodwatch.forecast_db summary             # forecast vs observed -> verification.json (shown in the app)
     sqlite3 data/processed/forecast/forecasts.sqlite < sql/validation.sql   # same, with the sqlite3 CLI
 """
 import argparse
@@ -128,6 +129,79 @@ def load_events(path):
     return len(atlas)
 
 
+SUMMARY = FORECAST / 'verification.json'
+LEVEL_COLS = {'EDI': ('fc_level', 'obs_level'), 'API': ('fc_level_api', 'obs_level_api')}
+
+
+def _contingency(fc, obs):
+    """Watch-or-above (level >= 1) forecast vs the same rule on observed rainfall; days without data excluded."""
+    ok = (fc >= 0) & (obs >= 0)
+    f, o = fc[ok] >= 1, obs[ok] >= 1
+    hits, fa, miss = int((f & o).sum()), int((f & ~o).sum()), int((~f & o).sum())
+    return {'n': int(ok.sum()), 'hits': hits, 'false_alarms': fa, 'misses': miss, 'correct_negatives': int((~f & ~o).sum()),
+            'POD': hits / (hits + miss) if hits + miss else None, 'FAR': fa / (hits + fa) if hits + fa else None}
+
+
+def _rain(v):
+    v = v.dropna(subset=['fc_rain', 'obs_rain'])
+    if v.empty:
+        return None
+    return {'n': int(len(v)), 'fc_mean': float(v.fc_rain.mean()), 'obs_mean': float(v.obs_rain.mean()),
+            'bias_ratio': float(v.fc_rain.sum() / v.obs_rain.sum()) if v.obs_rain.sum() > 0 else None,
+            'mae': float((v.fc_rain - v.obs_rain).abs().mean()),
+            'heavy_observed': int((v.obs_rain >= 20).sum()), 'heavy_hits': int(((v.fc_rain >= 20) & (v.obs_rain >= 20)).sum()),
+            'heavy_forecast': int((v.fc_rain >= 20).sum())}
+
+
+def summary(con=None):
+    """Forecast vs observed, from the archive: accumulated by model and lead, plus the most recent verified day.
+
+    'Observed' is the same rule applied to MERGE rainfall once it is published (not an official flood record)."""
+    own = con is None
+    con = con or connect()
+    v = pd.read_sql_query('SELECT * FROM verification', con)
+    runs = pd.read_sql_query('SELECT run_id, ecmwf_run, gfs_run, observed_cutoff FROM runs', con).set_index('run_id')
+    if own:
+        con.close()
+    out = {'verified_days': sorted(v.date.unique().tolist()), 'issuances': int(v.run_id.nunique()), 'by_lead': {}, 'latest': None}
+    if v.empty:
+        return out
+    v['lead'] = v.lead_days.clip(upper=4)  # D+4 and beyond pooled
+    for (model, lead), g in v.groupby(['model', 'lead']):
+        out['by_lead'].setdefault(model, {})[str(int(lead))] = {
+            'days': int(g.date.nunique()), 'rain': _rain(g),
+            **{ix: _contingency(g[fc], g[ob]) for ix, (fc, ob) in LEVEL_COLS.items() if g[fc].notna().any()}}
+    day = v.date.max()
+    first = v[(v.date == day)]
+    first = first[first.run_id == first.run_id.max()]  # the latest forecast issued before the day was observed
+    rid = first.run_id.iloc[0]
+    latest = {'date': day, 'lead_days': int(first.lead_days.min()), 'run_id': rid, 'model_runs': {
+        'ECMWF': runs.at[rid, 'ecmwf_run'], 'GFS': runs.at[rid, 'gfs_run']}, 'observed_cutoff': runs.at[rid, 'observed_cutoff'],
+        'models': {}}
+    for model, g in first.groupby('model'):
+        r = {'rain': _rain(g)}
+        if r['rain']:
+            fmax, omax = g.loc[g.fc_rain.idxmax()], g.loc[g.obs_rain.idxmax()]
+            r['rain'].update(fc_max=float(fmax.fc_rain), fc_max_nome=fmax.nome, obs_max=float(omax.obs_rain), obs_max_nome=omax.nome)
+        for ix, (fc, ob) in LEVEL_COLS.items():
+            if not g[fc].notna().any():
+                continue
+            c = _contingency(g[fc], g[ob])
+            c['missed'] = sorted(g.loc[(g[fc] == 0) & (g[ob] >= 1), 'nome'].tolist())
+            c['false_alarm_names'] = sorted(g.loc[(g[fc] >= 1) & (g[ob] == 0), 'nome'].tolist())
+            c['forecast_watch'], c['observed_watch'] = int((g[fc] >= 1).sum()), int((g[ob] >= 1).sum())
+            r[ix] = c
+        latest['models'][model] = r
+    out['latest'] = latest
+    return out
+
+
+def write_summary():
+    s = summary()
+    SUMMARY.write_text(json.dumps(s, indent=1, ensure_ascii=False, default=float), encoding='utf-8')
+    return s
+
+
 def report():
     """Run sql/validation.sql without the sqlite3 command-line tool."""
     con = connect()
@@ -146,11 +220,13 @@ def report():
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('cmd', choices=['ingest-all', 'events', 'report'])
+    ap.add_argument('cmd', choices=['ingest-all', 'events', 'report', 'summary'])
     ap.add_argument('path', nargs='?')
     a = ap.parse_args()
     if a.cmd == 'report':
         report()
+    elif a.cmd == 'summary':
+        print(json.dumps(write_summary()['latest'], indent=1, ensure_ascii=False, default=float))
     else:
         print(ingest_all() if a.cmd == 'ingest-all' else load_events(a.path))
 

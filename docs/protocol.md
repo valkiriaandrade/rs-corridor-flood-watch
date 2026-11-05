@@ -170,6 +170,7 @@ For each index (`floodwatch/rules.py`):
 | 2026-11-04 | River-state predictor (§9.2) and second trigger (§9.3) registered. | before running |
 | 2026-11-04 | **Second trigger adopted in the dashboard rule for both indices** (§10). | after §9.3 results |
 | 2026-11-04 | Dashboard rule scored against gauged river floods (§8.2), frozen thresholds, descriptive. Forecast archive gains `rain_mm` (daily rainfall of the day; `P1` is the two-day maximum). | after §9.3 results |
+| 2026-11-05 | Prospective forecast verification shown on the forecast page (`verification.json`): each forecast level vs the same rule on later MERGE rainfall, by model and lead; descriptive, nothing is fitted on it. | before results accumulate |
 
 ## 12. Known limitations
 

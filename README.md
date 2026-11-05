@@ -100,7 +100,10 @@ Streamlit, two pages, Portuguese and English (`?lang=en`), light corporate theme
   with tooltips.
 - **Per-corridor cards** with the municipalities at Watch or Warning, a recommended action per level, an alert feed
   and a corridor × day timeline for both models.
-- **Model verification** panel: which model forecast heavy rain better, by lead time.
+- **Forecast vs observed**, updated every day: the latest verified day per model (forecast vs observed rainfall, municipalities
+  at Watch forecast vs observed, false alarms and misses by name) and the accumulated detection, unconfirmed alarms and
+  rainfall bias by lead time. *Observed* = the same rule computed later with MERGE rainfall.
+- **Model verification** panel: which model forecast heavy rain better, by lead time (archived runs 2024–2026).
 - **Executive briefing (PDF, A4, two pages):**
   - *page 1:* bottom line per corridor, map, municipalities to watch, logistics references, model agreement and
     reliability;
@@ -283,14 +286,15 @@ tests/             focused tests for the rules behind the published numbers
 Every daily run is ingested into SQLite (`runs`, `municipal`, `corridor`, `events`). Each run stores the rule it used
 and the last observed days, so later runs verify earlier forecasts. The `verification` view pairs each forecast with
 the observed value and with official records, once these are loaded. `sql/validation.sql` has the queries, and
-`python -m floodwatch.forecast_db report` prints them. This is how the levels computed from forecast rainfall will be
-verified prospectively, from 2026 onwards.
+`python -m floodwatch.forecast_db report` prints them. After each run, `forecast_db.write_summary` exports the comparison to
+`data/processed/forecast/verification.json`, which is published with the run and shown on the forecast page. This is how
+the levels computed from forecast rainfall are verified prospectively, from November 2026 onwards.
 
 ### Quality
 
-- `pytest -q`: 13 focused tests, covering block bootstrap and scores, event chaining, the 12 UTC window, the rule and
+- `pytest -q`: 14 focused tests, covering block bootstrap and scores, event chaining, the 12 UTC window, the rule and
   trigger, rule compatibility with older runs, the Pfafstetter upstream rule, basin means, GRIB cropping, EDI
-  calibration, API recursion and missing days, and module reachability.
+  calibration, API recursion and missing days, forecast-verification counts, and module reachability.
 - `pyflakes` clean. External requests are paced, honour `Retry-After` and never retry aggressively.
 
 ---

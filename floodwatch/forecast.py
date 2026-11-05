@@ -154,8 +154,9 @@ def run():
     (run_dir / 'metadata.json').write_text(json.dumps(meta, indent=1, default=str), encoding='utf-8')
     (OUT / 'latest.json').write_text(json.dumps({'run': run_dir.relative_to(ROOT).as_posix()}), encoding='utf-8')
     try:  # archive for later verification (sql/validation.sql); never blocks the forecast itself
-        from .forecast_db import ingest
+        from .forecast_db import ingest, write_summary
         ingest(run_dir)
+        write_summary()  # forecast vs observed so far -> verification.json (published with the run)
     except Exception as error:
         print('forecast_db ingest failed:', error)
     print(json.dumps(meta, indent=1, default=str))

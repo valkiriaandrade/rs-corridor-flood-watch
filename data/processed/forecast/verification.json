@@ -1,0 +1,230 @@
+{
+ "verified_days": [
+  "2026-11-04",
+  "2026-11-05"
+ ],
+ "issuances": 3,
+ "by_lead": {
+  "ECMWF": {
+   "1": {
+    "days": 2,
+    "rain": {
+     "n": 86,
+     "fc_mean": 21.59631726352565,
+     "obs_mean": 17.963321064445395,
+     "bias_ratio": 1.2022452410690918,
+     "mae": 4.918100095459866,
+     "heavy_observed": 35,
+     "heavy_hits": 35,
+     "heavy_forecast": 48
+    },
+    "EDI": {
+     "n": 258,
+     "hits": 56,
+     "false_alarms": 14,
+     "misses": 25,
+     "correct_negatives": 163,
+     "POD": 0.691358024691358,
+     "FAR": 0.2
+    },
+    "API": {
+     "n": 172,
+     "hits": 58,
+     "false_alarms": 11,
+     "misses": 12,
+     "correct_negatives": 91,
+     "POD": 0.8285714285714286,
+     "FAR": 0.15942028985507245
+    }
+   },
+   "2": {
+    "days": 1,
+    "rain": null,
+    "EDI": {
+     "n": 86,
+     "hits": 17,
+     "false_alarms": 4,
+     "misses": 12,
+     "correct_negatives": 53,
+     "POD": 0.5862068965517241,
+     "FAR": 0.19047619047619047
+    }
+   }
+  },
+  "GFS": {
+   "1": {
+    "days": 2,
+    "rain": {
+     "n": 86,
+     "fc_mean": 22.892263085381522,
+     "obs_mean": 17.963321064445395,
+     "bias_ratio": 1.2743892403444221,
+     "mae": 5.8852397976070145,
+     "heavy_observed": 35,
+     "heavy_hits": 32,
+     "heavy_forecast": 35
+    },
+    "EDI": {
+     "n": 258,
+     "hits": 54,
+     "false_alarms": 22,
+     "misses": 27,
+     "correct_negatives": 155,
+     "POD": 0.6666666666666666,
+     "FAR": 0.2894736842105263
+    },
+    "API": {
+     "n": 172,
+     "hits": 59,
+     "false_alarms": 7,
+     "misses": 11,
+     "correct_negatives": 95,
+     "POD": 0.8428571428571429,
+     "FAR": 0.10606060606060606
+    }
+   },
+   "2": {
+    "days": 1,
+    "rain": null,
+    "EDI": {
+     "n": 86,
+     "hits": 16,
+     "false_alarms": 4,
+     "misses": 13,
+     "correct_negatives": 53,
+     "POD": 0.5517241379310345,
+     "FAR": 0.2
+    }
+   }
+  }
+ },
+ "latest": {
+  "date": "2026-11-05",
+  "lead_days": 1,
+  "run_id": "20261105T153820Z",
+  "model_runs": {
+   "ECMWF": "2026-11-04T12:00:00+00:00",
+   "GFS": "2026-11-04T12:00:00+00:00"
+  },
+  "observed_cutoff": "2026-11-04",
+  "models": {
+   "ECMWF": {
+    "rain": {
+     "n": 86,
+     "fc_mean": 21.59631726352565,
+     "obs_mean": 17.963321064445395,
+     "bias_ratio": 1.2022452410690918,
+     "mae": 4.918100095459866,
+     "heavy_observed": 35,
+     "heavy_hits": 35,
+     "heavy_forecast": 48,
+     "fc_max": 53.91584564576537,
+     "fc_max_nome": "Vacaria",
+     "obs_max": 48.03350575809391,
+     "obs_max_nome": "Coqueiros do Sul"
+    },
+    "EDI": {
+     "n": 86,
+     "hits": 29,
+     "false_alarms": 6,
+     "misses": 0,
+     "correct_negatives": 51,
+     "POD": 1.0,
+     "FAR": 0.17142857142857143,
+     "missed": [],
+     "false_alarm_names": [
+      "Arroio dos Ratos",
+      "Boa Vista das Missões",
+      "Eldorado do Sul",
+      "Nova Santa Rita",
+      "São Jerônimo",
+      "Triunfo"
+     ],
+     "forecast_watch": 35,
+     "observed_watch": 29
+    },
+    "API": {
+     "n": 86,
+     "hits": 35,
+     "false_alarms": 8,
+     "misses": 0,
+     "correct_negatives": 43,
+     "POD": 1.0,
+     "FAR": 0.18604651162790697,
+     "missed": [],
+     "false_alarm_names": [
+      "Campestre da Serra",
+      "Canoas",
+      "Caxias do Sul",
+      "Eldorado do Sul",
+      "Nova Santa Rita",
+      "Porto Alegre",
+      "São Marcos",
+      "Triunfo"
+     ],
+     "forecast_watch": 43,
+     "observed_watch": 35
+    }
+   },
+   "GFS": {
+    "rain": {
+     "n": 86,
+     "fc_mean": 22.892263085381522,
+     "obs_mean": 17.963321064445395,
+     "bias_ratio": 1.2743892403444221,
+     "mae": 5.8852397976070145,
+     "heavy_observed": 35,
+     "heavy_hits": 32,
+     "heavy_forecast": 35,
+     "fc_max": 80.4781107382577,
+     "fc_max_nome": "Boa Vista das Missões",
+     "obs_max": 48.03350575809391,
+     "obs_max_nome": "Coqueiros do Sul"
+    },
+    "EDI": {
+     "n": 86,
+     "hits": 29,
+     "false_alarms": 10,
+     "misses": 0,
+     "correct_negatives": 47,
+     "POD": 1.0,
+     "FAR": 0.2564102564102564,
+     "missed": [],
+     "false_alarm_names": [
+      "Arroio dos Ratos",
+      "Boa Vista das Missões",
+      "Frederico Westphalen",
+      "Lajeado do Bugre",
+      "Novo Xingu",
+      "Sagrada Família",
+      "Sarandi",
+      "São Jerônimo",
+      "São José das Missões",
+      "São Pedro das Missões"
+     ],
+     "forecast_watch": 39,
+     "observed_watch": 29
+    },
+    "API": {
+     "n": 86,
+     "hits": 35,
+     "false_alarms": 5,
+     "misses": 0,
+     "correct_negatives": 46,
+     "POD": 1.0,
+     "FAR": 0.125,
+     "missed": [],
+     "false_alarm_names": [
+      "Campestre da Serra",
+      "Caxias do Sul",
+      "Eldorado do Sul",
+      "Nova Petrópolis",
+      "São Marcos"
+     ],
+     "forecast_watch": 40,
+     "observed_watch": 35
+    }
+   }
+  }
+ }
+}

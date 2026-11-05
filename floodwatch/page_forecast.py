@@ -149,6 +149,84 @@ def model_skill_section():
                 f'This scores forecast rainfall, not flood levels.') + '</p></div>', unsafe_allow_html=True)
 
 
+def verification_section(ix):
+    """Forecast vs observed, day by day since the archive started (data/processed/forecast/verification.json).
+
+    'Observed' = the same index and rule computed later with MERGE rainfall; it verifies the forecast level,
+    not the occurrence of a flood (official records are loaded when published)."""
+    path = FC / 'verification.json'
+    if not path.exists():
+        return
+    s = json.loads(path.read_text(encoding='utf-8'))
+    lt = s.get('latest')
+    if not lt:
+        return
+    tr = T.tr
+    pct = lambda x: '–' if x is None else T.num(x * 100, 0) + '%'
+    days = s['verified_days']
+    st.markdown('<div class="section">' + tr(f'Previsto × observado · verificação contínua desde {dm(days[0])}',
+                                             f'Forecast vs observed · continuous verification since {dm(days[0])}') + '</div>',
+                unsafe_allow_html=True)
+    runs = ' · '.join(f'{m} {pd.Timestamp(r).strftime(tr("%d/%m %H UTC", "%d %b %H UTC"))}' for m, r in lt['model_runs'].items() if r)
+    st.markdown(tr(f'<p><b>Último dia verificado: {dm(lt["date"])}</b> (24 h até 09h), previsto com as rodadas {runs} '
+                   f'(D+{lt["lead_days"]}) e comparado com a chuva MERGE observada.</p>',
+                   f'<p><b>Last verified day: {dm(lt["date"])}</b> (24 h to 09:00), forecast with the {runs} runs '
+                   f'(D+{lt["lead_days"]}) and compared with observed MERGE rainfall.</p>'), unsafe_allow_html=True)
+    cols = st.columns(len(lt['models']))
+    for col, (model, r) in zip(cols, lt['models'].items()):
+        c, rain = r.get(ix), r.get('rain')
+        rows = []
+        if rain:
+            rows += [(tr('Chuva média prevista × observada', 'Mean rain forecast vs observed'),
+                      f'{T.num(rain["fc_mean"], 1)} × {T.num(rain["obs_mean"], 1)} mm ({T.num((rain["bias_ratio"] - 1) * 100, 0, True)}%)'),
+                     (tr('Maior chuva prevista', 'Highest forecast rain'), f'{T.num(rain["fc_max"], 0)} mm · {T.esc(rain["fc_max_nome"])}'),
+                     (tr('Maior chuva observada', 'Highest observed rain'), f'{T.num(rain["obs_max"], 0)} mm · {T.esc(rain["obs_max_nome"])}'),
+                     (tr('Chuva forte (≥ 20 mm) detectada', 'Heavy rain (≥ 20 mm) detected'),
+                      f'{rain["heavy_hits"]}/{rain["heavy_observed"]} {tr("municípios", "municipalities")}')]
+        if c:
+            rows += [(tr('Em atenção ou alerta: previstos × observados', 'At Watch or Warning: forecast vs observed'),
+                      f'{c["forecast_watch"]} × {c["observed_watch"]}'),
+                     (tr('Acertos · alarmes falsos · perdidos', 'Hits · false alarms · misses'),
+                      f'{c["hits"]} · {c["false_alarms"]} · {c["misses"]}')]
+        names = ''
+        if c and c['false_alarm_names']:
+            names += f'<p class="note"><b>{tr("Alarme falso", "False alarm")}:</b> {T.esc(", ".join(c["false_alarm_names"]))}</p>'
+        if c and c['missed']:
+            names += f'<p class="note"><b>{tr("Perdidos", "Missed")}:</b> {T.esc(", ".join(c["missed"]))}</p>'
+        col.markdown(f'<div class="card"><div class="section">{model} · {ix}</div>'
+                     + T.detail_rows(rows) + names + '</div>', unsafe_allow_html=True)
+    # accumulated, by lead
+    body = ''
+    for model, leads in s['by_lead'].items():
+        for lead, x in sorted(leads.items()):
+            c, rain = x.get(ix), x.get('rain')
+            if not c:
+                continue
+            body += (f'<tr><td>{model}</td><td>D+{lead}{"+" if lead == "4" else ""}</td><td>{x["days"]}</td>'
+                     f'<td>{pct(c["POD"])}</td><td>{pct(c["FAR"])}</td>'
+                     f'<td>{T.num((rain["bias_ratio"] - 1) * 100, 0, True) + "%" if rain and rain["bias_ratio"] else "–"}</td>'
+                     f'<td>{T.num(rain["mae"], 1) + " mm" if rain else "–"}</td></tr>')
+    head = tr('<tr><th>Modelo</th><th>Antecedência</th><th>Dias</th><th>Detecção</th><th>Alarmes que não se confirmaram</th>'
+              '<th>Viés da chuva</th><th>Erro médio da chuva</th></tr>',
+              '<tr><th>Model</th><th>Lead</th><th>Days</th><th>Detection</th><th>Alarms not confirmed</th>'
+              '<th>Rain bias</th><th>Mean rain error</th></tr>')
+    st.markdown(
+        '<div class="card" style="margin-top:10px"><div class="section">'
+        + tr(f'Acumulado por antecedência · {ix} · {len(days)} dias verificados', f'Accumulated by lead time · {ix} · {len(days)} verified days')
+        + f'</div><table class="t">{head}{body}</table>'
+        + '<p class="note">' + tr(
+            f'Observado = o mesmo índice e a mesma regra calculados depois com a chuva MERGE: verifica o nível previsto, não a ocorrência de '
+            f'inundação; os registros oficiais do S2iD entram quando forem publicados. Municípios-dia somados nos {len(days)} dias verificados; '
+            f'a chuva observada mais recente é a versão preliminar do MERGE, refinada nos dias seguintes. Amostra ainda pequena: os números só '
+            f'ficam estáveis depois de meses. Detecção = municípios em atenção observada que a previsão também pôs em atenção; '
+            f'alarmes que não se confirmaram = atenção prevista sem atenção observada.',
+            f'Observed = the same index and rule computed later with MERGE rainfall: this verifies the forecast level, not whether a flood '
+            f'occurred; official S2iD records are added when published. Municipality-days pooled over the {len(days)} verified days; the most '
+            f'recent observed rainfall is the preliminary MERGE version, refined over the following days. The sample is still small: the '
+            f'numbers only settle after months. Detection = municipalities at observed Watch that the forecast also put at Watch; '
+            f'alarms not confirmed = forecast Watch without observed Watch.') + '</p></div>', unsafe_allow_html=True)
+
+
 def dm(d):
     """Short day/month for display in the current language."""
     return pd.Timestamp(d).strftime(T.tr('%d/%m', '%d %b'))
@@ -497,6 +575,7 @@ def render():
                 unsafe_allow_html=True)
     by_model = {m: corridor_table(combine(df, m)) for m in ('ECMWF', 'GFS')}
     st.altair_chart(timeline(by_model), width='stretch')
+    verification_section(ix)
     model_skill_section()
 
     a, b = st.columns([1.3, 1])
