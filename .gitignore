@@ -33,3 +33,6 @@ data/processed/forecast/forecasts.sqlite
 # ANA raw downloads (large / third-party)
 data/raw/ana/bho/
 data/raw/ana/hidroweb/*.xml
+
+# S2iD daily export (re-downloaded every day; the records go to the forecast archive)
+data/raw/s2id/

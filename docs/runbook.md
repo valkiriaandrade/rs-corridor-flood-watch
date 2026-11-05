@@ -52,8 +52,13 @@ honoured) and applies the frozen rules. If CPTEC is unreachable the local MERGE 
 - **Flood occurrences.** Preliminary reports go in `data/raw/reports/preliminary_reports.csv`
   (`date,municipio,tipo,fonte,url,observacao`; types alagamento, enxurrada, inundação). Each run checks, at most once a
   week, the Atlas Digital download page (`floodwatch.official_records`); a new S2iD release is downloaded with
-  provenance, loaded into the archive and replaces the preliminary reports for the dates it covers
-  (`data/raw/atlas/official_release.json`). `python -m floodwatch.official_records` forces the check.
+  provenance and loaded into the archive (`data/raw/atlas/official_release.json`). Once a day (at most every 20 h) the
+  run also exports the public S2iD report "Danos informados" (RS, flood COBRADEs, last 60 days of registrations) with
+  a headless Microsoft Edge driven by Playwright (`requirements-pipeline.txt`; Edge must be installed), saves it to
+  `data/raw/s2id/` (ignored by git) with provenance and loads the corridor records into the archive. A preliminary
+  report counts only when no official record exists in the same municipality within ±1 day. If the export fails
+  (form changed, site down) the run continues and prints `S2iD export failed`. `python -m floodwatch.official_records`
+  forces both checks.
 - **Publishing.** When the folder is a git repository with a remote, the same script keeps only the newest run folder
   in git (`data/processed/forecast/runs/` is ignored; the latest one is force-added), commits it as
   `Daily forecast <run id>` and pushes. Streamlit Community Cloud redeploys from the push, so the hosted app shows the

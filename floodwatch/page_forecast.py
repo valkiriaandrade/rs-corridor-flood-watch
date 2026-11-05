@@ -239,12 +239,16 @@ def occurrence_card(s, ix):
     cover = rel.get('coverage_end')
     released = pd.Timestamp(rel['released']).strftime(tr('%d/%m/%Y', '%d %b %Y')) if rel.get('released') else '–'
     source_note = tr(
-        f'Registros oficiais do S2iD (Atlas Digital, versão de {released}) cobrem até {cover[:4] if cover else "–"}; '
-        f'depois disso valem os relatos preliminares (boletins da Defesa Civil e imprensa), substituídos automaticamente quando sair a '
-        f'próxima versão oficial. Só contam alagamento, enxurrada e inundação; granizo e vendaval não.',
-        f'Official S2iD records (Atlas Digital, release of {released}) cover up to {cover[:4] if cover else "–"}; after '
-        f'that, preliminary reports (Civil Defence bulletins and press) are used, replaced automatically when the next official release '
-        f'comes out. Only urban flooding, flash floods and riverine floods count; hail and wind do not.')
+        f'Registros oficiais do S2iD: o Atlas Digital (versão de {released}) cobre até {cover[:4] if cover else "–"}, e os '
+        f'registros mais recentes vêm da exportação diária do relatório público do S2iD (últimos 60 dias de cadastro, '
+        f'reconhecidos ou ainda em análise). Relatos preliminares (boletins da Defesa Civil e imprensa) contam quando não há '
+        f'registro oficial no mesmo município até um dia antes ou depois. Só contam alagamento, enxurrada e inundação; '
+        f'granizo e vendaval não.',
+        f'Official S2iD records: the Atlas Digital (release of {released}) covers up to {cover[:4] if cover else "–"}, and '
+        f'recent records come from a daily export of the public S2iD report (last 60 days of registrations, recognised or '
+        f'still under review). Preliminary reports (Civil Defence bulletins and press) count when there is no official '
+        f'record in the same municipality within one day. Only urban flooding, flash floods and riverine floods count; '
+        f'hail and wind do not.')
     lv = {-1: tr('sem dado', 'no data'), 0: 'Normal', 1: tr('Atenção', 'Watch'), 2: tr('Alerta', 'Warning')}
     if not occ['items']:
         body = '<p>' + tr('Nenhuma inundação relatada nos municípios dos corredores nos dias verificados.',

@@ -154,16 +154,18 @@ def _rain(v):
 
 
 def occurrences(con):
-    """Flood occurrences for verification: official S2iD records (events table) where an official release covers the
-    date, preliminary reports after that. Columns: date, codarea, source ('S2iD' | 'preliminar'), tipo, fonte, url."""
-    from .official_records import coverage_end, preliminary_reports
-    end = coverage_end()
-    off = pd.read_sql_query('SELECT date, codarea, cobrade FROM events', con)
-    off = off.assign(source='S2iD', tipo='COBRADE ' + off.cobrade.astype(str), fonte='S2iD', url='')
+    """Flood occurrences for verification: official S2iD records (events table: the daily S2iD export and the Atlas
+    releases), plus preliminary reports with no official record in the same municipality within one day.
+    Columns: date, codarea, source ('S2iD' | 'preliminar'), tipo, fonte, url."""
+    from .official_records import preliminary_reports
+    off = pd.read_sql_query('SELECT date, codarea, cobrade, protocol FROM events', con)
+    off = off.assign(source='S2iD', tipo='COBRADE ' + off.cobrade.astype(str), fonte='S2iD ' + off.protocol.astype(str), url='')
     pre = preliminary_reports().assign(source='preliminar')
-    if end is not None:
-        off = off[pd.to_datetime(off.date) <= end]
-        pre = pre[pd.to_datetime(pre.date) > end]
+    if len(pre) and len(off):
+        od = off.assign(d=pd.to_datetime(off.date))[['codarea', 'd']]
+        near = pre.assign(d=pd.to_datetime(pre.date)).merge(od, on='codarea', how='left', suffixes=('', '_o'))
+        covered = near[(near.d - near.d_o).abs() <= pd.Timedelta(days=1)][['date', 'codarea']].drop_duplicates()
+        pre = pre.merge(covered.assign(c=1), on=['date', 'codarea'], how='left').query('c != 1').drop(columns='c')
     cols = ['date', 'codarea', 'source', 'tipo', 'fonte', 'url']
     return pd.concat([off[cols], pre[cols]], ignore_index=True).drop_duplicates(['date', 'codarea', 'source'])
 

@@ -222,7 +222,8 @@ def daily(catchup=True):
     run(observed=observed, states=states)
     try:
         from . import official_records
-        official_records.update()
+        official_records.update()       # weekly: new Atlas Digital release
+        official_records.update_s2id()  # daily: recent S2iD records (headless export of the public report)
     except Exception as error:
         print('official records not updated:', type(error).__name__, error)
     try:
