@@ -14,6 +14,7 @@ from .rules import run_rules
 from .paths import ROOT, STUDY, FORECAST as FC, SPATIAL
 CORRIDORS = ['116', '386', '290']
 CORRIDOR_SHARE = 0.20
+API_SINCE = "2026-11-04"   # first run with the API level (protocol log); earlier issuances carry only the EDI
 
 
 def model_hit_rate():
@@ -256,19 +257,31 @@ def occurrence_card(s, ix):
     else:
         head = tr('<tr><th>Dia</th><th>Município</th><th>Modelo</th><th>Nível previsto</th><th>Nível com a chuva observada</th><th>Fonte</th></tr>',
                   '<tr><th>Day</th><th>Municipality</th><th>Model</th><th>Forecast level</th><th>Level with observed rain</th><th>Source</th></tr>')
-        rows = ''
+        rows, no_api = '', False
         for it in sorted(occ['items'], key=lambda x: (x['date'], x['nome'], x['model']), reverse=True)[:30]:
             f, o = it[ix]['forecast'], it[ix]['observed']
             src = T.esc(it['fonte'] or it['source'])
             if it['url']:
                 src = f'<a href="{T.esc(it["url"])}" target="_blank">{src}</a>'
+            if f == f and f is not None:
+                fcell = lv.get(int(f), '–')
+            elif ix == 'API':   # issuances made before the API went into operation carry only the EDI
+                fcell, no_api = tr('sem previsão API¹', 'no API forecast¹'), True
+            else:
+                fcell = '–'
             rows += (f'<tr><td>{dm(it["date"])}</td><td>{T.esc(it["nome"])}</td><td>{it["model"]} D+{it["lead_days"]}</td>'
-                     f'<td>{lv.get(int(f), "–") if f == f and f is not None else "–"}</td>'
+                     f'<td>{fcell}</td>'
                      f'<td>{lv.get(int(o), "–") if o == o and o is not None else "–"}</td>'
                      f'<td>{src}{tr(" (preliminar)", " (preliminary)") if it["source"] == "preliminar" else ""}</td></tr>')
         tot = ' · '.join(f'{m}: {x[ix]["at_watch"]}/{x[ix]["n"]}' for m, x in occ['by_model'].items() if ix in x)
         body = (f'<p>{tr("Inundações relatadas que a previsão pôs em atenção ou alerta", "Reported floods the forecast put at Watch or Warning")}: '
                 f'<b>{tot}</b></p><table class="t">{head}{rows}</table>')
+        if no_api:
+            body += '<p class="note">' + tr(
+                f'¹ O API entrou em operação em {dmy(API_SINCE)}; as previsões emitidas antes disso têm só o EDI. Esses casos não '
+                f'entram na contagem do API e não são reconstruídos depois, porque a verificação conta apenas o que foi de fato previsto.',
+                f'¹ The API went into operation on {dmy(API_SINCE)}; forecasts issued before that carry only the EDI. These cases are '
+                f'left out of the API count and are not reconstructed afterwards: the verification counts only what was actually forecast.') + '</p>'
     st.markdown('<div class="card" style="margin-top:10px"><div class="section">'
                 + tr('Inundações relatadas × previsão', 'Reported floods vs forecast') + f'</div>{body}'
                 + f'<p class="note">{source_note}</p></div>', unsafe_allow_html=True)
