@@ -128,7 +128,9 @@ def refresh_merge(days):
 def observed_rain():
     """Observed basin rainfall: study series to 2024 + recomputed MERGE from 2025; and the MERGE product per day."""
     hist = study.study_rain('2024-12-31')
-    recent, states = upstream.compute_rain('2025-01-01')
+    # 2 workers: each spawned worker re-imports this module (~600 MB on Windows); 6 workers ran out of memory on an
+    # 8 GB machine (MemoryError, 2026-11-05) and were no faster (28 s vs 24 s for ~700 days).
+    recent, states = upstream.compute_rain('2025-01-01', workers=2)
     return pd.concat([hist, recent[hist.columns]]), states
 
 
