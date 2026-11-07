@@ -7,7 +7,7 @@ name: Daily forecast
 
 on:
   schedule:
-    - cron: "30 0 * * *"   # 21:30 in Brasilia (00:30 UTC); 12 UTC ECMWF/GFS runs are published by then
+    - cron: "0 20 * * *"   # 17:00 in Brasilia (20:00 UTC; Brazil has no daylight saving time)
   workflow_dispatch:
 
 concurrency:
