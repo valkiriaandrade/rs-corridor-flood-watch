@@ -21,21 +21,21 @@
     },
     "EDI": {
      "n": 430,
-     "hits": 112,
-     "false_alarms": 14,
-     "misses": 27,
-     "correct_negatives": 277,
-     "POD": 0.8057553956834532,
-     "FAR": 0.1111111111111111
+     "hits": 117,
+     "false_alarms": 9,
+     "misses": 44,
+     "correct_negatives": 260,
+     "POD": 0.7267080745341615,
+     "FAR": 0.07142857142857142
     },
     "API": {
      "n": 344,
-     "hits": 128,
-     "false_alarms": 11,
-     "misses": 12,
-     "correct_negatives": 193,
-     "POD": 0.9142857142857143,
-     "FAR": 0.07913669064748201
+     "hits": 132,
+     "false_alarms": 7,
+     "misses": 24,
+     "correct_negatives": 181,
+     "POD": 0.8461538461538461,
+     "FAR": 0.050359712230215826
     }
    },
    "2": {
@@ -52,21 +52,21 @@
     },
     "EDI": {
      "n": 258,
-     "hits": 62,
-     "false_alarms": 15,
-     "misses": 25,
-     "correct_negatives": 156,
-     "POD": 0.7126436781609196,
-     "FAR": 0.19480519480519481
+     "hits": 67,
+     "false_alarms": 10,
+     "misses": 34,
+     "correct_negatives": 147,
+     "POD": 0.6633663366336634,
+     "FAR": 0.12987012987012986
     },
     "API": {
      "n": 172,
-     "hits": 58,
-     "false_alarms": 11,
-     "misses": 12,
-     "correct_negatives": 91,
-     "POD": 0.8285714285714286,
-     "FAR": 0.15942028985507245
+     "hits": 62,
+     "false_alarms": 7,
+     "misses": 16,
+     "correct_negatives": 87,
+     "POD": 0.7948717948717948,
+     "FAR": 0.10144927536231885
     }
    },
    "3": {
@@ -76,9 +76,9 @@
      "n": 86,
      "hits": 16,
      "false_alarms": 4,
-     "misses": 13,
-     "correct_negatives": 53,
-     "POD": 0.5517241379310345,
+     "misses": 17,
+     "correct_negatives": 49,
+     "POD": 0.48484848484848486,
      "FAR": 0.2
     }
    }
@@ -98,21 +98,21 @@
     },
     "EDI": {
      "n": 430,
-     "hits": 110,
-     "false_alarms": 22,
-     "misses": 29,
-     "correct_negatives": 269,
-     "POD": 0.7913669064748201,
-     "FAR": 0.16666666666666666
+     "hits": 113,
+     "false_alarms": 19,
+     "misses": 48,
+     "correct_negatives": 250,
+     "POD": 0.7018633540372671,
+     "FAR": 0.14393939393939395
     },
     "API": {
      "n": 344,
-     "hits": 129,
-     "false_alarms": 7,
-     "misses": 11,
-     "correct_negatives": 197,
-     "POD": 0.9214285714285714,
-     "FAR": 0.051470588235294115
+     "hits": 131,
+     "false_alarms": 5,
+     "misses": 25,
+     "correct_negatives": 183,
+     "POD": 0.8397435897435898,
+     "FAR": 0.03676470588235294
     }
    },
    "2": {
@@ -129,21 +129,21 @@
     },
     "EDI": {
      "n": 258,
-     "hits": 59,
-     "false_alarms": 19,
-     "misses": 28,
-     "correct_negatives": 152,
-     "POD": 0.6781609195402298,
-     "FAR": 0.24358974358974358
+     "hits": 61,
+     "false_alarms": 17,
+     "misses": 40,
+     "correct_negatives": 140,
+     "POD": 0.6039603960396039,
+     "FAR": 0.21794871794871795
     },
     "API": {
      "n": 172,
-     "hits": 59,
-     "false_alarms": 7,
-     "misses": 11,
-     "correct_negatives": 95,
-     "POD": 0.8428571428571429,
-     "FAR": 0.10606060606060606
+     "hits": 61,
+     "false_alarms": 5,
+     "misses": 17,
+     "correct_negatives": 89,
+     "POD": 0.782051282051282,
+     "FAR": 0.07575757575757576
     }
    },
    "3": {
@@ -153,9 +153,9 @@
      "n": 86,
      "hits": 16,
      "false_alarms": 4,
-     "misses": 13,
-     "correct_negatives": 53,
-     "POD": 0.5517241379310345,
+     "misses": 17,
+     "correct_negatives": 49,
+     "POD": 0.48484848484848486,
      "FAR": 0.2
     }
    }
@@ -190,31 +190,40 @@
      "n": 86,
      "hits": 28,
      "false_alarms": 0,
-     "misses": 1,
-     "correct_negatives": 57,
-     "POD": 0.9655172413793104,
+     "misses": 5,
+     "correct_negatives": 53,
+     "POD": 0.8484848484848485,
      "FAR": 0.0,
      "missed": [
-      "Arroio dos Ratos"
+      "Arroio dos Ratos",
+      "Cacequi",
+      "Eldorado do Sul",
+      "São Jerônimo",
+      "Triunfo"
      ],
      "false_alarm_names": [],
      "false_alarm_reported": [],
      "forecast_watch": 28,
-     "observed_watch": 29
+     "observed_watch": 33
     },
     "API": {
      "n": 86,
      "hits": 35,
      "false_alarms": 0,
-     "misses": 0,
-     "correct_negatives": 51,
-     "POD": 1.0,
+     "misses": 4,
+     "correct_negatives": 47,
+     "POD": 0.8974358974358975,
      "FAR": 0.0,
-     "missed": [],
+     "missed": [
+      "Campestre da Serra",
+      "Eldorado do Sul",
+      "Pantano Grande",
+      "Triunfo"
+     ],
      "false_alarm_names": [],
      "false_alarm_reported": [],
      "forecast_watch": 35,
-     "observed_watch": 35
+     "observed_watch": 39
     }
    },
    "GFS": {
@@ -236,31 +245,40 @@
      "n": 86,
      "hits": 28,
      "false_alarms": 0,
-     "misses": 1,
-     "correct_negatives": 57,
-     "POD": 0.9655172413793104,
+     "misses": 5,
+     "correct_negatives": 53,
+     "POD": 0.8484848484848485,
      "FAR": 0.0,
      "missed": [
-      "Arroio dos Ratos"
+      "Arroio dos Ratos",
+      "Cacequi",
+      "Eldorado do Sul",
+      "São Jerônimo",
+      "Triunfo"
      ],
      "false_alarm_names": [],
      "false_alarm_reported": [],
      "forecast_watch": 28,
-     "observed_watch": 29
+     "observed_watch": 33
     },
     "API": {
      "n": 86,
      "hits": 35,
      "false_alarms": 0,
-     "misses": 0,
-     "correct_negatives": 51,
-     "POD": 1.0,
+     "misses": 4,
+     "correct_negatives": 47,
+     "POD": 0.8974358974358975,
      "FAR": 0.0,
-     "missed": [],
+     "missed": [
+      "Campestre da Serra",
+      "Eldorado do Sul",
+      "Pantano Grande",
+      "Triunfo"
+     ],
      "false_alarm_names": [],
      "false_alarm_reported": [],
      "forecast_watch": 35,
-     "observed_watch": 35
+     "observed_watch": 39
     }
    }
   }
