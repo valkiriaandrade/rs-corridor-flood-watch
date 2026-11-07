@@ -64,8 +64,8 @@ details.card.more > summary .row:first-child {{ margin-bottom:2px; }}
             transition:transform .1s; user-select:none; }}
 .daychip:hover {{ transform:translateY(-1px); box-shadow:0 1px 4px rgba(15,27,45,.25); }}
 .daypanel {{ display:none; }}
-/* language switch lives inside the fixed top bar */
-.st-key-_lang_choice {{ position:fixed !important; top:13px; right:22px; z-index:1000002; width:auto !important; }}
+/* language switch lives inside the fixed top bar, left of Streamlit's "Running... Stop" status widget */
+.st-key-_lang_choice {{ position:fixed !important; top:13px; right:190px; z-index:1000002; width:auto !important; }}
 .st-key-_lang_choice button {{ background:transparent !important; border:1px solid rgba(255,255,255,.35) !important;
   min-height:30px !important; padding:2px 12px !important; }}
 .st-key-_lang_choice button p {{ color:#C9D5E3 !important; font-size:.78rem !important; font-weight:600; }}
