@@ -45,16 +45,23 @@ def daily_12utc(hourly):
 
 def latest_run(meta_id):
     """Most recent 12 UTC initialisation already published by Open-Meteo for this model."""
-    meta = requests.get(f'https://api.open-meteo.com/data/{meta_id}/static/meta.json', timeout=20).json()
+    meta = _get(f'https://api.open-meteo.com/data/{meta_id}/static/meta.json', timeout=20).json()
     latest = pd.Timestamp(meta['last_run_initialisation_time'], unit='s', tz='UTC')
     run = latest.floor('D') + pd.Timedelta(hours=12)
     return run if run <= latest else run - pd.Timedelta(days=1)
 
 
-def _get(url, tries=4):
-    """GET with polite pacing: honours 429/5xx by waiting (Retry-After when given), never hammers the server."""
+def _get(url, tries=4, timeout=90):
+    """GET with polite pacing: honours 429/5xx by waiting (Retry-After when given), never hammers the server.
+    Dropped connections / timeouts are retried the same way (seen from cloud runners: connection reset)."""
     for attempt in range(tries):
-        r = requests.get(url, timeout=90)
+        try:
+            r = requests.get(url, timeout=timeout)
+        except (requests.ConnectionError, requests.Timeout):
+            if attempt == tries - 1:
+                raise
+            time.sleep(20 * (attempt + 1))
+            continue
         if r.status_code in (429, 500, 502, 503, 504) and attempt < tries - 1:
             time.sleep(float(r.headers.get('Retry-After', 20 * (attempt + 1))))
             continue
