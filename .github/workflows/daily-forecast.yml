@@ -1,0 +1,94 @@
+name: Daily forecast
+
+# Replaces the Windows scheduled task: runs scripts/daily_update.ps1 in the cloud and pushes the new run to main.
+# State kept between runs:
+#   data/raw/merge/                          MERGE files from 2025 (re-downloadable)  -> Actions cache
+#   data/processed/forecast/forecasts.sqlite verification archive (must not be lost)  -> branch `archive`, one commit
+
+on:
+  schedule:
+    - cron: "30 0 * * *"   # 21:30 in Brasilia (00:30 UTC); 12 UTC ECMWF/GFS runs are published by then
+  workflow_dispatch:
+
+concurrency:
+  group: daily-forecast
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  forecast:
+    runs-on: windows-latest
+    timeout-minutes: 120
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-pipeline.txt
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements-pipeline.txt
+
+      - name: Restore MERGE files
+        uses: actions/cache/restore@v4
+        with:
+          path: data/raw/merge
+          key: merge-v1-${{ github.run_id }}
+          restore-keys: merge-v1-
+
+      - name: Download missing MERGE days (first run fetches all of 2025 onwards)
+        run: python -m floodwatch.fetch merge-recent
+
+      - name: Restore forecast archive
+        run: |
+          git fetch origin archive
+          # cmd redirection keeps the bytes intact (binary file)
+          cmd /c "git show origin/archive:forecasts.sqlite > data\processed\forecast\forecasts.sqlite"
+          if ($LASTEXITCODE -ne 0) { throw 'forecasts.sqlite not found on branch archive' }
+          "archive restored: {0:N1} MB" -f ((Get-Item data/processed/forecast/forecasts.sqlite).Length / 1MB)
+
+      - name: Run forecast and publish
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          ./scripts/daily_update.ps1 -Python python
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Show log
+        if: always()
+        run: |
+          if (Test-Path logs/daily_update.log) {
+            Get-Content logs/daily_update.log | Where-Object { $_ -notmatch 'calculation_(started|completed)' }
+          }
+
+      - name: Save forecast archive
+        run: |
+          $db = (Resolve-Path data/processed/forecast/forecasts.sqlite).Path
+          $tmp = Join-Path $env:RUNNER_TEMP 'archive'
+          git worktree add --detach $tmp
+          Push-Location $tmp
+          git checkout -q --orphan archive-new
+          git rm -rfq . 2>$null
+          Copy-Item $db forecasts.sqlite
+          git add forecasts.sqlite
+          git commit -q -m "Forecast archive after run ${{ github.run_id }}"
+          git push -f origin HEAD:archive
+          Pop-Location
+
+      - name: Save MERGE files
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: data/raw/merge
+          key: merge-v1-${{ github.run_id }}

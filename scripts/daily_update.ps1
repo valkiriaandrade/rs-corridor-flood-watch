@@ -42,6 +42,7 @@ foreach ($old in (& git ls-files 'data/processed/forecast/runs' | Where-Object {
 & git diff --cached --quiet
 if ($LASTEXITCODE -eq 0) { Log 'publish: nothing new'; exit 0 }
 & git commit --quiet -m "Daily forecast $keep" 2>&1 | ForEach-Object { Log $_ }
+& git pull --rebase --quiet 2>&1 | ForEach-Object { Log $_ }  # commits pushed while the run was going
 & git push --quiet 2>&1 | ForEach-Object { Log $_ }
 Log "publish exit $LASTEXITCODE"
 exit $LASTEXITCODE
