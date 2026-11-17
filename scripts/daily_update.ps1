@@ -34,15 +34,27 @@ foreach ($dir in @('data\processed\forecast\runs', 'data\raw\forecast_api')) {
 $isRepo = Test-Path (Join-Path $root '.git')
 $hasRemote = $isRepo -and ($null -ne (& git remote))
 if ($NoPublish -or -not $hasRemote) { Log 'publish skipped'; exit 0 }
-foreach ($old in (& git ls-files 'data/processed/forecast/runs' | Where-Object { $_ -notlike "$latest/*" })) {
-    & git rm --cached --quiet -- $old 2>&1 | ForEach-Object { Log $_ }
+function Stage-Run {
+    foreach ($old in (& git ls-files 'data/processed/forecast/runs' | Where-Object { $_ -notlike "$latest/*" })) {
+        & git rm --cached --quiet -- $old 2>&1 | ForEach-Object { Log $_ }
+    }
+    & git add -f -- 'data/processed/forecast/latest.json' 'data/processed/forecast/verification.json' $latest `
+        'data/raw/reports/preliminary_reports.csv' 'data/raw/atlas/official_release.json' 2>&1 | ForEach-Object { Log $_ }
+    & git diff --cached --quiet
+    if ($LASTEXITCODE -eq 0) { return $false }
+    & git commit --quiet -m "Daily forecast $keep" 2>&1 | ForEach-Object { Log $_ }
+    return $true
 }
-& git add -f -- 'data/processed/forecast/latest.json' 'data/processed/forecast/verification.json' $latest `
-    'data/raw/reports/preliminary_reports.csv' 'data/raw/atlas/official_release.json' 2>&1 | ForEach-Object { Log $_ }
-& git diff --cached --quiet
-if ($LASTEXITCODE -eq 0) { Log 'publish: nothing new'; exit 0 }
-& git commit --quiet -m "Daily forecast $keep" 2>&1 | ForEach-Object { Log $_ }
+if (-not (Stage-Run)) { Log 'publish: nothing new'; exit 0 }
 & git pull --rebase --quiet 2>&1 | ForEach-Object { Log $_ }  # commits pushed while the run was going
+if ($LASTEXITCODE -ne 0) {
+    # Another forecast was published meanwhile (e.g. two queued runs): its latest.json / run folder conflict with
+    # ours. This run is newer, so rebuild its commit on top of the remote branch instead of merging line by line.
+    Log 'publish: rebase conflict, re-staging this run on top of the remote branch'
+    & git rebase --abort 2>&1 | ForEach-Object { Log $_ }
+    & git reset --quiet --mixed '@{u}' 2>&1 | ForEach-Object { Log $_ }   # index = remote; working files untouched
+    if (-not (Stage-Run)) { Log 'publish: nothing new'; exit 0 }
+}
 & git push --quiet 2>&1 | ForEach-Object { Log $_ }
 Log "publish exit $LASTEXITCODE"
 exit $LASTEXITCODE
