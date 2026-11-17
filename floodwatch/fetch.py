@@ -16,6 +16,7 @@ import json
 import pandas as pd
 import requests
 from requests.adapters import HTTPAdapter
+import urllib3
 from urllib3.util.retry import Retry
 
 from .paths import ATLAS, MERGE, SPATIAL
@@ -42,11 +43,33 @@ def session():
     return s
 
 
+_warned = []
+
+
+def _warn_unverified():
+    if not _warned:
+        _warned.append(True)
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        print('AVISO: certificado TLS do CPTEC inválido; MERGE baixado sem verificação (tls_verified: false)')
+
+
 def download(url, path, s=None, force=False, timeout=(15, 120)):
     audit = path.with_name(path.name + '.http.json')
     if path.exists() and audit.exists() and not force:
         return json.loads(audit.read_text(encoding='utf-8'))
-    r = (s or session()).get(url, timeout=timeout)
+    s = s or session()
+    verified = True
+    try:
+        r = s.get(url, timeout=timeout)
+    except requests.exceptions.SSLError:
+        # CPTEC has let its certificate lapse before (expired 2026-11-17 00:02 UTC). MERGE is public data and the
+        # sha256 below is still recorded, so fetch it unverified rather than stall the observed rainfall; the
+        # provenance says so (tls_verified: false). Other hosts keep failing on a bad certificate.
+        if not url.startswith(MERGE_BASE):
+            raise
+        _warn_unverified()
+        r = s.get(url, timeout=timeout, verify=False)
+        verified = False
     r.raise_for_status()
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_name(path.name + '.part')
@@ -54,6 +77,8 @@ def download(url, path, s=None, force=False, timeout=(15, 120)):
     tmp.replace(path)
     meta = {'url': url, 'downloaded_at_utc': datetime.now(timezone.utc).isoformat(), 'bytes': len(r.content),
             'sha256': hashlib.sha256(r.content).hexdigest(), 'last_modified': r.headers.get('Last-Modified')}
+    if not verified:
+        meta['tls_verified'] = False
     audit.write_text(json.dumps(meta, indent=1), encoding='utf-8')
     return meta
 
