@@ -72,6 +72,14 @@ jobs:
             Get-Content logs/daily_update.log | Where-Object { $_ -notmatch 'calculation_(started|completed)' }
           }
 
+      - name: Upload S2iD page (only when its export failed)
+        if: always() && hashFiles('logs/s2id_failure/*') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: s2id-failure-${{ github.run_id }}
+          path: logs/s2id_failure/
+          retention-days: 14
+
       - name: Save forecast archive
         run: |
           $db = (Resolve-Path data/processed/forecast/forecasts.sqlite).Path

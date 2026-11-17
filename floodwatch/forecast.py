@@ -45,13 +45,14 @@ def daily_12utc(hourly):
 
 def latest_run(meta_id):
     """Most recent 12 UTC initialisation already published by Open-Meteo for this model."""
-    meta = _get(f'https://api.open-meteo.com/data/{meta_id}/static/meta.json', timeout=20).json()
+    # 404 here is transient (seen 2026-11-14 while Open-Meteo republished the file): retried like a 5xx
+    meta = _get(f'https://api.open-meteo.com/data/{meta_id}/static/meta.json', timeout=20, retry_on=(404,)).json()
     latest = pd.Timestamp(meta['last_run_initialisation_time'], unit='s', tz='UTC')
     run = latest.floor('D') + pd.Timedelta(hours=12)
     return run if run <= latest else run - pd.Timedelta(days=1)
 
 
-def _get(url, tries=4, timeout=90):
+def _get(url, tries=4, timeout=90, retry_on=()):
     """GET with polite pacing: honours 429/5xx by waiting (Retry-After when given), never hammers the server.
     Dropped connections / timeouts are retried the same way (seen from cloud runners: connection reset)."""
     for attempt in range(tries):
@@ -62,7 +63,7 @@ def _get(url, tries=4, timeout=90):
                 raise
             time.sleep(20 * (attempt + 1))
             continue
-        if r.status_code in (429, 500, 502, 503, 504) and attempt < tries - 1:
+        if r.status_code in (429, 500, 502, 503, 504, *retry_on) and attempt < tries - 1:
             time.sleep(float(r.headers.get('Retry-After', 20 * (attempt + 1))))
             continue
         r.raise_for_status()

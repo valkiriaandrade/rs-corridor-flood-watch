@@ -42,9 +42,15 @@ Only step 17 is needed. It refreshes the last 14 days of MERGE (missing or *earl
 from 2025 onwards, fetches the latest 12 UTC ECMWF and GFS runs on the 632-point basin grid (paced requests, `Retry-After`
 honoured) and applies the frozen rules. If CPTEC is unreachable the local MERGE files are kept; Open-Meteo is required.
 
-- `scripts/install_daily_task.ps1 [-Python <path to python.exe>]` registers a Windows scheduled task (21:30 local,
-  catches up after the PC was off, also on battery) that runs `scripts/daily_update.ps1`: forecast, log in
-  `logs/daily_update.log`, local run folders older than 30 days pruned. Remove it with
+- **Where it runs (since 2026-11-07).** `.github/workflows/daily-forecast.yml` (windows-latest, cron 20:00 UTC = 17:00
+  Brasília, also `workflow_dispatch`) runs `scripts/daily_update.ps1` in the cloud. State between runs: MERGE files in
+  the Actions cache (`merge-v1-*`, re-downloadable) and `forecasts.sqlite` on the branch `archive` (restored before the
+  run, force-pushed as a single commit after it; this is the authoritative archive, a local copy is stale). Start a
+  run by hand with `gh workflow run daily-forecast.yml`. When the S2iD export fails, the page the site served
+  (`logs/s2id_failure/`) is uploaded as the run artifact `s2id-failure-<run id>`.
+- `scripts/install_daily_task.ps1 [-Python <path to python.exe>]` registers the former local alternative, a Windows
+  scheduled task (21:30 local, catches up after the PC was off) running the same `scripts/daily_update.ps1`. Its task
+  is disabled; do not enable it alongside the workflow (both push to `main`). Remove it with
   `Unregister-ScheduledTask -TaskName 'RS Corridor Flood Watch - daily update'`.
 - **Catch-up.** `python -m floodwatch.forecast` first reconstructs the issuances of days without a run (computer off),
   up to 14 days back, from each day's 12 UTC runs (Open-Meteo keeps past runs) and the rainfall observed up to that day
@@ -62,8 +68,8 @@ honoured) and applies the frozen rules. If CPTEC is unreachable the local MERGE 
 - **Publishing.** When the folder is a git repository with a remote, the same script keeps only the newest run folder
   in git (`data/processed/forecast/runs/` is ignored; the latest one is force-added), commits it as
   `Daily forecast <run id>` and pushes. Streamlit Community Cloud redeploys from the push, so the hosted app shows the
-  new run a few minutes later. Pass `-NoPublish` to skip this step. The hosted app only changes on days the PC runs
-  the task; after 36 h without a new run the page shows a warning.
+  new run a few minutes later. Pass `-NoPublish` to skip this step. The hosted app only changes on days a run
+  succeeds; after 36 h without a new run the page shows a warning.
 - Every run is ingested into `data/processed/forecast/forecasts.sqlite` (schema `sql/schema.sql`), with the rule it
   used. Each run also stores the last observed days, so later runs verify earlier forecasts (view `verification`).
   Queries: `python -m floodwatch.forecast_db report` or `sqlite3 data/processed/forecast/forecasts.sqlite < sql/validation.sql`.

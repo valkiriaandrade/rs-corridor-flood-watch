@@ -21,7 +21,7 @@ from datetime import datetime, timezone
 
 import pandas as pd
 
-from .paths import ATLAS, RAW, STUDY
+from .paths import ATLAS, RAW, ROOT, STUDY
 
 DOWNLOADS = 'https://atlasdigital.mdr.gov.br/paginas/downloads.xhtml'
 BASE = 'https://atlasdigital.mdr.gov.br/'
@@ -111,35 +111,56 @@ def fetch_s2id(days=S2ID_DAYS):
         browser = p.chromium.launch(channel='msedge')
         ctx = browser.new_context(accept_downloads=True, user_agent=UA['User-Agent'])
         pg = ctx.new_page()
-        pg.goto(S2ID_REPORTS, wait_until='networkidle', timeout=120000)
-        pg.get_by_text('Relatório Gerencial - Danos informados').click()
-        pg.wait_for_timeout(1500)
-        boxes = pg.evaluate("""() => [...document.querySelectorAll("input[name='abas:sanfonas:cobrades3']")].map(i => {
-            const l = document.querySelector(`label[for='${i.id}']`); return [i.id, l ? l.textContent.trim() : ''];})""")
-        picked = [cid for cid, label in boxes if label.startswith(S2ID_LABELS)]
-        if len(picked) != len(S2ID_LABELS):
-            raise RuntimeError(f'S2iD form changed: found {len(picked)} of {len(S2ID_LABELS)} flood types')
-        for cid in picked:
-            pg.locator(f"[id='{cid}']").check(force=True)
-            pg.wait_for_timeout(500)
-        uf = pg.locator("input[name='abas:sanfonas:estadosDanosInformados'][value='RS']")
-        uf.check(force=True)
-        pg.wait_for_timeout(500)
-        for widget, field, value in (('widget_abas_sanfonas_j_idt74', 'abas:sanfonas:j_idt74_input', s),
-                                     ('widget_abas_sanfonas_dt_final_danos', 'abas:sanfonas:dt_final_danos_input', e)):
-            pg.evaluate(f"() => PF('{widget}').setDate($.datepicker.parseDate('dd/mm/yy', '{value}'))")
-            pg.locator(f"[id='{field}']").evaluate(f"(el) => {{ el.value = '{value}'; }}")
-        pg.wait_for_timeout(800)
-        with pg.expect_download(timeout=180000) as dl:
-            pg.get_by_role('button', name='Exportar CSV').click()
-        dl.value.save_as(str(path))
-        browser.close()
+        try:
+            _export_s2id(pg, path, s, e)
+        except Exception:
+            _dump_page(pg)  # what the site served (fails on cloud runners since 2026-11-07, works from Brazil)
+            raise
+        finally:
+            browser.close()
     raw = path.read_bytes()
     meta = {'url': S2ID_REPORTS, 'report': 'Relatório Gerencial - Danos informados', 'uf': 'RS', 'cobrade': list(S2ID_LABELS),
             'registration_period': [str(start.date()), str(end.date())], 'downloaded_at_utc': datetime.now(timezone.utc).isoformat(),
             'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest()}
     path.with_name(path.name + '.http.json').write_text(json.dumps(meta, indent=1), encoding='utf-8')
     return path
+
+
+def _dump_page(pg):
+    out = ROOT / 'logs' / 's2id_failure'
+    try:
+        out.mkdir(parents=True, exist_ok=True)
+        pg.screenshot(path=str(out / 'page.png'), full_page=True)
+        (out / 'page.html').write_text(pg.content(), encoding='utf-8')
+        print('S2iD page saved to', out.relative_to(ROOT).as_posix(), '| url:', pg.url, '| title:', pg.title())
+    except Exception as error:
+        print('S2iD page dump failed:', type(error).__name__)
+
+
+def _export_s2id(pg, path, s, e):
+    """Fills the JSF report form (flood COBRADEs, RS, registration period s..e) and saves the CSV export to path."""
+    pg.goto(S2ID_REPORTS, wait_until='networkidle', timeout=120000)
+    pg.get_by_text('Relatório Gerencial - Danos informados').click()
+    pg.wait_for_timeout(1500)
+    boxes = pg.evaluate("""() => [...document.querySelectorAll("input[name='abas:sanfonas:cobrades3']")].map(i => {
+        const l = document.querySelector(`label[for='${i.id}']`); return [i.id, l ? l.textContent.trim() : ''];})""")
+    picked = [cid for cid, label in boxes if label.startswith(S2ID_LABELS)]
+    if len(picked) != len(S2ID_LABELS):
+        raise RuntimeError(f'S2iD form changed: found {len(picked)} of {len(S2ID_LABELS)} flood types')
+    for cid in picked:
+        pg.locator(f"[id='{cid}']").check(force=True)
+        pg.wait_for_timeout(500)
+    uf = pg.locator("input[name='abas:sanfonas:estadosDanosInformados'][value='RS']")
+    uf.check(force=True)
+    pg.wait_for_timeout(500)
+    for widget, field, value in (('widget_abas_sanfonas_j_idt74', 'abas:sanfonas:j_idt74_input', s),
+                                 ('widget_abas_sanfonas_dt_final_danos', 'abas:sanfonas:dt_final_danos_input', e)):
+        pg.evaluate(f"() => PF('{widget}').setDate($.datepicker.parseDate('dd/mm/yy', '{value}'))")
+        pg.locator(f"[id='{field}']").evaluate(f"(el) => {{ el.value = '{value}'; }}")
+    pg.wait_for_timeout(800)
+    with pg.expect_download(timeout=180000) as dl:
+        pg.get_by_role('button', name='Exportar CSV').click()
+    dl.value.save_as(str(path))
 
 
 def read_s2id(path):

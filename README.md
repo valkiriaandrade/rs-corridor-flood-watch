@@ -315,9 +315,12 @@ streamlit run app.py                                # uses the bundled processed
 - **Refresh the forecast:** `pip install -r requirements-pipeline.txt`, then `python -m floodwatch.forecast`. This
   updates MERGE for the last 14 days, fetches the latest ECMWF/GFS runs and applies the frozen rules.
 - **Rebuild everything from raw data:** 18 steps, listed in [docs/runbook.md](docs/runbook.md).
-- **Daily operation:** `scripts/install_daily_task.ps1` registers a Windows task that runs the forecast every evening
-  and publishes the new run. If the computer was off, the next run first reconstructs every missing day (up to 14),
-  each from that day's 12 UTC model runs and the rainfall observed up to that day, so the verification has no gaps.
+- **Daily operation:** the GitHub Actions workflow `.github/workflows/daily-forecast.yml` runs the forecast every day
+  (scheduled for 17:00 Brasília; GitHub often starts it hours later) and pushes the new run to `main`. The verification
+  archive `forecasts.sqlite` lives on the branch `archive` (one force-pushed commit), not in the local folder. Each run
+  first reconstructs every missing day (up to 14), each from that day's 12 UTC model runs and the rainfall observed up
+  to that day, so the verification has no gaps. `scripts/install_daily_task.ps1` (Windows scheduled task) is the
+  former local alternative; never run it alongside the workflow, since both would push to `main`.
 - **Tests:** `pip install -r requirements-dev.txt && pytest -q`.
 
 ---
