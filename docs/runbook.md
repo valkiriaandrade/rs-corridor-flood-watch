@@ -46,8 +46,10 @@ honoured) and applies the frozen rules. If CPTEC is unreachable the local MERGE 
   Brasília, also `workflow_dispatch`) runs `scripts/daily_update.ps1` in the cloud. State between runs: MERGE files in
   the Actions cache (`merge-v1-*`, re-downloadable) and `forecasts.sqlite` on the branch `archive` (restored before the
   run, force-pushed as a single commit after it; this is the authoritative archive, a local copy is stale). Start a
-  run by hand with `gh workflow run daily-forecast.yml`. When the S2iD export fails, the page the site served
-  (`logs/s2id_failure/`) is uploaded as the run artifact `s2id-failure-<run id>`.
+  run by hand with `gh workflow run daily-forecast.yml`. S2iD blocks IP addresses outside Brazil, so the workflow does
+  not export it: a VM in São Paulo pushes the export to the branch `s2id` twice a day and the run loads it
+  (`FLOODWATCH_S2ID=file`, at most 36 h old). Setup and operation: [s2id-vm.md](s2id-vm.md). When a browser export
+  fails, the page the site served (`logs/s2id_failure/`) is uploaded as the run artifact `s2id-failure-<run id>`.
 - `scripts/install_daily_task.ps1 [-Python <path to python.exe>]` registers the former local alternative, a Windows
   scheduled task (21:30 local, catches up after the PC was off) running the same `scripts/daily_update.ps1`. Its task
   is disabled; do not enable it alongside the workflow (both push to `main`). Remove it with

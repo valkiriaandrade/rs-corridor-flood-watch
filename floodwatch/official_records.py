@@ -12,9 +12,14 @@ corridor municipalities are loaded into the forecast archive. A release covers e
 Preliminary: data/raw/reports/preliminary_reports.csv, filled by hand from Civil Defence bulletins and the press
 (date, municipality, type, source, url). Only water-related types count (alagamento, enxurrada, inundação). For dates
 covered by an official release, the official records replace the preliminary ones.
-    python -m floodwatch.official_records          # check now (ignores the weekly interval) and reload the reports
+    python -m floodwatch.official_records              # check now (ignores the weekly interval) and reload the reports
+    python -m floodwatch.official_records export-s2id  # S2iD export only (the Brazil VM, scripts/s2id_vm/)
+
+S2iD blocks IP addresses outside Brazil, so the GitHub runner sets FLOODWATCH_S2ID=file and loads the export that a
+VM in Brazil pushes to the branch `s2id` every day (docs/s2id-vm.md).
 """
 import json
+import os
 import re
 import unicodedata
 from datetime import datetime, timezone
@@ -94,6 +99,7 @@ S2ID_REPORTS = 'https://s2id.mi.gov.br/paginas/relatorios/'
 S2ID_DIR = RAW / 's2id'
 S2ID_LABELS = ('12100', '12200', '12300', '13214')   # same flood types as the study (COBRADE label prefixes)
 S2ID_DAYS = 60                                       # registration window re-read every day (the report allows 365)
+S2ID_MAX_AGE_H = 36                                  # FLOODWATCH_S2ID=file: older exports are not loaded
 PROTOCOL = re.compile(r'^[A-Z]{2}-[A-Z]-(\d{7})-(\d{5})-(\d{8})$')   # UF-F-<IBGE>-<COBRADE>-<event date>
 
 
@@ -108,7 +114,8 @@ def fetch_s2id(days=S2ID_DAYS):
     S2ID_DIR.mkdir(parents=True, exist_ok=True)
     path = S2ID_DIR / 'danos_informados_RS.csv'
     with sync_playwright() as p:
-        browser = p.chromium.launch(channel='msedge')
+        # Windows: the installed Edge; Linux (the Brazil VM): Playwright's own Chromium
+        browser = p.chromium.launch(channel=os.environ.get('FLOODWATCH_BROWSER', 'msedge' if os.name == 'nt' else None))
         ctx = browser.new_context(accept_downloads=True, user_agent=UA['User-Agent'])
         pg = ctx.new_page()
         try:
@@ -194,11 +201,25 @@ def update_s2id(force=False):
     last = pd.Timestamp(st['s2id_checked_utc']) if st.get('s2id_checked_utc') else None
     if not force and last is not None and (pd.Timestamp(datetime.now(timezone.utc)) - last).total_seconds() < 20 * 3600:
         return st
-    try:
-        path = fetch_s2id()
-    except Exception as error:
-        print('S2iD export failed:', type(error).__name__, str(error)[:200])
-        return st
+    if os.environ.get('FLOODWATCH_S2ID') == 'file':
+        # cloud runners are geo-blocked by S2iD: the export comes from a VM in Brazil (scripts/s2id_vm/), restored into
+        # S2ID_DIR from the branch `s2id` before the run. Only a recent export counts.
+        path = S2ID_DIR / 'danos_informados_RS.csv'
+        audit = path.with_name(path.name + '.http.json')
+        if not (path.exists() and audit.exists()):
+            print('S2iD export failed: no file from the Brazil VM (branch s2id)')
+            return st
+        age_h = (pd.Timestamp(datetime.now(timezone.utc))
+                 - pd.Timestamp(json.loads(audit.read_text(encoding='utf-8'))['downloaded_at_utc'])).total_seconds() / 3600
+        if age_h > S2ID_MAX_AGE_H:
+            print(f'S2iD export failed: file from the Brazil VM is {age_h:.0f} h old (limit {S2ID_MAX_AGE_H} h)')
+            return st
+    else:
+        try:
+            path = fetch_s2id()
+        except Exception as error:
+            print('S2iD export failed:', type(error).__name__, str(error)[:200])
+            return st
     rec = read_s2id(path)
     rec = rec[rec.cobrade.astype(int).isin(CODES)]
     con = connect()
@@ -234,7 +255,18 @@ def preliminary_reports():
     return r[cols]
 
 
+def export_s2id():
+    """Export only (the Brazil VM): no archive, no study files. Fails loudly if the export does not parse."""
+    path = fetch_s2id()
+    rec = read_s2id(path)  # raises if the CSV is not the expected report
+    print(f'S2iD export: {len(rec)} RS flood records -> {path}')
+
+
 if __name__ == '__main__':
+    import sys
+    if sys.argv[1:] == ['export-s2id']:
+        export_s2id()
+        sys.exit(0)
     print(json.dumps(update(force=True), indent=1))
     print(json.dumps(update_s2id(force=True), indent=1))
     print(preliminary_reports().to_string(index=False))
