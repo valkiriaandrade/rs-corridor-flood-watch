@@ -11,365 +11,335 @@
   "2026-11-12",
   "2026-11-13",
   "2026-11-14",
-  "2026-11-15"
+  "2026-11-15",
+  "2026-11-16",
+  "2026-11-17"
  ],
- "issuances": 14,
+ "issuances": 17,
  "by_lead": {
   "ECMWF": {
    "1": {
-    "days": 12,
+    "days": 13,
     "rain": {
-     "n": 1032,
-     "fc_mean": 4.502468231903618,
-     "obs_mean": 3.0138898670130856,
-     "bias_ratio": 1.4939060252940788,
-     "mae": 1.974019483127786,
+     "n": 1118,
+     "fc_mean": 4.390371138650808,
+     "obs_mean": 2.912265246962902,
+     "bias_ratio": 1.5075450779180815,
+     "mae": 1.9553870241272082,
      "heavy_observed": 51,
      "heavy_hits": 50,
      "heavy_forecast": 70
     },
     "EDI": {
-     "n": 1204,
-     "hits": 313,
-     "false_alarms": 23,
+     "n": 1290,
+     "hits": 320,
+     "false_alarms": 25,
      "misses": 46,
-     "correct_negatives": 822,
-     "POD": 0.871866295264624,
-     "FAR": 0.06845238095238096
+     "correct_negatives": 899,
+     "POD": 0.8743169398907104,
+     "FAR": 0.07246376811594203
     },
     "API": {
-     "n": 1118,
+     "n": 1204,
      "hits": 279,
      "false_alarms": 11,
      "misses": 24,
-     "correct_negatives": 804,
+     "correct_negatives": 890,
      "POD": 0.9207920792079208,
      "FAR": 0.03793103448275862
     }
    },
    "2": {
-    "days": 11,
+    "days": 13,
     "rain": {
-     "n": 946,
-     "fc_mean": 4.744613245001382,
-     "obs_mean": 2.6526507275540667,
-     "bias_ratio": 1.7886309704166194,
-     "mae": 2.6835259891450285,
+     "n": 1204,
+     "fc_mean": 4.056698331395611,
+     "obs_mean": 2.270421992522578,
+     "bias_ratio": 1.7867596177080591,
+     "mae": 2.3519791648085677,
      "heavy_observed": 31,
      "heavy_hits": 29,
      "heavy_forecast": 76
     },
     "EDI": {
-     "n": 1118,
-     "hits": 298,
-     "false_alarms": 31,
+     "n": 1290,
+     "hits": 312,
+     "false_alarms": 37,
      "misses": 37,
-     "correct_negatives": 752,
-     "POD": 0.8895522388059701,
-     "FAR": 0.09422492401215805
+     "correct_negatives": 904,
+     "POD": 0.8939828080229226,
+     "FAR": 0.10601719197707736
     },
     "API": {
-     "n": 1032,
+     "n": 1204,
      "hits": 241,
      "false_alarms": 28,
      "misses": 16,
-     "correct_negatives": 747,
+     "correct_negatives": 919,
      "POD": 0.9377431906614786,
      "FAR": 0.10408921933085502
     }
    },
    "3": {
-    "days": 10,
+    "days": 12,
     "rain": {
-     "n": 860,
-     "fc_mean": 3.882415840588457,
-     "obs_mean": 2.309366596573021,
-     "bias_ratio": 1.681160473330548,
-     "mae": 2.5212047279019547,
+     "n": 1032,
+     "fc_mean": 3.7166924595434034,
+     "obs_mean": 2.103618817918436,
+     "bias_ratio": 1.7668089046765274,
+     "mae": 2.5360950097205377,
      "heavy_observed": 17,
      "heavy_hits": 15,
      "heavy_forecast": 37
     },
     "EDI": {
-     "n": 1032,
-     "hits": 264,
-     "false_alarms": 38,
+     "n": 1204,
+     "hits": 278,
+     "false_alarms": 51,
      "misses": 37,
-     "correct_negatives": 693,
-     "POD": 0.8770764119601329,
-     "FAR": 0.12582781456953643
+     "correct_negatives": 838,
+     "POD": 0.8825396825396825,
+     "FAR": 0.15501519756838905
     },
     "API": {
-     "n": 946,
+     "n": 1118,
      "hits": 201,
      "false_alarms": 37,
      "misses": 10,
-     "correct_negatives": 698,
+     "correct_negatives": 870,
      "POD": 0.95260663507109,
      "FAR": 0.15546218487394958
     }
    },
    "4": {
-    "days": 9,
+    "days": 11,
     "rain": {
-     "n": 3268,
-     "fc_mean": 0.6354549589656393,
-     "obs_mean": 0.45327710386458314,
-     "bias_ratio": 1.4019127671524347,
-     "mae": 0.6642862541160596,
+     "n": 4300,
+     "fc_mean": 2.1377793520679416,
+     "obs_mean": 0.6024617808520065,
+     "bias_ratio": 3.5484065877916375,
+     "mae": 2.1264098002702005,
      "heavy_observed": 1,
      "heavy_hits": 0,
-     "heavy_forecast": 0
+     "heavy_forecast": 121
     },
     "EDI": {
-     "n": 4214,
-     "hits": 784,
-     "false_alarms": 125,
+     "n": 5246,
+     "hits": 868,
+     "false_alarms": 218,
      "misses": 163,
-     "correct_negatives": 3142,
-     "POD": 0.8278775079197466,
-     "FAR": 0.13751375137513752
+     "correct_negatives": 3997,
+     "POD": 0.8419010669253152,
+     "FAR": 0.2007366482504604
     },
     "API": {
-     "n": 3698,
+     "n": 4730,
      "hits": 444,
-     "false_alarms": 189,
+     "false_alarms": 211,
      "misses": 57,
-     "correct_negatives": 3008,
+     "correct_negatives": 4018,
      "POD": 0.8862275449101796,
-     "FAR": 0.2985781990521327
+     "FAR": 0.32213740458015266
     }
    }
   },
   "GFS": {
    "1": {
-    "days": 12,
+    "days": 13,
     "rain": {
-     "n": 1032,
-     "fc_mean": 3.7831762411284604,
-     "obs_mean": 3.0138898670130856,
-     "bias_ratio": 1.2552470090347978,
-     "mae": 1.7988149637646813,
+     "n": 1118,
+     "fc_mean": 3.7453103262100447,
+     "obs_mean": 2.912265246962902,
+     "bias_ratio": 1.2860471174855712,
+     "mae": 1.8653552799700823,
      "heavy_observed": 51,
      "heavy_hits": 42,
      "heavy_forecast": 49
     },
     "EDI": {
-     "n": 1204,
-     "hits": 309,
-     "false_alarms": 22,
+     "n": 1290,
+     "hits": 316,
+     "false_alarms": 24,
      "misses": 50,
-     "correct_negatives": 823,
-     "POD": 0.8607242339832869,
-     "FAR": 0.06646525679758308
+     "correct_negatives": 900,
+     "POD": 0.8633879781420765,
+     "FAR": 0.07058823529411765
     },
     "API": {
-     "n": 1118,
+     "n": 1204,
      "hits": 278,
      "false_alarms": 5,
      "misses": 25,
-     "correct_negatives": 810,
+     "correct_negatives": 896,
      "POD": 0.9174917491749175,
      "FAR": 0.0176678445229682
     }
    },
    "2": {
-    "days": 11,
+    "days": 13,
     "rain": {
-     "n": 946,
-     "fc_mean": 1.8901697330250524,
-     "obs_mean": 2.6526507275540667,
-     "bias_ratio": 0.7125588428929442,
-     "mae": 2.4774826930510447,
+     "n": 1204,
+     "fc_mean": 1.915345440430021,
+     "obs_mean": 2.270421992522578,
+     "bias_ratio": 0.8436076847114905,
+     "mae": 2.2502231085541533,
      "heavy_observed": 31,
      "heavy_hits": 2,
      "heavy_forecast": 4
     },
     "EDI": {
-     "n": 1118,
-     "hits": 279,
-     "false_alarms": 24,
+     "n": 1290,
+     "hits": 293,
+     "false_alarms": 35,
      "misses": 56,
-     "correct_negatives": 759,
-     "POD": 0.8328358208955224,
-     "FAR": 0.07920792079207921
+     "correct_negatives": 906,
+     "POD": 0.839541547277937,
+     "FAR": 0.10670731707317073
     },
     "API": {
-     "n": 1032,
+     "n": 1204,
      "hits": 232,
      "false_alarms": 8,
      "misses": 25,
-     "correct_negatives": 767,
+     "correct_negatives": 939,
      "POD": 0.9027237354085603,
      "FAR": 0.03333333333333333
     }
    },
    "3": {
-    "days": 10,
+    "days": 12,
     "rain": {
-     "n": 860,
-     "fc_mean": 1.0150651246217415,
-     "obs_mean": 2.309366596573021,
-     "bias_ratio": 0.439542654738336,
-     "mae": 2.2367375188560144,
+     "n": 1032,
+     "fc_mean": 1.2162210985077269,
+     "obs_mean": 2.103618817918436,
+     "bias_ratio": 0.5781565976440526,
+     "mae": 2.1818024911736615,
      "heavy_observed": 17,
      "heavy_hits": 0,
      "heavy_forecast": 0
     },
     "EDI": {
-     "n": 1032,
-     "hits": 248,
-     "false_alarms": 14,
+     "n": 1204,
+     "hits": 262,
+     "false_alarms": 34,
      "misses": 53,
-     "correct_negatives": 717,
-     "POD": 0.8239202657807309,
-     "FAR": 0.05343511450381679
+     "correct_negatives": 855,
+     "POD": 0.8317460317460318,
+     "FAR": 0.11486486486486487
     },
     "API": {
-     "n": 946,
+     "n": 1118,
      "hits": 177,
-     "false_alarms": 4,
+     "false_alarms": 6,
      "misses": 34,
-     "correct_negatives": 731,
+     "correct_negatives": 901,
      "POD": 0.8388625592417062,
-     "FAR": 0.022099447513812154
+     "FAR": 0.03278688524590164
     }
    },
    "4": {
-    "days": 9,
+    "days": 11,
     "rain": {
-     "n": 3268,
-     "fc_mean": 0.7137824967766602,
-     "obs_mean": 0.45327710386458314,
-     "bias_ratio": 1.5747155342527583,
-     "mae": 0.8715857115880934,
+     "n": 4300,
+     "fc_mean": 1.6532581303034728,
+     "obs_mean": 0.6024617808520065,
+     "bias_ratio": 2.7441709712530167,
+     "mae": 1.7997011157948481,
      "heavy_observed": 1,
      "heavy_hits": 0,
-     "heavy_forecast": 13
+     "heavy_forecast": 94
     },
     "EDI": {
-     "n": 4300,
-     "hits": 665,
-     "false_alarms": 73,
+     "n": 5332,
+     "hits": 749,
+     "false_alarms": 132,
      "misses": 299,
-     "correct_negatives": 3263,
-     "POD": 0.6898340248962656,
-     "FAR": 0.0989159891598916
+     "correct_negatives": 4152,
+     "POD": 0.7146946564885496,
+     "FAR": 0.14982973893303064
     },
     "API": {
-     "n": 3784,
+     "n": 4816,
      "hits": 314,
-     "false_alarms": 47,
+     "false_alarms": 69,
      "misses": 195,
-     "correct_negatives": 3228,
+     "correct_negatives": 4238,
      "POD": 0.6168958742632613,
-     "FAR": 0.13019390581717452
+     "FAR": 0.1801566579634465
     }
    }
   }
  },
  "latest": {
-  "date": "2026-11-15",
-  "lead_days": 1,
-  "run_id": "20261115T131947Z",
+  "date": "2026-11-17",
+  "lead_days": 2,
+  "run_id": "20261117T205752Z",
   "model_runs": {
-   "ECMWF": "2026-11-14T12:00:00+00:00",
-   "GFS": "2026-11-14T12:00:00+00:00"
+   "ECMWF": "2026-11-17T12:00:00+00:00",
+   "GFS": "2026-11-17T12:00:00+00:00"
   },
-  "observed_cutoff": "2026-11-14",
+  "observed_cutoff": "2026-11-15",
   "models": {
    "ECMWF": {
-    "rain": {
-     "n": 86,
-     "fc_mean": 5.386215187768265,
-     "obs_mean": 0.38298896945722993,
-     "bias_ratio": 14.063630071126024,
-     "mae": 5.020223730420892,
-     "heavy_observed": 0,
-     "heavy_hits": 0,
-     "heavy_forecast": 3,
-     "fc_max": 30.071364136736605,
-     "fc_max_nome": "Tapes",
-     "obs_max": 3.445613579714011,
-     "obs_max_nome": "Jaboticaba"
-    },
+    "rain": null,
     "EDI": {
-     "n": 86,
-     "hits": 7,
-     "false_alarms": 2,
-     "misses": 0,
-     "correct_negatives": 77,
-     "POD": 1.0,
-     "FAR": 0.2222222222222222,
-     "missed": [],
-     "false_alarm_names": [
-      "Estrela",
-      "Lajeado"
-     ],
-     "false_alarm_reported": [],
-     "forecast_watch": 9,
-     "observed_watch": 7
-    },
-    "API": {
-     "n": 86,
-     "hits": 1,
+     "n": 0,
+     "hits": 0,
      "false_alarms": 0,
      "misses": 0,
-     "correct_negatives": 85,
-     "POD": 1.0,
-     "FAR": 0.0,
+     "correct_negatives": 0,
+     "POD": null,
+     "FAR": null,
      "missed": [],
      "false_alarm_names": [],
      "false_alarm_reported": [],
-     "forecast_watch": 1,
-     "observed_watch": 1
+     "forecast_watch": 0,
+     "observed_watch": 7
+    },
+    "API": {
+     "n": 0,
+     "hits": 0,
+     "false_alarms": 0,
+     "misses": 0,
+     "correct_negatives": 0,
+     "POD": null,
+     "FAR": null,
+     "missed": [],
+     "false_alarm_names": [],
+     "false_alarm_reported": [],
+     "forecast_watch": 0,
+     "observed_watch": 0
     }
    },
    "GFS": {
-    "rain": {
-     "n": 86,
-     "fc_mean": 6.9680500047858285,
-     "obs_mean": 0.38298896945722993,
-     "bias_ratio": 18.193866039173177,
-     "mae": 6.585061035328598,
-     "heavy_observed": 0,
-     "heavy_hits": 0,
-     "heavy_forecast": 0,
-     "fc_max": 19.86131848961525,
-     "fc_max_nome": "Guaíba",
-     "obs_max": 3.445613579714011,
-     "obs_max_nome": "Jaboticaba"
-    },
+    "rain": null,
     "EDI": {
-     "n": 86,
-     "hits": 7,
-     "false_alarms": 2,
-     "misses": 0,
-     "correct_negatives": 77,
-     "POD": 1.0,
-     "FAR": 0.2222222222222222,
-     "missed": [],
-     "false_alarm_names": [
-      "Estrela",
-      "Lajeado"
-     ],
-     "false_alarm_reported": [],
-     "forecast_watch": 9,
-     "observed_watch": 7
-    },
-    "API": {
-     "n": 86,
-     "hits": 1,
+     "n": 0,
+     "hits": 0,
      "false_alarms": 0,
      "misses": 0,
-     "correct_negatives": 85,
-     "POD": 1.0,
-     "FAR": 0.0,
+     "correct_negatives": 0,
+     "POD": null,
+     "FAR": null,
      "missed": [],
      "false_alarm_names": [],
      "false_alarm_reported": [],
-     "forecast_watch": 1,
-     "observed_watch": 1
+     "forecast_watch": 0,
+     "observed_watch": 7
+    },
+    "API": {
+     "n": 0,
+     "hits": 0,
+     "false_alarms": 0,
+     "misses": 0,
+     "correct_negatives": 0,
+     "POD": null,
+     "FAR": null,
+     "missed": [],
+     "false_alarm_names": [],
+     "false_alarm_reported": [],
+     "forecast_watch": 0,
+     "observed_watch": 0
     }
    }
   }
