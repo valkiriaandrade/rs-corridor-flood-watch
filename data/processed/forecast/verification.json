@@ -14,71 +14,72 @@
   "2026-11-15",
   "2026-11-16",
   "2026-11-17",
-  "2026-11-18"
+  "2026-11-18",
+  "2026-11-19"
  ],
- "issuances": 18,
+ "issuances": 19,
  "by_lead": {
   "ECMWF": {
    "1": {
-    "days": 14,
+    "days": 15,
     "rain": {
-     "n": 1204,
-     "fc_mean": 4.477529260562551,
-     "obs_mean": 3.132799499577021,
-     "bias_ratio": 1.429242203711757,
-     "mae": 1.9501129547936198,
+     "n": 1290,
+     "fc_mean": 4.557172227117874,
+     "obs_mean": 2.938362668621981,
+     "bias_ratio": 1.5509223132265952,
+     "mae": 2.1838338727167774,
      "heavy_observed": 52,
      "heavy_hits": 50,
-     "heavy_forecast": 70
+     "heavy_forecast": 71
     },
     "EDI": {
-     "n": 1376,
-     "hits": 329,
+     "n": 1462,
+     "hits": 339,
      "false_alarms": 25,
      "misses": 47,
-     "correct_negatives": 975,
-     "POD": 0.875,
-     "FAR": 0.07062146892655367
+     "correct_negatives": 1051,
+     "POD": 0.8782383419689119,
+     "FAR": 0.06868131868131869
     },
     "API": {
-     "n": 1290,
+     "n": 1376,
      "hits": 279,
      "false_alarms": 11,
      "misses": 24,
-     "correct_negatives": 976,
+     "correct_negatives": 1062,
      "POD": 0.9207920792079208,
      "FAR": 0.03793103448275862
     }
    },
    "2": {
-    "days": 13,
+    "days": 14,
     "rain": {
-     "n": 1204,
-     "fc_mean": 4.056698331395611,
-     "obs_mean": 2.273321295394301,
-     "bias_ratio": 1.7844808561000123,
-     "mae": 2.3544405310777883,
+     "n": 1290,
+     "fc_mean": 4.655250067670897,
+     "obs_mean": 2.1361830113847757,
+     "bias_ratio": 2.1792374730352067,
+     "mae": 3.0552181682180364,
      "heavy_observed": 31,
      "heavy_hits": 29,
-     "heavy_forecast": 76
+     "heavy_forecast": 83
     },
     "EDI": {
-     "n": 1290,
-     "hits": 312,
-     "false_alarms": 37,
+     "n": 1376,
+     "hits": 322,
+     "false_alarms": 45,
      "misses": 37,
-     "correct_negatives": 904,
-     "POD": 0.8939828080229226,
-     "FAR": 0.10601719197707736
+     "correct_negatives": 972,
+     "POD": 0.8969359331476323,
+     "FAR": 0.1226158038147139
     },
     "API": {
-     "n": 1204,
+     "n": 1290,
      "hits": 241,
-     "false_alarms": 28,
+     "false_alarms": 30,
      "misses": 16,
-     "correct_negatives": 919,
+     "correct_negatives": 1003,
      "POD": 0.9377431906614786,
-     "FAR": 0.10408921933085502
+     "FAR": 0.11070110701107011
     }
    },
    "3": {
@@ -113,98 +114,98 @@
     }
    },
    "4": {
-    "days": 12,
+    "days": 13,
     "rain": {
-     "n": 4816,
-     "fc_mean": 3.018731516364272,
-     "obs_mean": 1.182916579724575,
-     "bias_ratio": 2.5519394757888505,
-     "mae": 2.7119891493130783,
+     "n": 5504,
+     "fc_mean": 3.4149330915104184,
+     "obs_mean": 1.0620828866654308,
+     "bias_ratio": 3.215316934662336,
+     "mae": 3.131229229320418,
      "heavy_observed": 7,
      "heavy_hits": 0,
-     "heavy_forecast": 144
+     "heavy_forecast": 165
     },
     "EDI": {
-     "n": 5762,
-     "hits": 927,
-     "false_alarms": 295,
-     "misses": 164,
-     "correct_negatives": 4376,
-     "POD": 0.84967919340055,
-     "FAR": 0.2414075286415712
+     "n": 6278,
+     "hits": 985,
+     "false_alarms": 368,
+     "misses": 166,
+     "correct_negatives": 4759,
+     "POD": 0.8557775847089487,
+     "FAR": 0.2719881744271988
     },
     "API": {
-     "n": 5246,
+     "n": 5762,
      "hits": 444,
-     "false_alarms": 238,
+     "false_alarms": 260,
      "misses": 57,
-     "correct_negatives": 4507,
+     "correct_negatives": 5001,
      "POD": 0.8862275449101796,
-     "FAR": 0.3489736070381232
+     "FAR": 0.3693181818181818
     }
    }
   },
   "GFS": {
    "1": {
-    "days": 14,
+    "days": 15,
     "rain": {
-     "n": 1204,
-     "fc_mean": 4.149646062407457,
-     "obs_mean": 3.132799499577021,
-     "bias_ratio": 1.3245807984097693,
-     "mae": 2.0599334872107358,
+     "n": 1290,
+     "fc_mean": 4.264084682739556,
+     "obs_mean": 2.938362668621981,
+     "bias_ratio": 1.451177122645417,
+     "mae": 2.299269810205854,
      "heavy_observed": 52,
      "heavy_hits": 42,
      "heavy_forecast": 54
     },
     "EDI": {
-     "n": 1376,
-     "hits": 325,
+     "n": 1462,
+     "hits": 335,
      "false_alarms": 24,
      "misses": 51,
-     "correct_negatives": 976,
-     "POD": 0.8643617021276596,
-     "FAR": 0.06876790830945559
+     "correct_negatives": 1052,
+     "POD": 0.8678756476683938,
+     "FAR": 0.06685236768802229
     },
     "API": {
-     "n": 1290,
+     "n": 1376,
      "hits": 278,
      "false_alarms": 5,
      "misses": 25,
-     "correct_negatives": 982,
+     "correct_negatives": 1068,
      "POD": 0.9174917491749175,
      "FAR": 0.0176678445229682
     }
    },
    "2": {
-    "days": 13,
+    "days": 14,
     "rain": {
-     "n": 1204,
-     "fc_mean": 1.915345440430021,
-     "obs_mean": 2.273321295394301,
-     "bias_ratio": 0.8425317812798695,
-     "mae": 2.2530086547579082,
+     "n": 1290,
+     "fc_mean": 2.583997705515296,
+     "obs_mean": 2.1361830113847757,
+     "bias_ratio": 1.2096331127735283,
+     "mae": 2.888380304455409,
      "heavy_observed": 31,
      "heavy_hits": 2,
-     "heavy_forecast": 4
+     "heavy_forecast": 22
     },
     "EDI": {
-     "n": 1290,
-     "hits": 293,
-     "false_alarms": 35,
+     "n": 1376,
+     "hits": 303,
+     "false_alarms": 38,
      "misses": 56,
-     "correct_negatives": 906,
-     "POD": 0.839541547277937,
-     "FAR": 0.10670731707317073
+     "correct_negatives": 979,
+     "POD": 0.8440111420612814,
+     "FAR": 0.11143695014662756
     },
     "API": {
-     "n": 1204,
+     "n": 1290,
      "hits": 232,
-     "false_alarms": 8,
+     "false_alarms": 23,
      "misses": 25,
-     "correct_negatives": 939,
+     "correct_negatives": 1010,
      "POD": 0.9027237354085603,
-     "FAR": 0.03333333333333333
+     "FAR": 0.09019607843137255
     }
    },
    "3": {
@@ -239,77 +240,75 @@
     }
    },
    "4": {
-    "days": 12,
+    "days": 13,
     "rain": {
-     "n": 4816,
-     "fc_mean": 2.5714532997660235,
-     "obs_mean": 1.182916579724575,
-     "bias_ratio": 2.173824717517062,
-     "mae": 2.2827034872314775,
+     "n": 5504,
+     "fc_mean": 3.399876269677316,
+     "obs_mean": 1.0620828866654308,
+     "bias_ratio": 3.201140242784384,
+     "mae": 3.1280778858347515,
      "heavy_observed": 7,
      "heavy_hits": 0,
-     "heavy_forecast": 146
+     "heavy_forecast": 231
     },
     "EDI": {
-     "n": 5848,
-     "hits": 808,
-     "false_alarms": 188,
+     "n": 6364,
+     "hits": 868,
+     "false_alarms": 281,
      "misses": 300,
-     "correct_negatives": 4552,
-     "POD": 0.7292418772563177,
-     "FAR": 0.18875502008032127
+     "correct_negatives": 4915,
+     "POD": 0.7431506849315068,
+     "FAR": 0.24456048738033073
     },
     "API": {
-     "n": 5332,
+     "n": 5848,
      "hits": 314,
-     "false_alarms": 97,
+     "false_alarms": 159,
      "misses": 195,
-     "correct_negatives": 4726,
+     "correct_negatives": 5180,
      "POD": 0.6168958742632613,
-     "FAR": 0.2360097323600973
+     "FAR": 0.3361522198731501
     }
    }
   }
  },
  "latest": {
-  "date": "2026-11-18",
+  "date": "2026-11-19",
   "lead_days": 1,
-  "run_id": "20261118T020118Z",
+  "run_id": "20261119T132431Z",
   "model_runs": {
-   "ECMWF": "2026-11-17T12:00:00+00:00",
-   "GFS": "2026-11-17T12:00:00+00:00"
+   "ECMWF": "2026-11-18T12:00:00+00:00",
+   "GFS": "2026-11-18T12:00:00+00:00"
   },
-  "observed_cutoff": "2026-11-17",
+  "observed_cutoff": "2026-11-18",
   "models": {
    "ECMWF": {
     "rain": {
      "n": 86,
-     "fc_mean": 5.610584845415206,
-     "obs_mean": 5.9997447835605815,
-     "bias_ratio": 0.935137251302475,
-     "mae": 1.8815500534569696,
-     "heavy_observed": 1,
+     "fc_mean": 5.672173758892407,
+     "obs_mean": 0.21624703525142064,
+     "bias_ratio": 26.230064852901343,
+     "mae": 5.455926723640986,
+     "heavy_observed": 0,
      "heavy_hits": 0,
-     "heavy_forecast": 0,
-     "fc_max": 14.54355368867778,
-     "fc_max_nome": "Sarandi",
-     "obs_max": 21.327835793795632,
-     "obs_max_nome": "Carazinho"
+     "heavy_forecast": 1,
+     "fc_max": 20.28063916988745,
+     "fc_max_nome": "Tapes",
+     "obs_max": 4.253857673323351,
+     "obs_max_nome": "Iraí"
     },
     "EDI": {
      "n": 86,
-     "hits": 9,
+     "hits": 10,
      "false_alarms": 0,
-     "misses": 1,
+     "misses": 0,
      "correct_negatives": 76,
-     "POD": 0.9,
+     "POD": 1.0,
      "FAR": 0.0,
-     "missed": [
-      "Soledade"
-     ],
+     "missed": [],
      "false_alarm_names": [],
      "false_alarm_reported": [],
-     "forecast_watch": 9,
+     "forecast_watch": 10,
      "observed_watch": 10
     },
     "API": {
@@ -330,32 +329,30 @@
    "GFS": {
     "rain": {
      "n": 86,
-     "fc_mean": 9.40601063297381,
-     "obs_mean": 5.9997447835605815,
-     "bias_ratio": 1.5677351241250235,
-     "mae": 4.589450181339224,
-     "heavy_observed": 1,
+     "fc_mean": 5.866225367388941,
+     "obs_mean": 0.21624703525142064,
+     "bias_ratio": 27.12742563415284,
+     "mae": 5.64997833213752,
+     "heavy_observed": 0,
      "heavy_hits": 0,
-     "heavy_forecast": 5,
-     "fc_max": 24.10052151335744,
-     "fc_max_nome": "Novo Hamburgo",
-     "obs_max": 21.327835793795632,
-     "obs_max_nome": "Carazinho"
+     "heavy_forecast": 0,
+     "fc_max": 11.680119978784003,
+     "fc_max_nome": "Iraí",
+     "obs_max": 4.253857673323351,
+     "obs_max_nome": "Iraí"
     },
     "EDI": {
      "n": 86,
-     "hits": 9,
+     "hits": 10,
      "false_alarms": 0,
-     "misses": 1,
+     "misses": 0,
      "correct_negatives": 76,
-     "POD": 0.9,
+     "POD": 1.0,
      "FAR": 0.0,
-     "missed": [
-      "Soledade"
-     ],
+     "missed": [],
      "false_alarm_names": [],
      "false_alarm_reported": [],
-     "forecast_watch": 9,
+     "forecast_watch": 10,
      "observed_watch": 10
     },
     "API": {
