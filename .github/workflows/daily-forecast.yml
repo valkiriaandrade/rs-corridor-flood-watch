@@ -58,7 +58,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'forecasts.sqlite not found on branch archive' }
           "archive restored: {0:N1} MB" -f ((Get-Item data/processed/forecast/forecasts.sqlite).Length / 1MB)
 
-      - name: Restore S2iD export (from the VM in Brazil; S2iD blocks runners outside Brazil)
+      - name: Restore S2iD export (pushed from the PC in Brazil, scripts/s2id_export.ps1; S2iD blocks runners abroad)
         run: |
           git fetch origin s2id
           if ($LASTEXITCODE -ne 0) { 'branch s2id not found: S2iD records not updated in this run'; exit 0 }

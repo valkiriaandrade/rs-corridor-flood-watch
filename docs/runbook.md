@@ -47,9 +47,14 @@ honoured) and applies the frozen rules. If CPTEC is unreachable the local MERGE 
   the Actions cache (`merge-v1-*`, re-downloadable) and `forecasts.sqlite` on the branch `archive` (restored before the
   run, force-pushed as a single commit after it; this is the authoritative archive, a local copy is stale). Start a
   run by hand with `gh workflow run daily-forecast.yml`. S2iD blocks IP addresses outside Brazil, so the workflow does
-  not export it: a VM in São Paulo pushes the export to the branch `s2id` twice a day and the run loads it
-  (`FLOODWATCH_S2ID=file`, at most 36 h old). Setup and operation: [s2id-vm.md](s2id-vm.md). When a browser export
-  fails, the page the site served (`logs/s2id_failure/`) is uploaded as the run artifact `s2id-failure-<run id>`.
+  not export it: the project PC (in Brazil, switched on about once a week) pushes the export to the branch `s2id`
+  and every run loads the latest one (`FLOODWATCH_S2ID=file`; re-loading is harmless, the 60-day registration window
+  covers the weeks between exports, and the log warns when it is over 10 days old). On the PC,
+  `scripts/install_s2id_task.ps1` registers the task "RS Corridor Flood Watch - S2iD export" (5 min after logon and
+  12:00, skipped if the last export is under 20 h old; log `logs/s2id_export.log`); export by hand with
+  `./scripts/s2id_export.ps1`. A VM in Brazil is an alternative that needs no PC: [s2id-vm.md](s2id-vm.md). When a
+  browser export fails, the page the site served (`logs/s2id_failure/`) is uploaded as the run artifact
+  `s2id-failure-<run id>`.
 - `scripts/install_daily_task.ps1 [-Python <path to python.exe>]` registers the former local alternative, a Windows
   scheduled task (21:30 local, catches up after the PC was off) running the same `scripts/daily_update.ps1`. Its task
   is disabled; do not enable it alongside the workflow (both push to `main`). Remove it with

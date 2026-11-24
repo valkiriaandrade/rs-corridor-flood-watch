@@ -1,5 +1,8 @@
 # S2iD export VM (Brazil)
 
+> Not in use: the export currently comes from the project PC (`scripts/s2id_export.ps1`, see the runbook). This VM
+> is the alternative if the PC stops being switched on. With it, the 06:00/18:00 UTC exports keep the data under a day old.
+
 S2iD (`s2id.mi.gov.br`) answers only IP addresses located in Brazil. GitHub's runners are abroad and get the page
 "Acesso bloqueado por localização geográfica" (seen 2026-11-17), so the daily S2iD export cannot run in the
 forecast workflow. A small VM in a Brazilian cloud region does only that export:
