@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "If you use this study or its code, please cite it as below."
+title: "RS Corridor Flood Watch: flood-potential thresholds (EDI, API) for the BR-116, BR-386 and BR-290 corridors, Rio Grande do Sul, Brazil"
+type: software
+authors:
+  - family-names: Andrade
+    given-names: Valkiria
+license: MIT
+repository-code: "https://github.com/valkiriaandrade/rs-corridor-flood-watch"
+abstract: >-
+  Independent study that calibrates and validates, out of sample and against S2iD municipal flood records, flood-potential
+  thresholds based on the Effective Drought Index (EDI) and the Antecedent Precipitation Index (API) computed on upstream-basin
+  MERGE rainfall, and applies the frozen rules to ECMWF and GFS forecasts. Pre-registered protocol in docs/protocol.md;
+  negative results are reported. Not an official warning.
+keywords:
+  - flood
+  - effective drought index
+  - antecedent precipitation index
+  - forecast verification
+  - Rio Grande do Sul
+  - S2iD

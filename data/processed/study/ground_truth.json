@@ -1,0 +1,150 @@
+{
+ "source": "PRF datatran 2021-2025, BR-116/386/290 in RS",
+ "years": [
+  2021,
+  2022,
+  2023,
+  2024,
+  2025
+ ],
+ "sets": {
+  "primary": {
+   "causes": [
+    "Acumulo de \u00e1gua sobre o pavimento"
+   ],
+   "records": 154,
+   "records_in_corridor_municipalities": 154,
+   "records_by_year": {
+    "2021": 21,
+    "2022": 27,
+    "2023": 33,
+    "2024": 35,
+    "2025": 38
+   },
+   "municipal": {
+    "accident_municipality_days": 153,
+    "all_municipality_days": 157036,
+    "EDI": {
+     "n_with_level": 153,
+     "share_at_watch_or_above": 0.3006535947712418,
+     "share_at_watch_CI95": [
+      0.2207769816390506,
+      0.38514727963257367
+     ],
+     "share_at_warning": 0.0457516339869281,
+     "share_of_all_days_at_watch_or_above": 0.229234060979648,
+     "rate_ratio_watch": 1.3115572506388335,
+     "rate_ratio_warning": 1.1855864017774327
+    },
+    "API": {
+     "n_with_level": 153,
+     "share_at_watch_or_above": 0.2222222222222222,
+     "share_at_watch_CI95": [
+      0.14554483757816075,
+      0.3096774193548387
+     ],
+     "share_at_warning": 0.0718954248366013,
+     "share_of_all_days_at_watch_or_above": 0.1533852110344125,
+     "rate_ratio_watch": 1.4487851907206746,
+     "rate_ratio_warning": 2.3375093032382033
+    }
+   },
+   "corridor_rule": {
+    "EDI": {
+     "corridor_days": 5478,
+     "accident_corridor_days": 142,
+     "POD_watch": 0.4507042253521127,
+     "POFD_watch": 0.315592203898051,
+     "TSS_watch": 0.1351120214540617,
+     "POD_warning": 0.09859154929577464,
+     "POFD_warning": 0.06184407796101949
+    },
+    "API": {
+     "corridor_days": 5478,
+     "accident_corridor_days": 142,
+     "POD_watch": 0.3732394366197183,
+     "POFD_watch": 0.21776611694152923,
+     "TSS_watch": 0.1554733196781891,
+     "POD_warning": 0.1267605633802817,
+     "POFD_warning": 0.04553973013493253
+    }
+   }
+  },
+  "sensitivity": {
+   "causes": [
+    "Acumulo de \u00e1gua sobre o pavimento",
+    "Chuva"
+   ],
+   "records": 301,
+   "records_in_corridor_municipalities": 301,
+   "records_by_year": {
+    "2021": 54,
+    "2022": 63,
+    "2023": 61,
+    "2024": 57,
+    "2025": 66
+   },
+   "municipal": {
+    "accident_municipality_days": 298,
+    "all_municipality_days": 157036,
+    "EDI": {
+     "n_with_level": 298,
+     "share_at_watch_or_above": 0.28523489932885904,
+     "share_at_watch_CI95": [
+      0.225254344371206,
+      0.34754811119030643
+     ],
+     "share_at_warning": 0.04697986577181208,
+     "share_of_all_days_at_watch_or_above": 0.229234060979648,
+     "rate_ratio_watch": 1.24429545116414,
+     "rate_ratio_warning": 1.2174142246439408
+    },
+    "API": {
+     "n_with_level": 298,
+     "share_at_watch_or_above": 0.2181208053691275,
+     "share_at_watch_CI95": [
+      0.16339705882352942,
+      0.2771929824561403
+     ],
+     "share_at_warning": 0.06040268456375839,
+     "share_of_all_days_at_watch_or_above": 0.1533852110344125,
+     "rate_ratio_watch": 1.4220458667308635,
+     "rate_ratio_warning": 1.9638500979615656
+    }
+   },
+   "corridor_rule": {
+    "EDI": {
+     "corridor_days": 5478,
+     "accident_corridor_days": 267,
+     "POD_watch": 0.3707865168539326,
+     "POFD_watch": 0.31644597965841487,
+     "TSS_watch": 0.054340537195517735,
+     "POD_warning": 0.0749063670411985,
+     "POFD_warning": 0.06217616580310881
+    },
+    "API": {
+     "corridor_days": 5478,
+     "accident_corridor_days": 267,
+     "POD_watch": 0.30337078651685395,
+     "POFD_watch": 0.21761658031088082,
+     "TSS_watch": 0.08575420620597313,
+     "POD_warning": 0.10861423220973783,
+     "POFD_warning": 0.0445212051429668
+    }
+   }
+  }
+ },
+ "copernicus_ems": {
+  "activation": "EMSR720",
+  "aois": [
+   "Guapore",
+   "Encantado",
+   "Roca Sales",
+   "Das Antas Dam",
+   "Santa Tereza"
+  ],
+  "corridor_municipalities_intersecting": [],
+  "note": "No AOI intersects a corridor municipality: the test is not informative."
+ },
+ "cemaden": "no open occurrence data found; to be requested through the access-to-information law"
+}

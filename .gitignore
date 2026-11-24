@@ -36,3 +36,7 @@ data/raw/ana/hidroweb/*.xml
 
 # S2iD daily export (re-downloaded every day; the records go to the forecast archive)
 data/raw/s2id/
+
+# PRF accident files (re-downloadable, ids and sha256 in data/raw/prf/provenance.json); hindcast downloads
+data/raw/prf/*.zip
+data/raw/hindcast/

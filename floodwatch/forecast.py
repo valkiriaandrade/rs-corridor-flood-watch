@@ -257,7 +257,12 @@ def daily(catchup=True):
             run(issue=d, observed=observed, states=states)
         except Exception as error:  # a missing past run never blocks today's forecast
             print(f'backfill {d.date()} failed:', type(error).__name__, error)
-    run(observed=observed, states=states)
+    run_dir = run(observed=observed, states=states)
+    try:  # ensemble probabilities (protocol §9.7): archived only, verified after a year; never blocks the forecast
+        from . import ensemble
+        ensemble.archive(run_dir=run_dir, observed=observed)
+    except Exception as error:
+        print('ensemble archive failed:', type(error).__name__, error)
     try:
         from . import official_records
         official_records.update()       # weekly: new Atlas Digital release

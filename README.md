@@ -73,6 +73,28 @@ The pre-registered 2025 criterion (lower CI bound of TSS above 0.2) was **not me
 came from the June flood, which followed a drought: the 365-day memory of the EDI was still low when intense rain
 arrived, while the API (about one month of memory) reacted faster.
 
+### Supplementary checks (registered 2026-11-24, protocol §§9.9–9.10)
+
+| Check | EDI | API |
+|---|---|---|
+| **SEDI** (extremal dependence, suited to rare events), dashboard rule, leave-one-year-out | 0.68 (0.57–0.75) | 0.73 (0.61–0.80) |
+| **Relative economic value**: cost/loss ratios with value > 0, Watch level | 0.04 %–0.4 % | 0.04 %–0.6 % |
+| … Warning level | 0.1 %–1 % | 0.09 %–2 % |
+| **PRF accidents with water on the road** (2021–2025, 153 municipality-days): share at Watch or above vs all days | 30 % vs 23 % (rate ratio 1.3) | 22 % vs 15 % (rate ratio 1.4; 2.3 at Warning) |
+| **Corridor display rule** (20 %) vs corridor-days with such an accident: TSS | 0.13 | 0.16 |
+
+- SEDI ranks the rules as the TSS does (30-day rainfall 0.67): the conclusions do not depend on the score.
+- Flood records occur on 0.13 % of municipality-days, so Watch fires far more often than floods happen: it pays off
+  only for very cheap actions (cost under ~0.6 % of the avoided loss); costly ones (re-routing a fleet) should use
+  Warning.
+- With 89 episodes the study detects TSS differences of about **0.10–0.12** or more (80 % power). The API − EDI (+0.05)
+  and index − 30-day rainfall (+0.05) differences are below that: "not proven" means the sample is too small, not that
+  the rules are equal.
+- Water-on-the-road accidents are only weakly linked to the flood-potential levels: they follow the day's heavy rain
+  (aquaplaning) more than flooding. The corridor display rule is weak against them.
+- Copernicus EMS rapid mapping (May 2024, EMSR720) covered five areas in the Taquari–Antas valleys, none in a corridor
+  municipality: not informative. Cemaden occurrences are not open data.
+
 ### Forecast rainfall
 
 Archived runs, March 2024 → November 2026, 34 boxes of 0.5° over the corridors. ECMWF IFS forecast heavy rain

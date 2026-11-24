@@ -87,3 +87,22 @@ JOIN observed o ON o.date = f.date AND o.codarea = f.codarea
 WHERE f.source = 'previsão'
   -- several refreshes may reuse the same model runs: keep only the last refresh of each issuance
   AND f.run_id IN (SELECT MAX(run_id) FROM runs GROUP BY ecmwf_run, gfs_run, observed_cutoff);
+
+-- Ensemble probabilities (protocol §9.7, prospective): the frozen rule applied to every member of the latest ECMWF ENS
+-- (51 members) and GEFS (31) run at archive time, on the 0.5-degree forecast grid. p_* = share of members at that level.
+CREATE TABLE IF NOT EXISTS ensemble (
+    run_id        TEXT,                 -- the deterministic run it was archived with
+    model         TEXT,                 -- 'ECMWF ENS' | 'GEFS'
+    init_utc      TEXT,                 -- initialisation time of the ensemble run actually used
+    members       INTEGER,
+    date          TEXT,
+    codarea       TEXT,
+    lead_days     INTEGER,              -- date - observed_cutoff, as in `municipal`
+    rain_mean     REAL,                 -- member-mean basin rainfall of the day (mm)
+    rain_p90      REAL,
+    p_watch       REAL,                 -- EDI rule: share of members at Watch or above
+    p_warning     REAL,
+    p_watch_api   REAL,                 -- API rule
+    p_warning_api REAL,
+    PRIMARY KEY (run_id, model, date, codarea)
+);

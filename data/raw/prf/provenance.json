@@ -1,0 +1,114 @@
+{
+ "2025": {
+  "drive_id": "1-G3MdmHBt6CprDwcW99xxC4BZ2DU5ryR",
+  "member": "datatran2025.csv",
+  "bytes": 3727148,
+  "sha256": "52c8a631ac9d428bf845e2fa996b8c61f66b219f7014a61d292f9d95d186bb0f",
+  "source": "https://www.gov.br/prf/pt-br/acesso-a-informacao/dados-abertos/dados-abertos-da-prf",
+  "downloaded_utc": "2026-11-24T15:46:51.236595+00:00"
+ },
+ "2023": {
+  "drive_id": "1-WO3SfNrwwZ5_l7fRTiwBKRw7mi1-HUq",
+  "member": "datatran2023.csv",
+  "bytes": 3397281,
+  "sha256": "b233c47d16b3980a6692472f9fe1bbab57698700fbb918d22628a5c0a382d985",
+  "source": "https://www.gov.br/prf/pt-br/acesso-a-informacao/dados-abertos/dados-abertos-da-prf",
+  "downloaded_utc": "2026-11-24T15:46:52.122343+00:00"
+ },
+ "2021": {
+  "drive_id": "12xH8LX9aN2gObR766YN3cMcuycwyCJDz",
+  "member": "datatran2021.csv",
+  "bytes": 3217660,
+  "sha256": "a246e0d1205860a475335f8996b532cbe2ca4c1c349bb5a1531bf47a779e3901",
+  "source": "https://www.gov.br/prf/pt-br/acesso-a-informacao/dados-abertos/dados-abertos-da-prf",
+  "downloaded_utc": "2026-11-24T15:46:52.858217+00:00"
+ },
+ "2024": {
+  "drive_id": "14lB0vqMFkaZj8HZ44b0njYgxs9nAN8KO",
+  "member": "datatran2024.csv",
+  "bytes": 3783609,
+  "sha256": "905dac836867297b261e4edefff6cdb470809814e7e1796b3f2f57517099d165",
+  "source": "https://www.gov.br/prf/pt-br/acesso-a-informacao/dados-abertos/dados-abertos-da-prf",
+  "downloaded_utc": "2026-11-24T15:46:53.665544+00:00"
+ },
+ "2016": {
+  "drive_id": "16qooQl_ySoW61CrtsBbreBVNPYlEkoYm",
+  "member": "datatran2016.csv",
+  "bytes": 2518479,
+  "sha256": "27438f9a66969b57a797eedad795c8058de3ee0a8e7e235b8c3d36228a23c7bd",
+  "source": "https://www.gov.br/prf/pt-br/acesso-a-informacao/dados-abertos/dados-abertos-da-prf",
+  "downloaded_utc": "2026-11-24T15:46:54.488301+00:00"
+ },
+ "2026": {
+  "drive_id": "1A3IirNm0AzRaSosA1IS94DOVmvKsn0Ol",
+  "member": "datatran2026.csv",
+  "bytes": 3142093,
+  "sha256": "1809ee0f19b4a9de48cd0cebb4ed39eda89b26133382c3e93df4aa76b725ebd1",
+  "source": "https://www.gov.br/prf/pt-br/acesso-a-informacao/dados-abertos/dados-abertos-da-prf",
+  "downloaded_utc": "2026-11-24T15:46:55.420172+00:00"
+ },
+ "2015": {
+  "drive_id": "1DyqR5FFcwGsamSag-fGm13feQt0Y-3Da",
+  "member": "datatran2015.csv",
+  "bytes": 3163538,
+  "sha256": "07ac0fdbbb149614ff1345384dab6d09b36d5b302a7dccc4a8c4bdfe8b2d9186",
+  "source": "https://www.gov.br/prf/pt-br/acesso-a-informacao/dados-abertos/dados-abertos-da-prf",
+  "downloaded_utc": "2026-11-24T15:46:56.077085+00:00"
+ },
+ "2014": {
+  "drive_id": "1FpF5wTBsRDkEhLm3z2g8XDiXr9SO9Uk8",
+  "member": "datatran2014.csv",
+  "bytes": 4304737,
+  "sha256": "b2416bd4ecb4886579615ee9ff722e23f650496ef12a46a317aac953a9466dc7",
+  "source": "https://www.gov.br/prf/pt-br/acesso-a-informacao/dados-abertos/dados-abertos-da-prf",
+  "downloaded_utc": "2026-11-24T15:46:57.173550+00:00"
+ },
+ "2017": {
+  "drive_id": "1HPLWt5f_l4RIX3tKjI4tUXyZOev52W0N",
+  "member": "datatran2017.csv",
+  "bytes": 4248009,
+  "sha256": "b5d40934c644e61fed2d70b332aca55b5f4bb293a90cf1771749cd2e2fc20fba",
+  "source": "https://www.gov.br/prf/pt-br/acesso-a-informacao/dados-abertos/dados-abertos-da-prf",
+  "downloaded_utc": "2026-11-24T15:46:58.621464+00:00"
+ },
+ "2022": {
+  "drive_id": "1PRQjuV5gOn_nn6UNvaJyVURDIfbSAK4-",
+  "member": "datatran2022.csv",
+  "bytes": 3227721,
+  "sha256": "5ace05699b82c720e47e28768323630310ef7fe300db57388da246fb448c8855",
+  "source": "https://www.gov.br/prf/pt-br/acesso-a-informacao/dados-abertos/dados-abertos-da-prf",
+  "downloaded_utc": "2026-11-24T15:46:59.600168+00:00"
+ },
+ "2018": {
+  "drive_id": "1cM4IgGMIiR-u4gBIH5IEe3DcvBvUzedi",
+  "member": "datatran2018.csv",
+  "bytes": 3294461,
+  "sha256": "a8eab316cc17c1af4d2295a5617c5cce37b57b4737a0d76ce902ed4e7c91084c",
+  "source": "https://www.gov.br/prf/pt-br/acesso-a-informacao/dados-abertos/dados-abertos-da-prf",
+  "downloaded_utc": "2026-11-24T15:47:00.308019+00:00"
+ },
+ "2020": {
+  "drive_id": "1esu6IiH5TVTxFoedv6DBGDd01Gvi8785",
+  "member": "datatran2020.csv",
+  "bytes": 3075980,
+  "sha256": "92cb80217a17268c4f6fb8f91f36284ce90f28aac7053f0e857fafa5e838c9d8",
+  "source": "https://www.gov.br/prf/pt-br/acesso-a-informacao/dados-abertos/dados-abertos-da-prf",
+  "downloaded_utc": "2026-11-24T15:47:01.097311+00:00"
+ },
+ "2019": {
+  "drive_id": "1pN3fn2wY34GH6cY-gKfbxRJJBFE0lb_l",
+  "member": "datatran2019.csv",
+  "bytes": 3237669,
+  "sha256": "3a7022edf4690334aae309cb1b01a7c98649bd9a0a05ce7d0bd3e7416183155d",
+  "source": "https://www.gov.br/prf/pt-br/acesso-a-informacao/dados-abertos/dados-abertos-da-prf",
+  "downloaded_utc": "2026-11-24T15:47:01.896742+00:00"
+ },
+ "2013": {
+  "drive_id": "1p_7lw9RzkINfscYAZSmc-Z9Ci4ZPJyEr",
+  "member": "datatran2013.csv",
+  "bytes": 4707582,
+  "sha256": "f79e5bc4f60e4ff923bf96ccaad80f0a6a1bae49a04ca2a26a61a5749e747175",
+  "source": "https://www.gov.br/prf/pt-br/acesso-a-informacao/dados-abertos/dados-abertos-da-prf",
+  "downloaded_utc": "2026-11-24T15:47:02.650110+00:00"
+ }
+}
