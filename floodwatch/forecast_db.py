@@ -200,7 +200,8 @@ def summary(con=None):
         con.close()
     from .official_records import state
     out = {'verified_days': sorted(v.date.unique().tolist()), 'issuances': int(v.run_id.nunique()), 'by_lead': {}, 'latest': None,
-           'official_release': {k: state().get(k) for k in ('file', 'released', 'coverage_end', 'checked_utc')}}
+           'official_release': {k: state().get(k) for k in ('file', 'released', 'coverage_end', 'checked_utc',
+                                                            's2id_checked_utc', 's2id_corridor_records')}}
     if v.empty:
         return out
     out['occurrences'] = _occurrence_block(v, occ)

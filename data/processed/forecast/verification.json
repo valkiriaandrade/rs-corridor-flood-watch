@@ -380,7 +380,9 @@
   "file": "BD_Atlas_1991_2025_v1.1_2026.08.06_Consolidado.csv",
   "released": "2026-08-06",
   "coverage_end": "2025-12-31",
-  "checked_utc": "2026-11-21T01:13:29.433640+00:00"
+  "checked_utc": "2026-11-21T01:13:29.433640+00:00",
+  "s2id_checked_utc": "2026-11-24T14:47:50.590407+00:00",
+  "s2id_corridor_records": 14
  },
  "occurrences": {
   "items": [

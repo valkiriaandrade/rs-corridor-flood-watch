@@ -260,17 +260,27 @@ def occurrence_card(s, ix):
     tr = T.tr
     occ = s.get('occurrences') or {'items': [], 'by_model': {}}
     rel = s.get('official_release') or {}
+    days = s['verified_days']
     cover = rel.get('coverage_end')
     released = pd.Timestamp(rel['released']).strftime(tr('%d/%m/%Y', '%d %b %Y')) if rel.get('released') else '–'
+    s2 = rel.get('s2id_checked_utc')
+    s2_when = pd.Timestamp(s2).strftime(tr('%d/%m/%Y', '%d %b %Y')) if s2 else '–'
+    s2_n = rel.get('s2id_corridor_records')
     source_note = tr(
         f'Registros oficiais do S2iD: o Atlas Digital (versão de {released}) cobre até {cover[:4] if cover else "–"}, e os '
-        f'registros mais recentes vêm da exportação diária do relatório público do S2iD (últimos 60 dias de cadastro, '
-        f'reconhecidos ou ainda em análise). Relatos preliminares (boletins da Defesa Civil e imprensa) contam quando não há '
+        f'registros mais recentes vêm do relatório público do S2iD (últimos 60 dias de cadastro, reconhecidos ou ainda em '
+        f'análise), exportado no Brasil cerca de uma vez por semana; última exportação carregada: {s2_when}'
+        + (f', {s2_n} registros nos municípios dos corredores' if s2_n is not None else '') + '. '
+        f'Só entram aqui os registros dos dias já verificados (desde {dm(days[0])}); os anteriores não têm previsão '
+        f'arquivada. Relatos preliminares (boletins da Defesa Civil e imprensa) contam quando não há '
         f'registro oficial no mesmo município até um dia antes ou depois. Só contam alagamento, enxurrada e inundação; '
         f'granizo e vendaval não.',
         f'Official S2iD records: the Atlas Digital (release of {released}) covers up to {cover[:4] if cover else "–"}, and '
-        f'recent records come from a daily export of the public S2iD report (last 60 days of registrations, recognised or '
-        f'still under review). Preliminary reports (Civil Defence bulletins and press) count when there is no official '
+        f'recent records come from the public S2iD report (last 60 days of registrations, recognised or still under '
+        f'review), exported from Brazil about once a week; last export loaded: {s2_when}'
+        + (f', {s2_n} records in the corridor municipalities' if s2_n is not None else '') + '. '
+        f'Only records on verified days (since {dm(days[0])}) appear here; earlier ones have no archived forecast. '
+        f'Preliminary reports (Civil Defence bulletins and press) count when there is no official '
         f'record in the same municipality within one day. Only urban flooding, flash floods and riverine floods count; '
         f'hail and wind do not.')
     lv = {-1: tr('sem dado', 'no data'), 0: 'Normal', 1: tr('Atenção', 'Watch'), 2: tr('Alerta', 'Warning')}
