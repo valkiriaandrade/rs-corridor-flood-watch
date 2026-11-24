@@ -33,16 +33,25 @@ def _get_month(year, month):
     path = ARCHIVE / f'sm_{year}{month:02d}.nc'
     if path.exists():
         return
+    import time
     tmp = path.with_suffix('.part')
-    cdsapi.Client(quiet=True, progress=False).retrieve('derived-era5-land-daily-statistics', {
-        'variable': ['volumetric_soil_water_layer_1', 'volumetric_soil_water_layer_2', 'volumetric_soil_water_layer_3'],
-        'year': str(year), 'month': [f'{month:02d}'], 'day': [f'{d:02d}' for d in range(1, 32)],
-        'daily_statistic': 'daily_mean', 'time_zone': 'utc+00:00', 'frequency': '1_hourly', 'area': AREA}, str(tmp))
+    while True:
+        try:
+            cdsapi.Client(quiet=True, progress=False).retrieve('derived-era5-land-daily-statistics', {
+                'variable': ['volumetric_soil_water_layer_1', 'volumetric_soil_water_layer_2', 'volumetric_soil_water_layer_3'],
+                'year': str(year), 'month': [f'{month:02d}'], 'day': [f'{d:02d}' for d in range(1, 32)],
+                'daily_statistic': 'daily_mean', 'time_zone': 'utc+00:00', 'frequency': '1_hourly', 'area': AREA}, str(tmp))
+            break
+        except Exception as error:  # the CDS rejects requests while the dataset's global queue is full
+            if 'queued requests' not in str(error):
+                raise
+            print('ERA5-Land queue full, waiting 15 min', flush=True)
+            time.sleep(900)
     tmp.replace(path)  # only complete files count as done
     print('ERA5-Land', year, month, 'ok', flush=True)
 
 
-def download(workers=4):
+def download(workers=1):  # the CDS asks for sequential requests
     from concurrent.futures import ThreadPoolExecutor
     ARCHIVE.mkdir(parents=True, exist_ok=True)
     jobs = [(y, m) for y in YEARS for m in range(1, 13)]

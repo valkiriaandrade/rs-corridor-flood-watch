@@ -42,7 +42,7 @@ def download():
         path = ARCHIVE / f'glofas_{year}.nc'
         if path.exists():
             continue
-        for attempt in range(6):
+        while True:
             try:
                 c.retrieve('cems-glofas-historical', {
                     'system_version': ['version_4_0'], 'hydrological_model': ['lisflood'], 'product_type': ['consolidated'],
@@ -53,10 +53,10 @@ def download():
                 print('GloFAS', year, 'ok', flush=True)
                 break
             except Exception as error:
-                if 'queued requests' not in str(error) or attempt == 5:
+                if 'queued requests' not in str(error):
                     raise
-                print('GloFAS queue full, waiting 10 min', flush=True)
-                time.sleep(600)
+                print('GloFAS queue full, waiting 15 min', flush=True)
+                time.sleep(900)
 
 
 def discharge():
