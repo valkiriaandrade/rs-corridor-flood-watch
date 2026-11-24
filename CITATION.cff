@@ -6,6 +6,7 @@ authors:
   - family-names: Andrade
     given-names: Valkiria
 license: MIT
+doi: "10.5281/zenodo.24508671"
 repository-code: "https://github.com/valkiriaandrade/rs-corridor-flood-watch"
 abstract: >-
   Independent study that calibrates and validates, out of sample and against S2iD municipal flood records, flood-potential

@@ -1,5 +1,7 @@
 # RS Corridor Flood Watch
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24508671.svg)](https://doi.org/10.5281/zenodo.24508671)
+
 **Flood-potential early warning for the federal road corridors BR-116, BR-386 and BR-290 in Rio Grande do Sul, Brazil.
 Two antecedent-rainfall indices (EDI and API) are calibrated on official disaster records, validated out of sample and
 against gauged river floods, then applied every day to ECMWF and GFS forecasts.**
