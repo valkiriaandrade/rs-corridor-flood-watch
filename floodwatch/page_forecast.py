@@ -169,35 +169,58 @@ def verification_section(ix):
                                              f'Forecast vs observed · continuous verification since {dm(days[0])}') + '</div>',
                 unsafe_allow_html=True)
     runs = ' · '.join(f'{m} {pd.Timestamp(r).strftime(tr("%d/%m %H UTC", "%d %b %H UTC"))}' for m, r in lt['model_runs'].items() if r)
-    st.markdown(tr(f'<p><b>Último dia verificado: {dm(lt["date"])}</b> (24 h até 09h), previsto com as rodadas {runs} '
-                   f'(D+{lt["lead_days"]}) e comparado com a chuva MERGE observada.</p>',
-                   f'<p><b>Last verified day: {dm(lt["date"])}</b> (24 h to 09:00), forecast with the {runs} runs '
-                   f'(D+{lt["lead_days"]}) and compared with observed MERGE rainfall.</p>'), unsafe_allow_html=True)
+    cum = s.get('since_start')
+    if cum:
+        st.markdown(tr(f'<p><b>Desde {dm(cum["first"])}: {cum["days"]} dias verificados</b> (até {dm(cum["last"])}). Cada dia entra '
+                       f'uma vez, com a previsão mais recente emitida antes dele (em geral D+1), comparada com a chuva MERGE observada. '
+                       f'Último dia: {dm(lt["date"])}, rodadas {runs} (D+{lt["lead_days"]}).</p>',
+                       f'<p><b>Since {dm(cum["first"])}: {cum["days"]} verified days</b> (to {dm(cum["last"])}). Each day counts '
+                       f'once, with the latest forecast issued before it (usually D+1), compared with observed MERGE rainfall. '
+                       f'Last day: {dm(lt["date"])}, {runs} runs (D+{lt["lead_days"]}).</p>'), unsafe_allow_html=True)
+    else:  # verification.json written before the accumulated block existed
+        st.markdown(tr(f'<p><b>Último dia verificado: {dm(lt["date"])}</b> (24 h até 09h), previsto com as rodadas {runs} '
+                       f'(D+{lt["lead_days"]}) e comparado com a chuva MERGE observada.</p>',
+                       f'<p><b>Last verified day: {dm(lt["date"])}</b> (24 h to 09:00), forecast with the {runs} runs '
+                       f'(D+{lt["lead_days"]}) and compared with observed MERGE rainfall.</p>'), unsafe_allow_html=True)
     cols = st.columns(len(lt['models']))
-    for col, (model, r) in zip(cols, lt['models'].items()):
+    for col, (model, last) in zip(cols, lt['models'].items()):
+        r = cum['models'].get(model, last) if cum else last
         c, rain = r.get(ix), r.get('rain')
+        when = (lambda d: f' · {dm(d)}') if cum else (lambda d: '')
         rows = []
         if rain:
             rows += [(tr('Chuva média prevista × observada', 'Mean rain forecast vs observed'),
                       f'{T.num(rain["fc_mean"], 1)} × {T.num(rain["obs_mean"], 1)} mm ({T.num((rain["bias_ratio"] - 1) * 100, 0, True)}%)'),
-                     (tr('Maior chuva prevista', 'Highest forecast rain'), f'{T.num(rain["fc_max"], 0)} mm · {T.esc(rain["fc_max_nome"])}'),
-                     (tr('Maior chuva observada', 'Highest observed rain'), f'{T.num(rain["obs_max"], 0)} mm · {T.esc(rain["obs_max_nome"])}'),
+                     (tr('Maior chuva prevista', 'Highest forecast rain'),
+                      f'{T.num(rain["fc_max"], 0)} mm · {T.esc(rain["fc_max_nome"])}{when(rain.get("fc_max_date"))}'),
+                     (tr('Maior chuva observada', 'Highest observed rain'),
+                      f'{T.num(rain["obs_max"], 0)} mm · {T.esc(rain["obs_max_nome"])}{when(rain.get("obs_max_date"))}'),
                      (tr('Chuva forte (≥ 20 mm) detectada', 'Heavy rain (≥ 20 mm) detected'),
-                      f'{rain["heavy_hits"]}/{rain["heavy_observed"]} {tr("municípios", "municipalities")}')]
+                      f'{rain["heavy_hits"]}/{rain["heavy_observed"]} {tr("municípios-dia", "municipality-days") if cum else tr("municípios", "municipalities")}')]
         if c:
             rows += [(tr('Em atenção ou alerta: previstos × observados', 'At Watch or Warning: forecast vs observed'),
                       f'{c["forecast_watch"]} × {c["observed_watch"]}'),
                      (tr('Acertos · alarmes falsos · perdidos', 'Hits · false alarms · misses'),
                       f'{c["hits"]} · {c["false_alarms"]} · {c["misses"]}')]
-        names = ''
-        if c and c['false_alarm_names']:
-            names += f'<p class="note"><b>{tr("Alarme falso", "False alarm")}:</b> {T.esc(", ".join(c["false_alarm_names"]))}</p>'
-        if c and c.get('false_alarm_reported'):
+            if cum:
+                rows.append((tr('Detecção · alarmes que não se confirmaram', 'Detection · alarms not confirmed'),
+                             f'{pct(c["POD"])} · {pct(c["FAR"])}'))
+        lc = last.get(ix)
+        if cum and lc:
+            rows.append((tr(f'Último dia ({dm(lt["date"])}): acertos · alarmes falsos · perdidos',
+                            f'Last day ({dm(lt["date"])}): hits · false alarms · misses'),
+                         f'{lc["hits"]} · {lc["false_alarms"]} · {lc["misses"]}'))
+        names = ''  # names refer to the last day only
+        day = tr(f' em {dm(lt["date"])}', f' on {dm(lt["date"])}') if cum else ''
+        if lc and lc['false_alarm_names']:
+            names += f'<p class="note"><b>{tr("Alarme falso", "False alarm")}{day}:</b> {T.esc(", ".join(lc["false_alarm_names"]))}</p>'
+        if lc and lc.get('false_alarm_reported'):
             names += (f'<p class="note"><b>{tr("…mas com inundação relatada", "…but with a reported flood")}:</b> '
-                      f'{T.esc(", ".join(c["false_alarm_reported"]))}</p>')
-        if c and c['missed']:
-            names += f'<p class="note"><b>{tr("Perdidos", "Missed")}:</b> {T.esc(", ".join(c["missed"]))}</p>'
-        col.markdown(f'<div class="card"><div class="section">{model} · {ix}</div>'
+                      f'{T.esc(", ".join(lc["false_alarm_reported"]))}</p>')
+        if lc and lc['missed']:
+            names += f'<p class="note"><b>{tr("Perdidos", "Missed")}{day}:</b> {T.esc(", ".join(lc["missed"]))}</p>'
+        col.markdown(f'<div class="card"><div class="section">{model} · {ix}'
+                     + (tr(' · acumulado', ' · accumulated') if cum else '') + '</div>'
                      + T.detail_rows(rows) + names + '</div>', unsafe_allow_html=True)
     occurrence_card(s, ix)
     # accumulated, by lead

@@ -209,6 +209,7 @@ def summary(con=None):
         out['by_lead'].setdefault(model, {})[str(int(lead))] = {
             'days': int(g.date.nunique()), 'rain': _rain(g),
             **{ix: _contingency(g[fc], g[ob]) for ix, (fc, ob) in LEVEL_COLS.items() if g[fc].notna().any()}}
+    out['since_start'] = _since_start(v)
     day = v.date.max()
     first = v[(v.date == day)]
     first = first[first.run_id == first.run_id.max()]  # the latest forecast issued before the day was observed
@@ -233,6 +234,30 @@ def summary(con=None):
             r[ix] = c
         latest['models'][model] = r
     out['latest'] = latest
+    return out
+
+
+def _since_start(v):
+    """Every verified day scored once per model, with the latest forecast issued before it (normally D+1, as in
+    'latest'); summed since the archive started. Leads are not mixed within a day, so no municipality-day counts twice."""
+    out = {'days': int(v.date.nunique()), 'first': v.date.min(), 'last': v.date.max(), 'models': {}}
+    for model, g in v.groupby('model'):
+        g = g[g.run_id == g.groupby('date').run_id.transform('max')]
+        r = {'days': int(g.date.nunique()), 'leads': sorted(int(x) for x in g.groupby('date').lead_days.min().unique()),
+             'rain': _rain(g)}
+        if r['rain']:
+            fmax, omax = g.loc[g.fc_rain.idxmax()], g.loc[g.obs_rain.idxmax()]
+            r['rain'].update(fc_max=float(fmax.fc_rain), fc_max_nome=fmax.nome, fc_max_date=fmax.date,
+                             obs_max=float(omax.obs_rain), obs_max_nome=omax.nome, obs_max_date=omax.date)
+        for ix, (fc, ob) in LEVEL_COLS.items():
+            h = g[g[fc].notna()]
+            if h.empty:
+                continue
+            c = _contingency(h[fc], h[ob])
+            c['days'] = int(h.date.nunique())
+            c['forecast_watch'], c['observed_watch'] = int((h[fc] >= 1).sum()), int((h[ob] >= 1).sum())
+            r[ix] = c
+        out['models'][model] = r
     return out
 
 
