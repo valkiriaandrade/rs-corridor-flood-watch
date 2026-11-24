@@ -447,5 +447,106 @@
     }
    }
   }
+ },
+ "since_start": {
+  "days": 20,
+  "first": "2026-11-04",
+  "last": "2026-11-23",
+  "models": {
+   "ECMWF": {
+    "days": 20,
+    "leads": [
+     1,
+     2
+    ],
+    "rain": {
+     "n": 1462,
+     "fc_mean": 6.030484558994958,
+     "obs_mean": 5.0076845264542715,
+     "bias_ratio": 1.2042460995970303,
+     "mae": 3.3407091077481716,
+     "heavy_observed": 125,
+     "heavy_hits": 84,
+     "heavy_forecast": 129,
+     "fc_max": 53.91584564576537,
+     "fc_max_nome": "Vacaria",
+     "fc_max_date": "2026-11-05",
+     "obs_max": 87.78308877007971,
+     "obs_max_nome": "Tio Hugo",
+     "obs_max_date": "2026-11-04"
+    },
+    "EDI": {
+     "n": 1548,
+     "hits": 361,
+     "false_alarms": 21,
+     "misses": 41,
+     "correct_negatives": 1125,
+     "POD": 0.8980099502487562,
+     "FAR": 0.0549738219895288,
+     "days": 20,
+     "forecast_watch": 382,
+     "observed_watch": 416
+    },
+    "API": {
+     "n": 1462,
+     "hits": 296,
+     "false_alarms": 12,
+     "misses": 16,
+     "correct_negatives": 1138,
+     "POD": 0.9487179487179487,
+     "FAR": 0.03896103896103896,
+     "days": 19,
+     "forecast_watch": 308,
+     "observed_watch": 312
+    }
+   },
+   "GFS": {
+    "days": 20,
+    "leads": [
+     1,
+     2
+    ],
+    "rain": {
+     "n": 1462,
+     "fc_mean": 5.292260915419612,
+     "obs_mean": 5.0076845264542715,
+     "bias_ratio": 1.0568279386335138,
+     "mae": 3.556600635685029,
+     "heavy_observed": 125,
+     "heavy_hits": 57,
+     "heavy_forecast": 77,
+     "fc_max": 80.4781107382577,
+     "fc_max_nome": "Boa Vista das Missões",
+     "fc_max_date": "2026-11-05",
+     "obs_max": 87.78308877007971,
+     "obs_max_nome": "Tio Hugo",
+     "obs_max_date": "2026-11-04"
+    },
+    "EDI": {
+     "n": 1548,
+     "hits": 360,
+     "false_alarms": 26,
+     "misses": 42,
+     "correct_negatives": 1120,
+     "POD": 0.8955223880597015,
+     "FAR": 0.06735751295336788,
+     "days": 20,
+     "forecast_watch": 386,
+     "observed_watch": 416
+    },
+    "API": {
+     "n": 1462,
+     "hits": 283,
+     "false_alarms": 12,
+     "misses": 29,
+     "correct_negatives": 1138,
+     "POD": 0.907051282051282,
+     "FAR": 0.04067796610169491,
+     "days": 19,
+     "forecast_watch": 295,
+     "observed_watch": 312
+    }
+   }
+  }
  }
 }
