@@ -132,6 +132,75 @@ boxes of 0.5° over the corridor municipalities; 12–12 UTC days; leads D+1 to 
 mean of D+1..D+3; paired block bootstrap by month (2,000 replicates, seed 20261104). A model is "more accurate" only if
 the CI of the difference excludes zero.
 
+### 9.5 Hindcast of the forecast levels
+Question: how much of the observed-rainfall skill (§7) survives when the rule runs on forecast rainfall, by lead.
+- Rainfall: Open-Meteo previous-runs API (as §9.4), hourly `precipitation_previous_day{L}`, ECMWF IFS 0.25°
+  (`ecmwf_ifs025`) and GFS (`gfs_global`), at the operational 0.25° forecast points (`upstream.forecast_grid`), basin
+  means with the operational weights, 12–12 UTC days. Lead L of day D = the value of `previous_day{L}` over D's window.
+- Chain: for each issuance day X (2024-03-01 → last day with final or late MERGE), observed basin rainfall through
+  X−1 followed by forecast rainfall for X … X+5 (lead of day D = D − X + 1, D+1 … D+5), indices and levels computed by
+  the operational code (`forecast.index_table`, `rules.classify`, frozen rules). Nothing is fitted.
+- Outcomes: (a) official records (Atlas 2024 + S2iD 2025, §5 events and controls restricted to the period); (b) the
+  same rule on observed rainfall (§10 prospective definition).
+- Primary: TSS at Watch-or-above against official records, mean of leads 1–3, and its paired difference to the
+  observed-rainfall TSS on the same samples (skill loss); block bootstrap as §7 (episodes / year-months, 2,000
+  replicates, seed 20261124). Reported per model and per lead 1–5, for 2024 and 2025 separately.
+- 2024 years were used to fit the frozen thresholds: their absolute scores are in-sample, only the paired skill loss
+  is interpreted for 2024. 2025 is the independent year.
+
+### 9.6 Bias correction of forecast rainfall
+Empirical quantile mapping of daily basin forecast rainfall to MERGE, one map per model and lead (all basins pooled),
+99 percentiles, linear interpolation, constant correction beyond the fitted range. Fitted on 2024-03-01 → 2024-12-31,
+tested on 2025 with the §9.5 chain. Primary: paired TSS difference (corrected − raw) against official records, leads
+1–3, 2025. Adopted in operation only if the whole 95 % CI lies above 0; secondary: ETS ≥ 20 mm/day and 3-day rainfall
+ratio on flood-record days (§9.4 definitions).
+
+### 9.7 Ensemble probabilities (prospective)
+No historical ensemble archive exists (Open-Meteo keeps about three months). From the registration date the daily
+workflow archives the 12 UTC ECMWF ENS (51 members) and GEFS (31 members) basin rainfall; the frozen rule is applied to
+every member, giving P(Watch or above) and P(Warning) per municipality and lead. The available past months are
+back-filled once. Verification: Brier score and Brier skill score against the deterministic forecast of the same model
+(as 0/1), reliability diagram (10 bins), outcome = the rule on observed rainfall and, separately, official records.
+First evaluation after one full year of archive; nothing is fitted before it.
+
+### 9.8 GloFAS benchmark
+GloFAS v4 reanalysis daily river discharge (Open-Meteo flood API). For each municipality, the GloFAS cell (0.05°)
+inside the municipality with the largest mean discharge 1999–2012 (its main river). Predictor: discharge ÷ the
+cell's median annual maximum 1999–2012 (the EDI calibration years), max of d−1 and d. Threshold fitted exactly as §7
+(LOYO, TSS-max), on the same samples. Primary: paired TSS difference API dashboard rule − GloFAS rule (LOYO);
+secondary: holdout, 2025 test, gauged river floods (§8.2). GloFAS reanalysis is forced by reanalysed weather, so it is
+compared with the observed-rainfall study, not with the forecast levels.
+
+### 9.9 Independent ground truth (descriptive, frozen rules)
+- PRF accident records (datatran, 2013–2025) on BR-116, BR-386 and BR-290 in RS whose cause is water on the road. The
+  cause categories are fixed by reading the category list only, before any link to rainfall or levels, and recorded
+  in the decision log. Unit: municipality-day from the record's municipality. Reported: share of such days at Watch or
+  above on D, rate ratio vs all days, by index. Water on the road also follows ordinary heavy rain, so this measures
+  road impact, not flooding.
+- Corridor display rule (§10, 20 %): corridor-days with ≥ 1 such accident vs corridor level; the first test of that
+  rule.
+- Copernicus EMS rapid mapping of the April–May 2024 floods: municipalities with mapped flood extent vs the level on
+  the image dates.
+- Cemaden occurrences: no open data was found; requested through the access-to-information law, used if received.
+
+### 9.10 Statistical additions (no decision changes)
+- SEDI (Ferro & Stephenson, 2011) reported next to every out-of-sample TSS of §7, §8 and §9 (same predictions and
+  bootstrap).
+- Relative economic value V(C/L) (Richardson, 2000) of the frozen dashboard rules, LOYO predictions, C/L 0.01–0.99.
+- Minimum detectable paired difference at 80 % power ≈ 2.8 × bootstrap SD of the paired TSS difference, for each
+  comparison reported as "not proven".
+
+### 9.11 Soil moisture as antecedent state
+ERA5-Land soil moisture 0–100 cm (Open-Meteo archive, daily mean), basin means with the MERGE cell weights (nearest
+ERA5-Land point), standardised per calendar day on 1999–2012. (i) SM anomaly alone as an index, §7 procedure, paired
+vs API; (ii) rule "API dashboard rule OR (SM anomaly ≥ s AND P1 ≥ q)", s and q fitted in each training fold on grids of
+their training quantiles (0.80–0.995). Improvement only if the paired LOYO CI lies above 0. The idea came from the June
+2025 case, so 2025 is descriptive and confirmation is prospective (records from 2026, §10).
+
+### 9.12 Reproducibility
+Versioned releases archived on Zenodo (DOI) with the derived study tables; `CITATION.cff`; a preprint once §§9.5–9.11
+are reported, including negative results.
+
 ## 10. Operational rule and forecast application
 
 For each index (`floodwatch/rules.py`):
@@ -173,6 +242,7 @@ For each index (`floodwatch/rules.py`):
 | 2026-11-05 | Prospective forecast verification shown on the forecast page (`verification.json`): each forecast level vs the same rule on later MERGE rainfall, by model and lead; descriptive, nothing is fitted on it. | before results accumulate |
 | 2026-11-05 | Reported floods added to the prospective verification: official S2iD records where a release covers the date, preliminary reports (alagamento, enxurrada, inundação only) after that; automatic weekly check for new releases. Missing issuances reconstructed from past 12 UTC runs (`backfill`). | before results accumulate |
 | 2026-11-05 | Recent official records added: daily headless export of the public S2iD report "Danos informados" (RS, COBRADE 12100/12200/12300/13214, last 60 days of registrations), loaded into the same `events` table as the Atlas (protocol as key; date and IBGE code read from the protocol). All statuses count (registered, recognised, not recognised), as in the Atlas. Preliminary reports now count only when no official record exists in the same municipality within ±1 day, instead of only after the Atlas coverage end. | before results accumulate |
+| 2026-11-24 | §§9.5–9.12 registered: forecast-level hindcast, bias correction, ensemble probabilities (prospective), GloFAS benchmark, independent ground truth (PRF, Copernicus EMS, Cemaden), SEDI / economic value / detectable effect, soil moisture, reproducibility. | before running any of them |
 
 ## 12. Known limitations
 
