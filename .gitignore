@@ -40,3 +40,5 @@ data/raw/s2id/
 # PRF accident files (re-downloadable, ids and sha256 in data/raw/prf/provenance.json); hindcast downloads
 data/raw/prf/*.zip
 data/raw/hindcast/
+data/raw/era5land/
+data/raw/glofas/
