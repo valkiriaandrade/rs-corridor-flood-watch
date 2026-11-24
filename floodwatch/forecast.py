@@ -70,22 +70,50 @@ def _get(url, tries=4, timeout=90, retry_on=()):
         return r
 
 
+FALLBACK_HOURS = (6, 12)  # 12 UTC run missing -> 06 UTC, then 00 UTC of the same day (never a later run)
+
+
+def _run_missing(r):
+    """Open-Meteo answers 400 'The requested model run is not available' for a run it never received
+    (seen 2026-11-24: GFS 2026-11-23T12Z missing while 06Z and 18Z existed)."""
+    if r.status_code != 400:
+        return False
+    try:
+        return 'not available' in r.json().get('reason', '')
+    except ValueError:
+        return False
+
+
 def forecast_daily(points, model, stamp, run=None, batch_size=50, pause=1.0):
     """Daily 12-12 UTC forecast rainfall (date x point id) for `points` (columns point, lat, lon); raw JSON archived.
 
-    run: initialisation time (UTC); default = the latest 12 UTC run published for the model."""
+    run: initialisation time (UTC); default = the latest 12 UTC run published for the model. If that run is not
+    available, the earlier runs of the same day are used (FALLBACK_HOURS); the run actually used is returned. The
+    forecast windows stay those of the nominal 12 UTC issuance."""
     identifier, meta_id = MODELS[model]
-    run = latest_run(meta_id) if run is None else pd.Timestamp(run)
+    nominal = latest_run(meta_id) if run is None else pd.Timestamp(run)
+    candidates = [nominal] + [nominal - pd.Timedelta(hours=h) for h in FALLBACK_HOURS]
     pts = list(zip(points.point, points.lat, points.lon))
     rows = []
+    run = None
     for off in range(0, len(pts), batch_size):
         if off:
             time.sleep(pause)
         batch = pts[off:off + batch_size]
         params = {'latitude': ','.join(f'{p[1]:.4f}' for p in batch), 'longitude': ','.join(f'{p[2]:.4f}' for p in batch),
-                  'hourly': 'precipitation', 'models': identifier, 'forecast_days': FORECAST_DAYS, 'timezone': 'UTC',
-                  'run': run.strftime('%Y-%m-%dT%H:%M')}
-        r = _get('https://single-runs-api.open-meteo.com/v1/forecast?' + urlencode(params))
+                  'hourly': 'precipitation', 'models': identifier, 'forecast_days': FORECAST_DAYS, 'timezone': 'UTC'}
+        url = 'https://single-runs-api.open-meteo.com/v1/forecast?'
+        for cand in candidates if run is None else [run]:  # first batch picks the run; the others reuse it
+            try:
+                r = _get(url + urlencode({**params, 'run': cand.strftime('%Y-%m-%dT%H:%M')}))
+                break
+            except requests.HTTPError as error:
+                if run is not None or not _run_missing(error.response):
+                    raise
+                print(f'{model} run {cand:%Y-%m-%dT%HZ} not available at Open-Meteo')
+        else:
+            raise RuntimeError(f'{model}: no run available among ' + ', '.join(f'{c:%Y-%m-%dT%HZ}' for c in candidates))
+        run = cand
         path = RAWF / stamp / f'{model}_{off}.json'
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(r.content)
@@ -99,7 +127,7 @@ def forecast_daily(points, model, stamp, run=None, batch_size=50, pause=1.0):
                 rows.append({'point': point, 'date': day, 'rain_mm': val})
     df = pd.DataFrame(rows).pivot(index='date', columns='point', values='rain_mm')
     df.columns.name = None
-    first_full = (run + pd.Timedelta(days=1)).tz_localize(None).normalize()
+    first_full = (nominal + pd.Timedelta(days=1)).tz_localize(None).normalize()
     return df.loc[first_full:].dropna(how='all'), run
 
 
