@@ -1,13 +1,14 @@
 {
- "created_utc": "20261124T145024Z",
+ "created_utc": "20261125T031914Z",
  "runs": {
-  "ECMWF": "2026-11-23T12:00:00+00:00",
-  "GFS": "2026-11-23T06:00:00+00:00"
+  "ECMWF": "2026-11-24T12:00:00+00:00",
+  "GFS": "2026-11-24T12:00:00+00:00"
  },
- "observed_cutoff": "2026-11-23",
+ "observed_cutoff": "2026-11-24",
  "rainfall": "upstream-basin mean (ANA ottobacias); forecast on a 0.25-degree grid of 632 points",
  "antecedent_product_last_30d": {
-  "late": 30
+  "late": 29,
+  "early": 1
  },
  "rules": {
   "EDI": {
