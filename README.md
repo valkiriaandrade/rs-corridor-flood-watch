@@ -36,6 +36,7 @@ headline number carries a 95 % confidence interval, and every decision taken aft
 5. [Run it](#run-it)
 6. [Limitations](#limitations)
 7. [Data sources and licence](#data-sources-and-licence)
+8. [How to cite](#how-to-cite)
 
 ---
 
@@ -111,6 +112,19 @@ Archived runs, March 2024 → November 2026, 34 boxes of 0.5° over the corridor
 D+1). **The skill of the levels computed with forecast rainfall has not been measured yet**; every forecast is archived
 so that it can be (see [Forecast archive](#forecast-archive)).
 
+### Registered analyses in progress (protocol §§9.5–9.8, 9.11)
+
+Written into the protocol on 2026-11-24, before any data were downloaded. Results will be reported here whatever they
+show.
+
+| § | Question | Data | Status |
+|---|---|---|---|
+| 9.5 | **Hindcast:** how skilful are the Watch/Warning levels when computed with forecast rainfall, D+1 to D+5? | ECMWF IFS and GFS past runs (Open-Meteo), Mar 2024 – Dec 2025 | downloading |
+| 9.6 | **Bias correction:** does quantile mapping of forecast rainfall (fitted on 2024, tested on 2025) improve the levels? | same as 9.5 | waits for 9.5 |
+| 9.7 | **Ensemble probabilities:** are P(Watch) and P(Warning) from ECMWF ENS (51 members) and GEFS (31) reliable? | archived every day since 2026-11-25 | verified after one year |
+| 9.8 | **GloFAS benchmark:** does a hydrological model's river discharge beat the rainfall rule? | GloFAS v4 reanalysis 1999–2025 (Copernicus EWDS) | downloading |
+| 9.11 | **Soil moisture:** does ERA5-Land soil moisture add skill to the API rule? | ERA5-Land daily 1999–2025 (Copernicus CDS) | downloading |
+
 ---
 
 ## Dashboard
@@ -131,12 +145,15 @@ Streamlit, two pages, Portuguese and English (`?lang=en`), light corporate theme
 - **Per-corridor cards** with the municipalities at Watch or Warning, a recommended action per level, an alert feed
   and a corridor × day timeline for both models.
 - **Forecast vs observed**, updated every day: the latest verified day per model (forecast vs observed rainfall, municipalities
-  at Watch forecast vs observed, false alarms and misses by name) and the accumulated detection, unconfirmed alarms and
-  rainfall bias by lead time. *Observed* = the same rule computed later with MERGE rainfall.
+  at Watch forecast vs observed, false alarms and misses by name), the totals since the first verified day, and the
+  accumulated detection, unconfirmed alarms and rainfall bias by lead time. *Observed* = the same rule computed later
+  with MERGE rainfall.
 - **Reported floods vs forecast:** every flood reported in a corridor municipality on a verified day, with the forecast
-  level and the level with observed rain. Official S2iD records are used where an official release covers the date;
-  after that, preliminary reports (Civil Defence bulletins, press) from `data/raw/reports/preliminary_reports.csv`.
-  A new official release is detected and loaded automatically.
+  level and the level with observed rain. Sources, in order: official S2iD records where an Atlas Digital release covers
+  the date; the S2iD "Danos informados" report (last 60 days of registrations, exported from a PC in Brazil about once
+  a week; the card shows the date of the last export); preliminary reports (Civil Defence bulletins, press) from
+  `data/raw/reports/preliminary_reports.csv`. Only verified days are listed. A new official release is detected and
+  loaded automatically.
 - **Model verification** panel: which model forecast heavy rain better, by lead time (archived runs 2024–2026).
 - **Executive briefing (PDF, A4, two pages):**
   - *page 1:* bottom line per corridor, map, municipalities to watch, logistics references, model agreement and
@@ -172,7 +189,13 @@ The full, consolidated protocol with the decision log is in [docs/protocol.md](d
 | Basins | ANA Otto-coded basins (BHO 2017, level 6) | Upstream-basin rainfall |
 | River stages | ANA HidroWeb | Independent validation and river-state predictor |
 | Roads, municipalities | DNIT SNV 2024, IBGE | Corridor municipalities (≥ 0.5 km of road) |
-| Forecast | ECMWF IFS and NOAA GFS 12 UTC deterministic runs via Open-Meteo (CC BY 4.0) | Daily forecast |
+| Forecast | ECMWF IFS and NOAA GFS 12 UTC deterministic runs via Open-Meteo (CC BY 4.0); 06/00 UTC run if 12 UTC is missing | Daily forecast |
+| Ensemble forecast | ECMWF ENS (51 members) and NOAA GEFS (31) via Open-Meteo | Archived probabilities (§9.7) |
+| Recent flood reports | S2iD "Danos informados" report (exported weekly from Brazil) | Forecast verification |
+| Road accidents | PRF open data, accidents with water on the road 2021–2025 | Independent check (§9.9) |
+| Satellite flood maps | Copernicus EMS rapid mapping EMSR720 | Independent check (§9.9) |
+| River discharge | GloFAS v4.0 reanalysis, Copernicus EWDS | Benchmark (§9.8) |
+| Soil moisture | ERA5-Land daily statistics, Copernicus CDS | Extra predictor (§9.11) |
 
 ### Unit: the upstream basin
 
@@ -224,8 +247,8 @@ rule and was not validated.
 
 ### Rigour safeguards
 
-- **Pre-registration:** each analysis (2025 test, model verification, upstream basin, rivers, second trigger) was
-  written into the protocol before it was run. Post-hoc decisions are labelled as such in the decision log.
+- **Pre-registration:** each analysis (2025 test, model verification, upstream basin, rivers, second trigger, and
+  §§9.5–9.11) was written into the protocol before it was run. Post-hoc decisions are labelled as such in the decision log.
 - **No re-tuning on test data:** 2025, river floods and road impacts are only ever scored with frozen thresholds.
 - **Negative results are published:** the indices do not beat 30-day rainfall with confidence, and the 2025 criterion
   was not met.
@@ -246,7 +269,9 @@ flowchart LR
     S2ID[S2iD records<br/>Atlas Digital]
     BHO[ANA BHO basins]
     HW[ANA HidroWeb stages]
-    OM[Open-Meteo<br/>ECMWF / GFS]
+    OM[Open-Meteo<br/>ECMWF / GFS + ensembles]
+    S2PC[S2iD export<br/>PC in Brazil, branch s2id]
+    COP[Copernicus CDS / EWDS<br/>ERA5-Land, GloFAS]
   end
   subgraph Pipeline [floodwatch pipeline]
     FETCH[fetch] --> CUBE[merge_cube]
@@ -261,7 +286,12 @@ flowchart LR
     RULES --> FIG[figures]
     RULES --> FC[forecast]
     FC --> DB[(forecast_db<br/>SQLite)]
+    FC --> ENS[ensemble]
+    ENS --> DB
+    OR[official_records] --> DB
     SKILL[forecast_skill]
+    SUP[hindcast, stats_extra,<br/>ground_truth, glofas,<br/>soil_moisture]
+    STUDY --> SUP
   end
   subgraph App [Streamlit app]
     PF[page_forecast] --> BR[briefing PDF]
@@ -273,7 +303,12 @@ flowchart LR
   HW --> ANA
   OM --> FC
   OM --> SKILL
+  OM --> ENS
+  OM --> SUP
+  S2PC --> OR
+  COP --> SUP
   FC --> PF
+  DB --> PF
   SKILL --> PF
   STUDY --> PS
   FIG --> PS
@@ -288,7 +323,7 @@ flowchart LR
 | `paths` | Every file location in one place |
 | `fetch` | Downloads raw inputs (MERGE, Atlas, IBGE, DNIT) with provenance files |
 | `merge_cube` | The single checked GRIB2 reader (variable, date, grid, origin, scan order, product state); area means; RS cube |
-| `upstream` | Pfafstetter upstream masks, basin weights, basin rainfall (observed) and the 0.25° forecast grid |
+| `upstream` | Pfafstetter upstream masks, basin weights, basin rainfall (observed) and the forecast grids (0.25°, 632 points; 0.5°, 180 points for ensembles and hindcast) |
 | `indices` | EDI, PE and API from `climate-indices` 3.0.0, with an explicit calendar and calibration |
 | `stats` | Contingency scores, AUC, threshold search, folds, block bootstrap, paired differences |
 | `study` | Units, events and samples; predictors; out-of-sample evaluation → `results.json` |
@@ -298,27 +333,39 @@ flowchart LR
 | `ana`, `ana_validation` | HidroWeb download and daily stages; basin vs municipal; river-flood validation; river-state predictor |
 | `figures` | Derived tables for the study page (ROC, risk multiplier, May-2024 timeline, leads, road check) |
 | `forecast_skill` | ECMWF vs GFS verification against MERGE, pre-registered |
-| `forecast` | Daily run: refresh MERGE, basin rainfall, ECMWF/GFS 12 UTC runs (paced requests), apply the rules |
+| `forecast` | Daily run: refresh MERGE, basin rainfall, ECMWF/GFS 12 UTC runs (06/00 UTC fallback, paced requests), apply the rules |
+| `ensemble` | ECMWF ENS and GEFS member rainfall → per-municipality P(Watch), P(Warning), archived daily (§9.7) |
 | `forecast_db` | SQLite archive of every run (schema in `sql/`), observed vs forecast verification views, `verification.json` |
-| `official_records` | Weekly check of the Atlas Digital download page for a new S2iD release (auto-loaded); preliminary flood reports |
+| `official_records` | Weekly check of the Atlas Digital download page for a new S2iD release (auto-loaded); S2iD "Danos informados" export; preliminary flood reports |
+| `hindcast` | Past ECMWF/GFS runs 2024–2025 → levels by lead time (§9.5) and quantile-mapping bias correction (§9.6) |
+| `stats_extra` | SEDI, relative economic value and minimum detectable differences (§9.10) |
+| `ground_truth` | PRF accidents with water on the road and Copernicus EMS overlap (§9.9) |
+| `glofas`, `soil_moisture` | Copernicus downloads (sequential, patient retries) and the §9.8 / §9.11 evaluations |
 | `page_forecast`, `page_study`, `briefing`, `ui_theme`, `exposure` | Streamlit pages, the PDF briefing, the shared visual system and public logistics references |
 
 ### Data layout
 
 ```
-data/raw/          spatial, road_impacts (in git); merge, atlas, ana, forecast_api (downloaded, not in git)
+data/raw/          spatial, road_impacts, reports, copernicus_ems, prf/provenance.json (in git);
+                   merge, atlas, ana, forecast_api, s2id, prf zips, hindcast, era5land, glofas (downloaded, not in git)
 data/processed/
   study/           results.json, second_trigger.json, validation_2025.json, upstream_results.json,
-                   river_validation.json, river_predictor.json, figure tables, units.geojson, basin rainfall
-  forecast/        runs/<utc>/ (metadata.json + municipal_levels.csv), latest.json, forecasts.sqlite (local)
+                   river_validation.json, river_predictor.json, stats_extra.json, ground_truth.json,
+                   figure tables, units.geojson, basin rainfall; later hindcast.json, bias_correction.json,
+                   glofas.json, soil_moisture.json
+  forecast/        runs/<utc>/ (metadata.json + municipal_levels.csv), latest.json, verification.json,
+                   forecasts.sqlite (authoritative copy on the branch archive)
 sql/               schema.sql (tables + verification views), validation.sql (ready-made queries)
 docs/              protocol.md, runbook.md, data-sources.md
+scripts/           daily_update.ps1 (run by the workflow), s2id_export.ps1 + install_s2id_task.ps1 (PC), keep_alive.py
 tests/             focused tests for the rules behind the published numbers
+CITATION.cff, .zenodo.json   citation metadata for GitHub and Zenodo
 ```
 
 ### Forecast archive
 
-Every daily run is ingested into SQLite (`runs`, `municipal`, `corridor`, `events`). Each run stores the rule it used
+Every daily run is ingested into SQLite (`runs`, `municipal`, `corridor`, `events`, and `ensemble` for the member
+probabilities). Each run stores the rule it used
 and the last observed days, so later runs verify earlier forecasts. The `verification` view pairs each forecast with
 the observed value and with official records, once these are loaded. `sql/validation.sql` has the queries, and
 `python -m floodwatch.forecast_db report` prints them. After each run, `forecast_db.write_summary` exports the comparison to
@@ -327,10 +374,11 @@ the levels computed from forecast rainfall are verified prospectively, from Nove
 
 ### Quality
 
-- `pytest -q`: 15 focused tests, covering block bootstrap and scores, event chaining, the 12 UTC window, the rule and
+- `pytest -q`: 17 focused tests, covering block bootstrap and scores, event chaining, the 12 UTC window, the rule and
   trigger, rule compatibility with older runs, the Pfafstetter upstream rule, basin means, GRIB cropping, EDI
-  calibration, API recursion and missing days, forecast-verification counts, preliminary-report filtering, and module reachability.
-- `pyflakes` clean. External requests are paced, honour `Retry-After` and never retry aggressively.
+  calibration, API recursion and missing days, forecast-verification counts, preliminary-report filtering, module
+  reachability, the ensemble's shortened API series (identical to the full one) and quantile mapping.
+- `pyflakes` clean (pinned in `requirements-dev.txt`). External requests are paced, honour `Retry-After` and never retry aggressively.
 
 ---
 
@@ -349,8 +397,16 @@ streamlit run app.py                                # uses the bundled processed
   (scheduled for 17:00 Brasília; GitHub often starts it hours later) and pushes the new run to `main`. The verification
   archive `forecasts.sqlite` lives on the branch `archive` (one force-pushed commit), not in the local folder. Each run
   first reconstructs every missing day (up to 14), each from that day's 12 UTC model runs and the rainfall observed up
-  to that day, so the verification has no gaps. `scripts/install_daily_task.ps1` (Windows scheduled task) is the
-  former local alternative; never run it alongside the workflow, since both would push to `main`.
+  to that day, so the verification has no gaps. It then archives the ensemble probabilities (about 20 min; a failure
+  there never blocks the forecast). `scripts/install_daily_task.ps1` (Windows scheduled task) is the former local
+  alternative; never run it alongside the workflow, since both would push to `main`.
+- **S2iD reports:** S2iD blocks IP addresses outside Brazil, so the cloud runner cannot export them. A scheduled task on
+  the project PC (`scripts/install_s2id_task.ps1`) runs `scripts/s2id_export.ps1` at logon and pushes the export to
+  the branch `s2id`; every workflow run loads the latest one. Switching the PC on once a week is enough.
+- **Supplementary analyses** (§§9.5–9.11; Copernicus data need a free ECMWF account in `~/.cdsapirc` and the dataset
+  licences accepted): `python -m floodwatch.stats_extra`, `python -m floodwatch.ground_truth [download]`,
+  `python -m floodwatch.hindcast download|evaluate|bias-correction`, `python -m floodwatch.glofas download|evaluate`,
+  `python -m floodwatch.soil_moisture download|evaluate`. Downloads are resumable.
 - **Tests:** `pip install -r requirements-dev.txt && pytest -q`.
 
 ---
@@ -366,7 +422,12 @@ streamlit run app.py                                # uses the bundled processed
 - **River floods are defined statistically** (median annual maximum), not by official flood stages. Conventional
   readings at 07:00 and 17:00 can miss the peak.
 - **Levels computed with forecast rainfall have not been verified yet.** They inherit the weather model's error, and
-  both models underestimated the rain on flood days.
+  both models underestimated the rain on flood days. The hindcast (§9.5) will measure this; prospective verification
+  runs on the dashboard since November 2026.
+- **The ensemble probabilities are archived, not shown.** They will only be shown once a year of data shows that they are
+  reliable (§9.7).
+- **Recent S2iD reports depend on the PC in Brazil.** If it stays off, the "reported floods" card ages; the card shows
+  the date of the last export.
 
 This is an independent study, not an official warning. For warnings, follow Defesa Civil, CEMADEN and SGB.
 
@@ -376,10 +437,24 @@ This is an independent study, not an official warning. For warnings, follow Defe
 
 Code: MIT (see [LICENSE](LICENSE)). Data belong to their providers and keep their own terms. Details and references
 are in [docs/data-sources.md](docs/data-sources.md). Sources: MERGE/CPTEC-INPE, Atlas Digital de Desastres no Brasil
-(MIDR/CEPED-UFSC), ANA (BHO, HidroWeb), IBGE, DNIT SNV, Open-Meteo (CC BY 4.0), ECMWF open data (CC BY 4.0), NOAA GFS,
-and the basemap © OpenStreetMap contributors © CARTO.
+(MIDR/CEPED-UFSC), S2iD, ANA (BHO, HidroWeb), IBGE, DNIT SNV, PRF open data, Open-Meteo (CC BY 4.0), ECMWF open data
+(CC BY 4.0), NOAA GFS/GEFS, Copernicus Climate Change Service (ERA5-Land) and Copernicus Emergency Management Service
+(GloFAS, EMS rapid mapping), and the basemap © OpenStreetMap contributors © CARTO.
 
 **References.**
 - Byun, H.-R. & Wilhite, D. A. (1999). Objective quantification of drought severity and duration. *Journal of Climate*, 12, 2747–2756.
 - Kohler, M. A. & Linsley, R. K. (1951). *Predicting the runoff from storm rainfall.* U.S. Weather Bureau, Research Paper 34.
 - Peirce, C. S. (1884). The numerical measure of the success of predictions. *Science*, 4, 453–454.
+- Ferro, C. A. T. & Stephenson, D. B. (2011). Extremal dependence indices: improved verification measures for
+  deterministic forecasts of rare binary events. *Weather and Forecasting*, 26, 699–713.
+- Richardson, D. S. (2000). Skill and relative economic value of the ECMWF ensemble prediction system. *Quarterly
+  Journal of the Royal Meteorological Society*, 126, 649–667.
+
+---
+
+## How to cite
+
+Andrade, V. *RS Corridor Flood Watch: flood-potential thresholds (EDI, API) for the BR-116, BR-386 and BR-290
+corridors, Rio Grande do Sul, Brazil.* Zenodo. [doi:10.5281/zenodo.24508671](https://doi.org/10.5281/zenodo.24508671)
+(this DOI always resolves to the latest version). Metadata in [CITATION.cff](CITATION.cff); GitHub's *Cite this
+repository* button uses it.

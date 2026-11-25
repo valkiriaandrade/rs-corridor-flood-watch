@@ -31,7 +31,22 @@ export FLOODWATCH_MERGE_ARCHIVE=data/raw/merge        # folder holding the 1998-
 | 16 | `python -m floodwatch.forecast_skill download` then `evaluate` | ECMWF × GFS verification (paced; can take hours) | hours |
 | 17 | `python -m floodwatch.forecast` | `data/processed/forecast/runs/<utc>/` + SQLite archive | ~3 min |
 | 18 | `streamlit run app.py` | http://localhost:8501 | – |
-| – | `pytest -q` | 15 focused tests | < 1 min |
+| – | `pytest -q` | 17 focused tests | < 1 min |
+
+### Supplementary analyses (protocol §§9.5–9.11)
+
+Copernicus downloads need a free ECMWF account token in `~/.cdsapirc` (`url: https://cds.climate.copernicus.eu/api`,
+`key: <token>`) and, once per account, the ERA5-Land licence (CDS) plus the EWDS terms and the CEMS-FLOODS licence
+(EWDS). Both stores accept one request at a time per dataset; the downloaders wait 15 min and retry while the queue is full.
+
+| Command | Output | Time |
+|---|---|---|
+| `python -m floodwatch.stats_extra` | `stats_extra.json` (SEDI, economic value, power; §9.10) | ~10 min |
+| `python -m floodwatch.ground_truth download`, then without arguments | `ground_truth.json` (PRF, Copernicus EMS; §9.9) | ~5 min |
+| `python -m floodwatch.hindcast download` | `data/raw/hindcast/` (Open-Meteo past runs, paced by the free quota) | 1–2 days |
+| `python -m floodwatch.hindcast evaluate`, then `bias-correction` | `hindcast.json`, `bias_correction.json` (§9.5, §9.6) | ~1 h |
+| `python -m floodwatch.glofas download` then `evaluate` | `glofas.json` (§9.8) | hours (queue) |
+| `python -m floodwatch.soil_moisture download` then `evaluate` | `soil_moisture.json` (§9.11) | hours (queue) |
 
 Order matters: step 12 must follow step 10 (it needs the final thresholds), and steps 13 and 17 read the rule built from
 both (`floodwatch/rules.py`).
@@ -40,7 +55,10 @@ both (`floodwatch/rules.py`).
 
 Only step 17 is needed. It refreshes the last 14 days of MERGE (missing or *early* days), recomputes the basin rainfall
 from 2025 onwards, fetches the latest 12 UTC ECMWF and GFS runs on the 632-point basin grid (paced requests, `Retry-After`
-honoured) and applies the frozen rules. If CPTEC is unreachable the local MERGE files are kept; Open-Meteo is required.
+honoured; if a 12 UTC run is not available yet, the 06 and then the 00 UTC run is used) and applies the frozen rules.
+If CPTEC is unreachable the local MERGE files are kept; Open-Meteo is required. It then archives the ensemble
+probabilities (ECMWF ENS and GEFS on the 180-point 0.5° grid, table `ensemble`, protocol §9.7; about 20 min, and a
+failure is printed but never blocks the forecast). A cloud run takes about 20 min in total.
 
 - **Where it runs (since 2026-11-07).** `.github/workflows/daily-forecast.yml` (windows-latest, cron 20:00 UTC = 17:00
   Brasília, also `workflow_dispatch`) runs `scripts/daily_update.ps1` in the cloud. State between runs: MERGE files in
@@ -65,10 +83,11 @@ honoured) and applies the frozen rules. If CPTEC is unreachable the local MERGE 
 - **Flood occurrences.** Preliminary reports go in `data/raw/reports/preliminary_reports.csv`
   (`date,municipio,tipo,fonte,url,observacao`; types alagamento, enxurrada, inundação). Each run checks, at most once a
   week, the Atlas Digital download page (`floodwatch.official_records`); a new S2iD release is downloaded with
-  provenance and loaded into the archive (`data/raw/atlas/official_release.json`). Once a day (at most every 20 h) the
-  run also exports the public S2iD report "Danos informados" (RS, flood COBRADEs, last 60 days of registrations) with
-  a headless Microsoft Edge driven by Playwright (`requirements-pipeline.txt`; Edge must be installed), saves it to
-  `data/raw/s2id/` (ignored by git) with provenance and loads the corridor records into the archive. A preliminary
+  provenance and loaded into the archive (`data/raw/atlas/official_release.json`). The public S2iD report "Danos
+  informados" (RS, flood COBRADEs, last 60 days of registrations) is exported with a headless Microsoft Edge driven by
+  Playwright (`requirements-pipeline.txt`; Edge must be installed) on the PC in Brazil (see above), saved to
+  `data/raw/s2id/` (ignored by git) with provenance, and its corridor records are loaded into the archive; in the
+  workflow (`FLOODWATCH_S2ID=file`) the run only loads the export restored from the branch `s2id`. A preliminary
   report counts only when no official record exists in the same municipality within ±1 day. If the export fails
   (form changed, site down) the run continues and prints `S2iD export failed`. `python -m floodwatch.official_records`
   forces both checks.

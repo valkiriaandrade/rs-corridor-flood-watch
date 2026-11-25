@@ -246,7 +246,7 @@ def evaluate_bias_correction():
     """§9.6 primary: paired TSS difference (corrected - raw), Watch or above vs official records, mean of leads 1-3,
     TEST_YEAR only; adopted only if the whole 95 % CI lies above 0."""
     import numpy as np
-    from . import rules, study
+    from . import rules
     from . import validation_2025 as V
     from .paths import STUDY
     from .stats import BlockBootstrap, ci, score
