@@ -1,12 +1,19 @@
 # RS Corridor Flood Watch
 
+[![Open the dashboard](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://rs-corridor-flood-watch.streamlit.app/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24508671.svg)](https://doi.org/10.5281/zenodo.24508671)
 
 **Flood-potential early warning for the federal road corridors BR-116, BR-386 and BR-290 in Rio Grande do Sul, Brazil.
 Two antecedent-rainfall indices (EDI and API) are calibrated on official disaster records, validated out of sample and
 against gauged river floods, then applied every day to ECMWF and GFS forecasts.**
 
-![Corridor forecast page](docs/img/forecast.png)
+### ▶ Interactive dashboard: **[rs-corridor-flood-watch.streamlit.app](https://rs-corridor-flood-watch.streamlit.app/)**
+
+Updated every day at about 17:00 Brasília time. Portuguese by default, English at
+[?lang=en](https://rs-corridor-flood-watch.streamlit.app/?lang=en). If the app is asleep, click
+*"Yes, get this app back up"* and wait a few seconds.
+
+[![Corridor forecast page](docs/img/forecast.png)](https://rs-corridor-flood-watch.streamlit.app/)
 
 The April–May 2024 floods cut the main road links of Rio Grande do Sul for weeks. Beyond the human toll, they disrupted
 water, power, transport and the supply chains that depend on the state's highways. This project asks one operational
