@@ -10,8 +10,7 @@ against gauged river floods, then applied every day to ECMWF and GFS forecasts.*
 ### ▶ Interactive dashboard: **[rs-corridor-flood-watch.streamlit.app](https://rs-corridor-flood-watch.streamlit.app/)**
 
 Updated every day at about 17:00 Brasília time. Portuguese by default, English at
-[?lang=en](https://rs-corridor-flood-watch.streamlit.app/?lang=en). If the app is asleep, click
-*"Yes, get this app back up"* and wait a few seconds.
+[?lang=en](https://rs-corridor-flood-watch.streamlit.app/?lang=en).
 
 [![Corridor forecast page](docs/img/forecast.png)](https://rs-corridor-flood-watch.streamlit.app/)
 
