@@ -1,0 +1,38 @@
+name: Tests
+
+# Lint and tests on every change to the code. The daily forecast commits (data only) are skipped.
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "data/processed/forecast/**"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-pipeline.txt
+            requirements-dev.txt
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements-dev.txt
+
+      - name: pyflakes
+        run: python -m pyflakes app.py floodwatch scripts tests
+
+      - name: pytest (network blocked by tests/conftest.py)
+        run: python -m pytest -q

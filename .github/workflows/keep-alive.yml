@@ -5,6 +5,9 @@ on:
     - cron: "17 */12 * * *"   # every 12 hours
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   ping:
     runs-on: ubuntu-latest
@@ -18,7 +21,7 @@ jobs:
 
       - name: Install Playwright
         run: |
-          pip install playwright==1.47.0
+          pip install playwright==1.64.1   # same version as requirements-pipeline.txt
           python -m playwright install --with-deps chromium
 
       - name: Visit app (wake it if asleep)
