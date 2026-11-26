@@ -18,8 +18,22 @@ from shapely.geometry import box
 
 from . import indices
 from .paths import RAW, STUDY as OUT
-from .stats import (N_BOOT, BlockBootstrap, alert_threshold, auc, best_tss, candidates, ci, contingency,
-                    holdout_folds, oos_alert, oos_predictions, score, year_folds)
+from .stats import (
+    N_BOOT,
+    BlockBootstrap,
+    alert_threshold,
+    auc,
+    best_tss,
+    candidates,
+    ci,
+    contingency,
+    holdout_folds,
+    oos_alert,
+    oos_predictions,
+    score,
+    year_folds,
+)
+
 CODES = [12100, 12200, 12300, 13214]
 CAL = (1999, 2012)
 START, END = pd.Timestamp('2013-01-01'), pd.Timestamp('2024-12-31')

@@ -8,8 +8,7 @@ Usage: python scripts/keep_alive.py https://<app>.streamlit.app
 
 import sys
 
-from playwright.sync_api import TimeoutError as PlaywrightTimeout
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import TimeoutError as PlaywrightTimeout, sync_playwright
 
 WAKE_BUTTON = "button:has-text('get this app back up')"
 

@@ -6,8 +6,8 @@ Rule for each index (EDI, API), all values frozen from the 2013-2024 study (docs
     Normal   otherwise; 'no data' (-1) when the index is missing (never shown as Normal)
 Sources: results.json (thresholds) and second_trigger.json (P3 trigger, refit on 2013-2024 and frozen).
 """
-from dataclasses import asdict, dataclass
 import json
+from dataclasses import asdict, dataclass
 
 import numpy as np
 

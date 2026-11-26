@@ -12,7 +12,7 @@ operational indices and frozen rules. Nothing is fitted.
 import json
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pandas as pd
 import requests
@@ -62,7 +62,7 @@ def download():
                     raise RuntimeError('rate limited repeatedly; stopping (run again later, it resumes)')
                 path.write_text(r.text, encoding='utf-8')
                 path.with_suffix('.http.json').write_text(json.dumps({
-                    'url': r.url, 'time_utc': datetime.now(timezone.utc).isoformat(), 'bytes': len(r.content),
+                    'url': r.url, 'time_utc': datetime.now(UTC).isoformat(), 'bytes': len(r.content),
                     'points': b.point.tolist()}), encoding='utf-8')
                 print(f'{name} {c0:%Y-%m-%d}..{c1:%Y-%m-%d} points {off}-{off + len(b) - 1} ok', flush=True)
 
@@ -105,6 +105,7 @@ def issuance_levels(model, observed, rule, fc=None):
     """Levels of every issuance X (observed through X-1, forecast X .. X+4) -> long table date, codarea, lead, levels.
     fc: {lead: date x codarea} forecast rainfall (default: the raw previous-runs frames)."""
     import numpy as np
+
     from . import indices, rules, study
     fc = forecast_frames(model) if fc is None else fc
     cols = observed.columns
@@ -138,8 +139,8 @@ def evaluate():
     """§9.5 scores: TSS (Watch or above) of the forecast levels vs official records, by model and lead, and the paired
     skill loss against the same rule on observed rainfall (same rows, block bootstrap, seed 20261124)."""
     import numpy as np
-    from . import rules, study
-    from . import validation_2025 as V
+
+    from . import rules, study, validation_2025 as V
     from .paths import STUDY
     from .stats import BlockBootstrap, ci, score
     rain, _ = V.rain_through_2025()
@@ -246,8 +247,8 @@ def evaluate_bias_correction():
     """§9.6 primary: paired TSS difference (corrected - raw), Watch or above vs official records, mean of leads 1-3,
     TEST_YEAR only; adopted only if the whole 95 % CI lies above 0."""
     import numpy as np
-    from . import rules
-    from . import validation_2025 as V
+
+    from . import rules, validation_2025 as V
     from .paths import STUDY
     from .stats import BlockBootstrap, ci, score
     rain, _ = V.rain_through_2025()

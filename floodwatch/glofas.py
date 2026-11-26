@@ -74,6 +74,7 @@ def discharge():
 def municipal_ratio():
     """Discharge / median annual maximum 1999-2012 at each municipality's main-river cell (date x codarea)."""
     import geopandas as gpd
+
     from . import study
     q = discharge()
     times = pd.to_datetime(q['time'].to_numpy()).normalize()
@@ -97,9 +98,9 @@ def municipal_ratio():
 
 
 def evaluate():
+    from . import study
     from .second_trigger import fit_rule
     from .stats import BlockBootstrap, auc, holdout_folds, oos_predictions, paired, score, scores, year_folds
-    from . import study
     ratio, cells = municipal_ratio()
     windowed = ratio.rolling(2, min_periods=2).max().stack(future_stack=True).rename('GLOFAS').reset_index()
     windowed.columns = ['date', 'codarea', 'GLOFAS']
@@ -121,7 +122,7 @@ def evaluate():
         sub = W.subset(m)
         glofas, thr = oos_predictions(df, 'GLOFAS', folds)
         rule = np.full(len(df), np.nan)
-        for name, test in folds:
+        for _name, test in folds:
             a, b = fit_rule(df, 'API', ~test)
             rule[test] = ((df.API[test] >= a) | (df.P3[test] >= b)).to_numpy(float)
         out['designs'][dn] = {'GLOFAS': scores(glofas[m], y[m], sub), 'API_rule': scores(rule[m], y[m], sub),

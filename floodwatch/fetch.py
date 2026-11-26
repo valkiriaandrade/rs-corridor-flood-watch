@@ -8,15 +8,15 @@ Existing files are kept unless their provenance is missing; MERGE days whose pro
 'early' are re-downloaded (CPTEC replaces them with 'late' and later 'final' versions).
 """
 import argparse
-from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timezone
 import hashlib
 import json
+from concurrent.futures import ThreadPoolExecutor
+from datetime import UTC, datetime
 
 import pandas as pd
 import requests
-from requests.adapters import HTTPAdapter
 import urllib3
+from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from .paths import ATLAS, MERGE, SPATIAL
@@ -75,7 +75,7 @@ def download(url, path, s=None, force=False, timeout=(15, 120)):
     tmp = path.with_name(path.name + '.part')
     tmp.write_bytes(r.content)
     tmp.replace(path)
-    meta = {'url': url, 'downloaded_at_utc': datetime.now(timezone.utc).isoformat(), 'bytes': len(r.content),
+    meta = {'url': url, 'downloaded_at_utc': datetime.now(UTC).isoformat(), 'bytes': len(r.content),
             'sha256': hashlib.sha256(r.content).hexdigest(), 'last_modified': r.headers.get('Last-Modified')}
     if not verified:
         meta['tls_verified'] = False

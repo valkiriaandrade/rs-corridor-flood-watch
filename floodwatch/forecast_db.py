@@ -19,8 +19,8 @@ from pathlib import Path
 
 import pandas as pd
 
-from .rules import run_rules
 from .paths import FORECAST, ROOT
+from .rules import run_rules
 
 DB = FORECAST / 'forecasts.sqlite'
 SCHEMA = ROOT / 'sql' / 'schema.sql'

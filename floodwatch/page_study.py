@@ -6,8 +6,8 @@ import pandas as pd
 import streamlit as st
 
 from . import ui_theme as T
-
 from .paths import STUDY as S
+
 NAMES = {'P1': 'Chuva 1 dia', 'P3': 'Chuva 3 dias', 'P7': 'Chuva 7 dias', 'P30': 'Chuva 30 dias',
          'PE': 'PE (precipitação efetiva)', 'EDI': 'EDI', 'EDI&P3': 'EDI E chuva 3 dias (regra combinada)', 'EDI_alert': 'EDI · nível de alerta', 'MONTH': 'Só o mês (sazonal)',
          'API': 'API (precipitação antecedente)', 'API_alert': 'API · nível de alerta',

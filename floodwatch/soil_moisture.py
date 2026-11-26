@@ -78,6 +78,7 @@ def _daily(d):
 def basin_sm():
     """Daily 0-100 cm soil moisture (m3/m3) per upstream basin (date x codarea)."""
     import xarray as xr
+
     from . import upstream
     w = upstream.weights()
     lat = np.floor(upstream.LAT[w.iy] * 10 + 0.5) / 10
@@ -103,6 +104,7 @@ def check_synoptic_mean():
     daily-statistics dataset (sm_YYYYMM.nc, zip archives with one file per layer)."""
     import tempfile
     import zipfile
+
     import xarray as xr
     rows = []
     for path in sorted(ARCHIVE.glob('sm_[0-9]*.nc')):
@@ -158,9 +160,9 @@ def _fit_or(df, train, thr_api, b_api, s_grid_q=np.linspace(0.80, 0.995, 40)):
 
 
 def evaluate():
+    from . import study
     from .second_trigger import fit_rule
     from .stats import BlockBootstrap, auc, oos_predictions, paired, scores, year_folds
-    from . import study
     an = anomaly(basin_sm())
     windowed = an.rolling(2, min_periods=2).max().stack(future_stack=True).rename('SM').reset_index()
     windowed.columns = ['date', 'codarea', 'SM']

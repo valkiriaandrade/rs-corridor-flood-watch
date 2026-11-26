@@ -10,9 +10,9 @@ import unicodedata
 import numpy as np
 import pandas as pd
 
-from . import rules as R
-from . import study as s
+from . import rules as R, study as s
 from .paths import ROAD_IMPACTS
+
 IMPACTS = ROAD_IMPACTS / 'impact_precision_review.csv'
 
 

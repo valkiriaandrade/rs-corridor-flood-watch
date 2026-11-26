@@ -33,6 +33,7 @@ def download():
     """Re-download the PRF files listed in provenance.json (Google Drive links of the PRF open-data page) and check
     their sha256 (a changed file is reported, not silently used)."""
     import hashlib
+
     import requests
     prov = json.loads((PRF / 'provenance.json').read_text(encoding='utf-8'))
     for year, p in prov.items():
@@ -139,6 +140,7 @@ def ems_overlap():
     data/raw/copernicus_ems/EMSR720_activation.json = the public activation record (rapidmapping.emergency.copernicus.eu)."""
     import geopandas as gpd
     from shapely import wkt
+
     from . import study
     act = json.loads((RAW / 'copernicus_ems' / 'EMSR720_activation.json').read_text(encoding='utf-8'))['results'][0]
     aoi = gpd.GeoDataFrame([{'aoi': a['name'], 'geometry': wkt.loads(a['extent'])} for a in act['aois']], crs=4326)

@@ -5,9 +5,9 @@ missing / negative / non-finite values into NaN. Days whose file is missing, unr
 are gaps (NaN), never zero rain. Study years (1998-2024) must be the V07B final product.
     python -m floodwatch.merge_cube     # 1998-2024 cube cropped to RS -> data/processed/study/merge_rs_cube.npz
 """
-from concurrent.futures import ProcessPoolExecutor
 import json
 import os
+from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
 import eccodes

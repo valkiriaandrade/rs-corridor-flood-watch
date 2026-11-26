@@ -23,7 +23,7 @@ import json
 import os
 import re
 import unicodedata
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pandas as pd
 
@@ -70,7 +70,7 @@ def update(force=False):
     from .fetch import download
     from .forecast_db import load_events
     st = state()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     last = pd.Timestamp(st['checked_utc']) if st.get('checked_utc') else None
     if not force and last is not None and (pd.Timestamp(now) - last).days < CHECK_DAYS:
         return st
@@ -108,6 +108,7 @@ def fetch_s2id(days=S2ID_DAYS):
     """Exports S2iD 'Relatório Gerencial - Danos informados' (RS, flood COBRADEs, last `days` of registrations) with a
     headless browser: the report is a JSF form with no data endpoint. One export per call; saved with provenance."""
     import hashlib
+
     from playwright.sync_api import sync_playwright
     end = pd.Timestamp.now(tz='America/Sao_Paulo').tz_localize(None).normalize()
     start = end - pd.Timedelta(days=days)
@@ -128,7 +129,7 @@ def fetch_s2id(days=S2ID_DAYS):
             browser.close()
     raw = path.read_bytes()
     meta = {'url': S2ID_REPORTS, 'report': 'Relatório Gerencial - Danos informados', 'uf': 'RS', 'cobrade': list(S2ID_LABELS),
-            'registration_period': [str(start.date()), str(end.date())], 'downloaded_at_utc': datetime.now(timezone.utc).isoformat(),
+            'registration_period': [str(start.date()), str(end.date())], 'downloaded_at_utc': datetime.now(UTC).isoformat(),
             'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest()}
     path.with_name(path.name + '.http.json').write_text(json.dumps(meta, indent=1), encoding='utf-8')
     return path
@@ -200,7 +201,7 @@ def update_s2id(force=False):
     from .study import CODES
     st = state()
     last = pd.Timestamp(st['s2id_checked_utc']) if st.get('s2id_checked_utc') else None
-    if not force and last is not None and (pd.Timestamp(datetime.now(timezone.utc)) - last).total_seconds() < 20 * 3600:
+    if not force and last is not None and (pd.Timestamp(datetime.now(UTC)) - last).total_seconds() < 20 * 3600:
         return st
     if os.environ.get('FLOODWATCH_S2ID') == 'file':
         # cloud runners are geo-blocked by S2iD: the export comes from the PC in Brazil (scripts/s2id_export.ps1, about
@@ -211,7 +212,7 @@ def update_s2id(force=False):
         if not (path.exists() and audit.exists()):
             print('S2iD export missing: no file on branch s2id (run scripts/s2id_export.ps1 on the PC)')
             return st
-        age_h = (pd.Timestamp(datetime.now(timezone.utc))
+        age_h = (pd.Timestamp(datetime.now(UTC))
                  - pd.Timestamp(json.loads(audit.read_text(encoding='utf-8'))['downloaded_at_utc'])).total_seconds() / 3600
         print(f'S2iD export from the PC: {age_h / 24:.1f} days old')
         if age_h > S2ID_STALE_DAYS * 24:
@@ -231,7 +232,7 @@ def update_s2id(force=False):
                     rec[['protocol', 'codarea', 'date', 'cobrade']].itertuples(index=False, name=None))
     con.commit()
     con.close()
-    st.update(s2id_checked_utc=datetime.now(timezone.utc).isoformat(), s2id_corridor_records=int(len(rec)))
+    st.update(s2id_checked_utc=datetime.now(UTC).isoformat(), s2id_corridor_records=int(len(rec)))
     STATE.parent.mkdir(parents=True, exist_ok=True)
     STATE.write_text(json.dumps(st, indent=1), encoding='utf-8')
     print(f'S2iD: {len(rec)} corridor flood records in the last {S2ID_DAYS} days of registrations')

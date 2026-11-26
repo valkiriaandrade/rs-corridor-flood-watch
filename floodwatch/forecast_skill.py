@@ -19,7 +19,7 @@ import argparse
 import json
 import time
 from collections import deque
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import geopandas as gpd
 import numpy as np
@@ -129,7 +129,7 @@ def download(models=None):
                 raise RuntimeError('rate limited repeatedly; stopping')
             path.write_text(r.text, encoding='utf-8')
             (path.with_suffix('.http.json')).write_text(json.dumps({
-                'url': r.url, 'time_utc': datetime.now(timezone.utc).isoformat(), 'bytes': len(r.content)}), encoding='utf-8')
+                'url': r.url, 'time_utc': datetime.now(UTC).isoformat(), 'bytes': len(r.content)}), encoding='utf-8')
             print(f'{name} {c0:%Y-%m-%d}..{c1:%Y-%m-%d} ok', flush=True)
 
 
@@ -162,6 +162,7 @@ def forecast_table(b):
 def observed_table(b, start='2024-02-25'):
     """MERGE box means: V07B final cube up to 2024, then the IMERG late/early daily files (state recorded)."""
     from concurrent.futures import ProcessPoolExecutor
+
     from .merge_cube import read_crop
     z = np.load(STUDY / 'merge_rs_cube.npz', allow_pickle=True)
     dates = pd.to_datetime(z['dates'])

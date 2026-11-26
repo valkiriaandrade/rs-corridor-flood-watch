@@ -13,9 +13,9 @@ says `backfill: true`; the observed rainfall used is the version available when 
     python -m floodwatch.forecast                 # catch up missing days (up to 14), then today's run
     python -m floodwatch.forecast --no-catchup    # today's run only
 """
-from datetime import datetime, timezone
 import json
 import time
+from datetime import UTC, datetime
 from urllib.parse import urlencode
 
 import geopandas as gpd
@@ -173,10 +173,10 @@ def observed_rain():
 def run(issue=None, observed=None, states=None):
     """One forecast run. issue=None: today's run (latest 12 UTC runs, every observed day). issue=date: reconstructs
     the issuance of that date (its 12 UTC runs, observed rainfall up to that day); latest.json is not touched."""
-    stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
+    stamp = datetime.now(UTC).strftime('%Y%m%dT%H%M%SZ')
     while (OUT / 'runs' / stamp).exists():
         time.sleep(1)
-        stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
+        stamp = datetime.now(UTC).strftime('%Y%m%dT%H%M%SZ')
     units = gpd.read_file(study.OUT / 'units.geojson')
     units['codarea'] = units.codarea.astype(str)
     if observed is None:

@@ -6,15 +6,16 @@ import json
 import textwrap
 
 import matplotlib
+
 matplotlib.use('Agg')
 matplotlib.rcParams['pdf.fonttype'] = 42  # embed TrueType: Type 3 fonts render garbled in some PDF viewers at small sizes
 import matplotlib.pyplot as plt
-from matplotlib.patches import FancyBboxPatch, Rectangle
 import pandas as pd
+from matplotlib.patches import FancyBboxPatch, Rectangle
 
 from .exposure import NODES
 from .paths import ROOT, STUDY
-from .ui_theme import C, LEVEL_COLOR
+from .ui_theme import LEVEL_COLOR, C
 
 NAVY, MUTED, TEXT, BORDER = C['accent'], C['muted'], C['text'], C['border']
 NODATA = C['nodata']
