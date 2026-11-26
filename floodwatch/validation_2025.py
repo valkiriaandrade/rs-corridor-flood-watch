@@ -4,6 +4,7 @@
 published), over the same upstream basins; events: Atlas Digital BD v1.1 records of 2025, same rules.
 Run: python -m floodwatch.validation_2025
 """
+
 import json
 
 import pandas as pd
@@ -57,32 +58,47 @@ def sample_2025(table):
 
 def run():
     fin = json.loads((STUDY / 'results.json').read_text(encoding='utf-8'))['final_thresholds_all_years']
-    frozen = {'EDI_attention': fin['EDI']['attention'], 'EDI_alert': fin['EDI']['alert_pofd2pct'],
-              'API_attention': fin['API']['attention'], 'API_alert': fin['API']['alert_pofd2pct'],
-              'P30': fin['P30']['attention']}
+    frozen = {
+        'EDI_attention': fin['EDI']['attention'],
+        'EDI_alert': fin['EDI']['alert_pofd2pct'],
+        'API_attention': fin['API']['attention'],
+        'API_alert': fin['API']['alert_pofd2pct'],
+        'P30': fin['P30']['attention'],
+    }
     rain, states = rain_through_2025()
     sample, events, records = sample_2025(predictor_table(rain))
     y = sample.label.to_numpy()
     W = BlockBootstrap(sample)
     column = {'EDI_attention': 'EDI', 'EDI_alert': 'EDI', 'API_attention': 'API', 'API_alert': 'API', 'P30': 'P30'}
     preds = {k: (sample[column[k]] >= thr).to_numpy(float) for k, thr in frozen.items()}
-    out = {'year': YEAR, 'frozen_thresholds': frozen,
-           'rain_product_states': pd.Series(states).loc[str(START.date()):str(END.date())].value_counts().to_dict(),
-           'records': int(len(records)), 'events': int(W.pos.sum()), 'episodes': int(W.n_pos_blocks),
-           'negatives': int((~W.pos).sum()), 'events_by_month': events.date.dt.month.value_counts().sort_index().to_dict(),
-           'episodes_list': events.groupby('episode_id').size().to_dict()}
+    out = {
+        'year': YEAR,
+        'frozen_thresholds': frozen,
+        'rain_product_states': pd.Series(states).loc[str(START.date()) : str(END.date())].value_counts().to_dict(),
+        'records': int(len(records)),
+        'events': int(W.pos.sum()),
+        'episodes': int(W.n_pos_blocks),
+        'negatives': int((~W.pos).sum()),
+        'events_by_month': events.date.dt.month.value_counts().sort_index().to_dict(),
+        'episodes_list': events.groupby('episode_id').size().to_dict(),
+    }
     out.update({k: scores(p, y, W) for k, p in preds.items()})
     out['EDI_minus_P30_TSS'] = paired(preds['EDI_attention'], preds['P30'], y, W)
     out['API_minus_EDI_TSS'] = paired(preds['API_attention'], preds['EDI_attention'], y, W)
-    out['confirmed_2025'] = bool(out['EDI_attention']['TSS_CI95'][0] > 0.2)       # pre-registered criterion
+    out['confirmed_2025'] = bool(out['EDI_attention']['TSS_CI95'][0] > 0.2)  # pre-registered criterion
     out['confirmed_2025_API'] = bool(out['API_attention']['TSS_CI95'][0] > 0.2)
     pos = sample[W.pos]  # diagnostics shown on the study page (descriptive)
-    out['by_episode'] = {str(k): {'events': int(len(g)), 'start': str(pd.Timestamp(g.date.min()).date()),
-                                  'EDI_median': float(g.EDI.median()),
-                                  'share_at_attention': float((g.EDI >= frozen['EDI_attention']).mean()),
-                                  'API_median': float(g.API.median()),
-                                  'API_share_at_attention': float((g.API >= frozen['API_attention']).mean())}
-                         for k, g in pos.groupby('block')}
+    out['by_episode'] = {
+        str(k): {
+            'events': int(len(g)),
+            'start': str(pd.Timestamp(g.date.min()).date()),
+            'EDI_median': float(g.EDI.median()),
+            'share_at_attention': float((g.EDI >= frozen['EDI_attention']).mean()),
+            'API_median': float(g.API.median()),
+            'API_share_at_attention': float((g.API >= frozen['API_attention']).mean()),
+        }
+        for k, g in pos.groupby('block')
+    }
     hist_pos = pd.read_csv(STUDY / 'samples.csv.gz', usecols=['label', 'EDI', 'API'])
     for ix in ('EDI', 'API'):
         out[f'{ix}_median_events_2013_2024'] = float(hist_pos.loc[hist_pos.label == 1, ix].median())

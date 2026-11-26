@@ -1,4 +1,5 @@
 """Shared test fixtures."""
+
 import socket
 
 import pytest

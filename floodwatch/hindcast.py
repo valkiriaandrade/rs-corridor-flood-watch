@@ -9,6 +9,7 @@ operational indices and frozen rules. Nothing is fitted.
     python -m floodwatch.hindcast download   # resumable; paced under the free-tier limits
     python -m floodwatch.hindcast evaluate   # -> data/processed/study/hindcast.json (+ hindcast_levels_<model>.csv.gz)
 """
+
 import json
 import sys
 import time
@@ -41,13 +42,19 @@ def download():
         for c0 in chunks:
             c1 = min(c0 + pd.Timedelta(days=CHUNK_DAYS - 1), END)
             for off in range(0, len(points), BATCH):
-                b = points.iloc[off:off + BATCH]
+                b = points.iloc[off : off + BATCH]
                 path = folder / f'{c0:%Y%m%d}_{c1:%Y%m%d}_{off:03d}.json'
                 if path.exists():
                     continue
-                params = {'latitude': ','.join(f'{x:.2f}' for x in b.lat), 'longitude': ','.join(f'{x:.2f}' for x in b.lon),
-                          'hourly': hourly, 'models': code, 'start_date': f'{c0:%Y-%m-%d}', 'end_date': f'{c1:%Y-%m-%d}',
-                          'timezone': 'UTC'}
+                params = {
+                    'latitude': ','.join(f'{x:.2f}' for x in b.lat),
+                    'longitude': ','.join(f'{x:.2f}' for x in b.lon),
+                    'hourly': hourly,
+                    'models': code,
+                    'start_date': f'{c0:%Y-%m-%d}',
+                    'end_date': f'{c1:%Y-%m-%d}',
+                    'timezone': 'UTC',
+                }
                 for attempt in range(6):
                     budget.wait(weight(len(b), (c1 - c0).days + 1, len(LEADS)))
                     r = requests.get(API, params=params, headers=UA, timeout=300)
@@ -61,9 +68,17 @@ def download():
                 else:
                     raise RuntimeError('rate limited repeatedly; stopping (run again later, it resumes)')
                 path.write_text(r.text, encoding='utf-8')
-                path.with_suffix('.http.json').write_text(json.dumps({
-                    'url': r.url, 'time_utc': datetime.now(UTC).isoformat(), 'bytes': len(r.content),
-                    'points': b.point.tolist()}), encoding='utf-8')
+                path.with_suffix('.http.json').write_text(
+                    json.dumps(
+                        {
+                            'url': r.url,
+                            'time_utc': datetime.now(UTC).isoformat(),
+                            'bytes': len(r.content),
+                            'points': b.point.tolist(),
+                        }
+                    ),
+                    encoding='utf-8',
+                )
                 print(f'{name} {c0:%Y-%m-%d}..{c1:%Y-%m-%d} points {off}-{off + len(b) - 1} ok', flush=True)
 
 
@@ -75,6 +90,7 @@ def forecast_frames(model):
     """{lead: basin forecast rainfall (date x codarea)} from the downloaded previous-runs files. Hourly series are
     joined across chunks before the 12-12 UTC sums, so no window is cut at a chunk boundary."""
     from .forecast import basin_mean, daily_12utc
+
     code = MODELS[model]
     _, weights = upstream.forecast_grid(step=STEP)
     hourly = {}  # (point, lead) -> list of Series
@@ -88,7 +104,8 @@ def forecast_frames(model):
             t = pd.to_datetime(body['hourly']['time'], utc=True)
             for lead in LEADS:
                 hourly.setdefault((point, lead), []).append(
-                    pd.Series(body['hourly'][f'precipitation_previous_day{lead}'], index=t, dtype=float))
+                    pd.Series(body['hourly'][f'precipitation_previous_day{lead}'], index=t, dtype=float)
+                )
     frames = {}
     for lead in LEADS:
         cols = {}
@@ -107,14 +124,20 @@ def issuance_levels(model, observed, rule, fc=None):
     import numpy as np
 
     from . import indices, rules, study
+
     fc = forecast_frames(model) if fc is None else fc
     cols = observed.columns
     out = []
     for x in pd.date_range(START, END - pd.Timedelta(days=len(LEADS) - 1)):
         days = [x + pd.Timedelta(days=lead - 1) for lead in LEADS]
-        f = pd.DataFrame([fc[lead].reindex(columns=cols).loc[d] if d in fc[lead].index else pd.Series(np.nan, index=cols)
-                          for lead, d in zip(LEADS, days)], index=pd.DatetimeIndex(days))
-        series = pd.concat([observed.loc[:x - pd.Timedelta(days=1)], f])
+        f = pd.DataFrame(
+            [
+                fc[lead].reindex(columns=cols).loc[d] if d in fc[lead].index else pd.Series(np.nan, index=cols)
+                for lead, d in zip(LEADS, days)
+            ],
+            index=pd.DatetimeIndex(days),
+        )
+        series = pd.concat([observed.loc[: x - pd.Timedelta(days=1)], f])
         start_api = pd.Timestamp(series.index.max().year - 1, 1, 1)
         pe, edi, api = {}, {}, {}
         for code in cols:
@@ -143,6 +166,7 @@ def evaluate():
     from . import rules, study, validation_2025 as V
     from .paths import STUDY
     from .stats import BlockBootstrap, ci, score
+
     rain, _ = V.rain_through_2025()
     observed = rain.copy()
     table = V.predictor_table(rain)
@@ -158,8 +182,13 @@ def evaluate():
     events = study.chain_events(records)
     table['codarea'] = table.codarea.astype(str)
     sample = study.samples(table, events, records, START, END)
-    out = {'period': [str(START.date()), str(END.date())], 'grid_deg': STEP, 'events': int(sample.label.sum()),
-           'episodes': int(sample.loc[sample.label == 1, 'block'].nunique()), 'models': {}}
+    out = {
+        'period': [str(START.date()), str(END.date())],
+        'grid_deg': STEP,
+        'events': int(sample.label.sum()),
+        'episodes': int(sample.loc[sample.label == 1, 'block'].nunique()),
+        'models': {},
+    }
     for model in MODELS:
         lv = issuance_levels(model, observed, rule)
         lv['codarea'] = lv.codarea.astype(str)
@@ -170,7 +199,8 @@ def evaluate():
             wide = s[['date', 'codarea', 'label', 'block', 'year', 'month', 'obs_EDI', 'obs_API']]
             for lead in LEADS:
                 part = lv[lv.lead == lead][['date', 'codarea', 'level_EDI', 'level_API']].rename(
-                    columns={'level_EDI': f'fc{lead}_EDI', 'level_API': f'fc{lead}_API'})
+                    columns={'level_EDI': f'fc{lead}_EDI', 'level_API': f'fc{lead}_API'}
+                )
                 wide = wide.merge(part, on=['date', 'codarea'], how='left')
             res[period] = {}
             for ix in ('EDI', 'API'):
@@ -193,12 +223,28 @@ def evaluate():
                 loss_reps = []
                 for b in range(boot.n):
                     wb = boot[b]
-                    loss_reps.append(np.mean([score(p, y, wb)['TSS'] for p in fc_preds]) - score(obs_pred, y, wb)['TSS'])
+                    loss_reps.append(
+                        np.mean([score(p, y, wb)['TSS'] for p in fc_preds]) - score(obs_pred, y, wb)['TSS']
+                    )
                 r['primary_TSS_leads_1_3'] = point_fc
-                r['skill_loss_vs_observed'] = {'diff': point_fc - float(score(obs_pred, y)['TSS']), 'CI95': ci(loss_reps)}
+                r['skill_loss_vs_observed'] = {
+                    'diff': point_fc - float(score(obs_pred, y)['TSS']),
+                    'CI95': ci(loss_reps),
+                }
                 res[period][ix] = r
-                print(model, period, ix, 'obs TSS', round(r['observed']['TSS'], 3), 'fc TSS L1-3', round(point_fc, 3),
-                      'loss', round(r['skill_loss_vs_observed']['diff'], 3), r['skill_loss_vs_observed']['CI95'], flush=True)
+                print(
+                    model,
+                    period,
+                    ix,
+                    'obs TSS',
+                    round(r['observed']['TSS'], 3),
+                    'fc TSS L1-3',
+                    round(point_fc, 3),
+                    'loss',
+                    round(r['skill_loss_vs_observed']['diff'], 3),
+                    r['skill_loss_vs_observed']['CI95'],
+                    flush=True,
+                )
         out['models'][model] = res
     (STUDY / 'hindcast.json').write_text(json.dumps(out, indent=1, default=float), encoding='utf-8')
     return out
@@ -213,6 +259,7 @@ def quantile_map(fc, obs):
     """Empirical quantile mapping (99 percentiles, all basins pooled, linear interpolation, constant correction beyond
     the fitted range): returns f(x) mapping forecast to observed quantiles."""
     import numpy as np
+
     q = np.linspace(0.01, 0.99, 99)
     f = np.asarray(fc, float)
     o = np.asarray(obs, float)
@@ -228,6 +275,7 @@ def quantile_map(fc, obs):
         y = np.where(x < fq[0], x + lo_shift, y)
         y = np.where(x > fq[-1], x + hi_shift, y)
         return np.clip(y, 0, None)
+
     return apply
 
 
@@ -236,7 +284,7 @@ def corrected_frames(model, observed):
     raw = forecast_frames(model)
     corr = {}
     for lead, f in raw.items():
-        fit = f.loc[FIT[0]:FIT[1]]
+        fit = f.loc[FIT[0] : FIT[1]]
         o = observed.reindex(index=fit.index, columns=fit.columns)
         qm = quantile_map(fit.to_numpy().ravel(), o.to_numpy().ravel())
         corr[lead] = pd.DataFrame(qm(f.to_numpy()), index=f.index, columns=f.columns).where(f.notna())
@@ -251,6 +299,7 @@ def evaluate_bias_correction():
     from . import rules, validation_2025 as V
     from .paths import STUDY
     from .stats import BlockBootstrap, ci, score
+
     rain, _ = V.rain_through_2025()
     rule = rules.load_rules()
     table = V.predictor_table(rain)
@@ -271,7 +320,9 @@ def evaluate_bias_correction():
             for name, l in lv.items():
                 l = l.assign(codarea=l.codarea.astype(str))
                 for lead in (1, 2, 3):
-                    part = l[l.lead == lead][['date', 'codarea', f'level_{ix}']].rename(columns={f'level_{ix}': f'{name}{lead}'})
+                    part = l[l.lead == lead][['date', 'codarea', f'level_{ix}']].rename(
+                        columns={f'level_{ix}': f'{name}{lead}'}
+                    )
                     wide = wide.merge(part, on=['date', 'codarea'], how='left')
             cols = [f'{n}{lead}' for n in lv for lead in (1, 2, 3)]
             w = wide[(wide[cols] >= 0).all(axis=1)].reset_index(drop=True)
@@ -281,8 +332,15 @@ def evaluate_bias_correction():
             tss = lambda n, wb=None: float(np.mean([score(p, y, wb)['TSS'] for p in preds[n]]))
             reps = [tss('corrected', boot[b]) - tss('raw', boot[b]) for b in range(boot.n)]
             c = ci(reps)
-            res[ix] = {'rows': int(len(w)), 'events': int(y.sum()), 'TSS_raw': tss('raw'), 'TSS_corrected': tss('corrected'),
-                       'diff': tss('corrected') - tss('raw'), 'CI95': c, 'adopt': bool(c[0] is not None and c[0] > 0)}
+            res[ix] = {
+                'rows': int(len(w)),
+                'events': int(y.sum()),
+                'TSS_raw': tss('raw'),
+                'TSS_corrected': tss('corrected'),
+                'diff': tss('corrected') - tss('raw'),
+                'CI95': c,
+                'adopt': bool(c[0] is not None and c[0] > 0),
+            }
             print(model, ix, res[ix], flush=True)
         out['models'][model] = res
     (STUDY / 'bias_correction.json').write_text(json.dumps(out, indent=1, default=float), encoding='utf-8')

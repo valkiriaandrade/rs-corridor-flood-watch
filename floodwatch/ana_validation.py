@@ -8,6 +8,7 @@ The study itself uses upstream-basin rainfall (§3); here the municipal-only ver
     python -m floodwatch.ana_validation rivers     -> data/processed/study/river_validation.json
     python -m floodwatch.ana_validation river-predictor -> data/processed/study/river_predictor.json
 """
+
 import argparse
 import json
 
@@ -73,15 +74,28 @@ def evaluate_upstream():
     y = df.label.to_numpy()
     W = Boot(df)
     pos = W.pos
-    res = {'n': {'rows': int(len(df)), 'rows_dropped_missing_upstream': int(before - len(df)),
-                 'positives': int(pos.sum()), 'episodes': int(df.block[pos].nunique())},
-           'auc': {}, 'out_of_sample': {}, 'paired': {}, 'final_thresholds_all_years': {}}
+    res = {
+        'n': {
+            'rows': int(len(df)),
+            'rows_dropped_missing_upstream': int(before - len(df)),
+            'positives': int(pos.sum()),
+            'episodes': int(df.block[pos].nunique()),
+        },
+        'auc': {},
+        'out_of_sample': {},
+        'paired': {},
+        'final_thresholds_all_years': {},
+    }
     for c in cols:
         p_, n_ = df.loc[pos, c].to_numpy(), df.loc[~pos, c].to_numpy()
-        res['auc'][c] = {'AUC': float(study.auc(p_, n_)),
-                         'CI95': ci([study.auc(p_, n_, W[b][pos], W[b][~pos]) for b in range(W.n)])}
-    designs = {'LOYO': [(str(yr), (df.year == yr).to_numpy()) for yr in sorted(df.year.unique())],
-               'holdout_2013-2020_vs_2021-2024': [('2021-2024', (df.year >= 2021).to_numpy())]}
+        res['auc'][c] = {
+            'AUC': float(study.auc(p_, n_)),
+            'CI95': ci([study.auc(p_, n_, W[b][pos], W[b][~pos]) for b in range(W.n)]),
+        }
+    designs = {
+        'LOYO': [(str(yr), (df.year == yr).to_numpy()) for yr in sorted(df.year.unique())],
+        'holdout_2013-2020_vs_2021-2024': [('2021-2024', (df.year >= 2021).to_numpy())],
+    }
     preds = {}
     for dn, folds in designs.items():
         res['out_of_sample'][dn] = {}
@@ -93,8 +107,10 @@ def evaluate_upstream():
             pa, thr_a = study.oos_alert(df, c, folds)
             preds[(dn, c)], preds[(dn, c + '_alert')] = p, pa
             for name, pp, th in ((c, p, thr), (c + '_alert', pa, thr_a)):
-                res['out_of_sample'][dn][name] = {**scores(pp[m], y[m], W.subset(m)),
-                                                  'fold_thresholds': [min(th.values()), max(th.values())]}
+                res['out_of_sample'][dn][name] = {
+                    **scores(pp[m], y[m], W.subset(m)),
+                    'fold_thresholds': [min(th.values()), max(th.values())],
+                }
     for a, b in [('EDI_bacia', 'EDI'), ('API_bacia', 'API'), ('API', 'EDI'), ('API_bacia', 'EDI')]:
         res['paired'][f'{a}-{b}'] = paired(preds[('LOYO', a)], preds[('LOYO', b)], y, W)
     for c in cols:
@@ -106,9 +122,14 @@ def evaluate_upstream():
             pd_, pf_ = study.contingency(p_, n_, grid, W[b][pos], W[b][~pos])
             bs_thr.append(grid[int(np.argmax(pd_ - pf_))])
         alert = study.alert_threshold(n_, grid)
-        res['final_thresholds_all_years'][c] = {'attention': float(thr), 'attention_CI95': ci(bs_thr), 'POD': float(pod),
-                                                'POFD': float(pofd), 'alert_pofd2pct': float(alert),
-                                                'alert_POD': float((p_ >= alert).mean())}
+        res['final_thresholds_all_years'][c] = {
+            'attention': float(thr),
+            'attention_CI95': ci(bs_thr),
+            'POD': float(pod),
+            'POFD': float(pofd),
+            'alert_pofd2pct': float(alert),
+            'alert_POD': float((p_ >= alert).mean()),
+        }
     try:
         res['test_2025'] = test_2025_upstream(res['final_thresholds_all_years'])
     except Exception as e:  # keep 2013-2024 results if 2025 rainfall is incomplete
@@ -122,9 +143,10 @@ def evaluate_upstream():
 def test_2025_upstream(final):
     from . import validation_2025 as V
     from .merge_cube import area_series, municipal_weights
+
     recent, _ = area_series(municipal_weights(), str(V.START.date()), str(V.END.date()))
-    rain, _ = V.rain_through_2025(municipal_rain_frame('2024-12-31'), recent)   # municipal-only rainfall
-    up, _ = V.rain_through_2025()                                                # upstream-basin rainfall
+    rain, _ = V.rain_through_2025(municipal_rain_frame('2024-12-31'), recent)  # municipal-only rainfall
+    up, _ = V.rain_through_2025()  # upstream-basin rainfall
     edi, api = index_frames(rain, V.END + pd.Timedelta(days=1))
     eb, ab = index_frames(up, V.END + pd.Timedelta(days=1))
     sample, _, _ = V.sample_2025(windowed_long({'EDI': edi, 'API': api, 'EDI_bacia': eb, 'API_bacia': ab}))
@@ -138,12 +160,19 @@ def test_2025_upstream(final):
         preds[c + '_alert'] = (sample[c] >= final[c]['alert_pofd2pct']).to_numpy(float)
     for c, p in preds.items():
         out[c] = scores(p, y, W)
-    out['paired'] = {f'{a}-{b}': paired(preds[a], preds[b], y, W)
-                     for a, b in [('EDI_bacia', 'EDI'), ('API_bacia', 'API'), ('API', 'EDI')]}
+    out['paired'] = {
+        f'{a}-{b}': paired(preds[a], preds[b], y, W)
+        for a, b in [('EDI_bacia', 'EDI'), ('API_bacia', 'API'), ('API', 'EDI')]
+    }
     pos = sample[W.pos]
-    out['by_episode'] = {str(k): {'events': int(len(g)), **{f'{c}_at_watch': float((g[c] >= final[c]['attention']).mean())
-                                                            for c in ['EDI', 'API'] + UP}}
-                         for k, g in pos.groupby('block') if len(g) >= 5}
+    out['by_episode'] = {
+        str(k): {
+            'events': int(len(g)),
+            **{f'{c}_at_watch': float((g[c] >= final[c]['attention']).mean()) for c in ['EDI', 'API'] + UP},
+        }
+        for k, g in pos.groupby('block')
+        if len(g) >= 5
+    }
     return out
 
 
@@ -152,7 +181,7 @@ def river_events():
     """Station flood days (level >= median of annual maxima) -> municipality events and the days with a valid level."""
     levels = pd.read_csv(STUDY / 'ana_levels.csv.gz', index_col=0, parse_dates=True)
     st = pd.read_csv(STUDY / 'ana_stations.csv', dtype={'Codigo': str, 'codarea': str})
-    levels = levels.loc[study.START:study.END]
+    levels = levels.loc[study.START : study.END]
     rows, valid, used = [], [], []
     for s in st.itertuples():
         if s.Codigo not in levels:
@@ -162,16 +191,30 @@ def river_events():
         good_years = per_year[per_year >= MIN_DAYS_YEAR].index
         share = v.notna().mean()
         if share < MIN_VALID_SHARE or len(good_years) < MIN_YEARS:
-            used.append({'station': s.Codigo, 'used': False, 'valid_share': float(share), 'years_ok': int(len(good_years))})
+            used.append(
+                {'station': s.Codigo, 'used': False, 'valid_share': float(share), 'years_ok': int(len(good_years))}
+            )
             continue
         annual_max = v[v.index.year.isin(good_years)].groupby(v.index.year[v.index.year.isin(good_years)]).max()
         thr = float(annual_max.median())
         over = v[v >= thr].index
         rows += [{'codarea': s.codarea, 'date': d, 'station': s.Codigo} for d in over]
         valid.append(pd.DataFrame({'codarea': s.codarea, 'date': v.dropna().index}))
-        used.append({'station': s.Codigo, 'name': s.Nome, 'river': s.RioNome, 'codarea': s.codarea, 'municipio': s.nome,
-                     'drainage_km2': float(s.AreaDrenagem), 'used': True, 'valid_share': float(share),
-                     'years_ok': int(len(good_years)), 'threshold_cm': thr, 'days_over': int(len(over))})
+        used.append(
+            {
+                'station': s.Codigo,
+                'name': s.Nome,
+                'river': s.RioNome,
+                'codarea': s.codarea,
+                'municipio': s.nome,
+                'drainage_km2': float(s.AreaDrenagem),
+                'used': True,
+                'valid_share': float(share),
+                'years_ok': int(len(good_years)),
+                'threshold_cm': thr,
+                'days_over': int(len(over)),
+            }
+        )
     over = pd.DataFrame(rows).drop_duplicates(['codarea', 'date'])
     valid = pd.concat(valid).drop_duplicates()
     events = study.chain_events(over[['codarea', 'date']].copy())
@@ -197,15 +240,26 @@ def evaluate_rivers():
     res_main = json.loads((STUDY / 'results.json').read_text(encoding='utf-8'))['final_thresholds_all_years']
     res_up = json.loads((STUDY / 'upstream_results.json').read_text(encoding='utf-8'))['final_thresholds_all_years']
     frozen = {c: (res_main if c == 'P30' else res_up)[c] for c in cols}  # P30: basin rainfall (study)
-    out = {'stations': stations.to_dict('records'), 'municipalities': len(codes),
-           'events': int(W.pos.sum()), 'episodes': int(sample.block[W.pos].nunique()), 'negatives': int((~W.pos).sum()),
-           'frozen_thresholds': {c: {'attention': frozen[c]['attention'], 'alert': frozen[c]['alert_pofd2pct']} for c in cols},
-           'auc': {}, 'scores': {}, 'paired': {}}
+    out = {
+        'stations': stations.to_dict('records'),
+        'municipalities': len(codes),
+        'events': int(W.pos.sum()),
+        'episodes': int(sample.block[W.pos].nunique()),
+        'negatives': int((~W.pos).sum()),
+        'frozen_thresholds': {
+            c: {'attention': frozen[c]['attention'], 'alert': frozen[c]['alert_pofd2pct']} for c in cols
+        },
+        'auc': {},
+        'scores': {},
+        'paired': {},
+    }
     preds = {}
     for c in cols:
         p_, n_ = sample.loc[W.pos, c].to_numpy(), sample.loc[~W.pos, c].to_numpy()
-        out['auc'][c] = {'AUC': float(study.auc(p_, n_)),
-                         'CI95': ci([study.auc(p_, n_, W[b][W.pos], W[b][~W.pos]) for b in range(W.n)])}
+        out['auc'][c] = {
+            'AUC': float(study.auc(p_, n_)),
+            'CI95': ci([study.auc(p_, n_, W[b][W.pos], W[b][~W.pos]) for b in range(W.n)]),
+        }
         preds[c] = (sample[c] >= frozen[c]['attention']).to_numpy(float)
         if c != 'P30':
             preds[c + '_alert'] = (sample[c] >= frozen[c]['alert_pofd2pct']).to_numpy(float)
@@ -216,7 +270,9 @@ def evaluate_rivers():
         out['dashboard_rule'] = {}
         for ix in ('EDI', 'API'):
             f = final[ix]
-            preds[ix + '_bacia_rule'] = ((sample[ix + '_bacia'] >= f['index_attention']) | (sample.P3 >= f['P3_mm'])).to_numpy(float)
+            preds[ix + '_bacia_rule'] = (
+                (sample[ix + '_bacia'] >= f['index_attention']) | (sample.P3 >= f['P3_mm'])
+            ).to_numpy(float)
             out['dashboard_rule'][ix] = {'index_attention': f['index_attention'], 'P3_mm': f['P3_mm']}
     for c, p in preds.items():
         out['scores'][c] = scores(p, y, W)
@@ -224,7 +280,11 @@ def evaluate_rivers():
         out['paired'][f'{a}-{b}'] = paired(preds[a], preds[b], y, W)
     out['events_by_year'] = sample[W.pos].groupby('year').size().to_dict()
     (STUDY / 'river_validation.json').write_text(json.dumps(out, indent=1, default=float), encoding='utf-8')
-    print(json.dumps({k: out[k] for k in ('municipalities', 'events', 'episodes', 'auc', 'paired')}, indent=1, default=float))
+    print(
+        json.dumps(
+            {k: out[k] for k in ('municipalities', 'events', 'episodes', 'auc', 'paired')}, indent=1, default=float
+        )
+    )
     print(json.dumps({c: (round(v['TSS'], 3), v['TSS_CI95']) for c, v in out['scores'].items()}, default=float))
     return out
 
@@ -248,8 +308,14 @@ def evaluate_river_predictor():
     fin = json.loads((STUDY / 'results.json').read_text(encoding='utf-8'))['final_thresholds_all_years']
     y = df.label.to_numpy()
     W = Boot(df)
-    out = {'municipalities': len(codes), 'events': int(W.pos.sum()), 'episodes': int(df.block[W.pos].nunique()),
-           'negatives': int((~W.pos).sum()), 'rules': {}, 'paired': {}}
+    out = {
+        'municipalities': len(codes),
+        'events': int(W.pos.sum()),
+        'episodes': int(df.block[W.pos].nunique()),
+        'negatives': int((~W.pos).sum()),
+        'rules': {},
+        'paired': {},
+    }
     river = df.river_d1.to_numpy()
     out['rules']['river_d1'] = scores(river, y, W)
     for ix in ('EDI', 'API'):

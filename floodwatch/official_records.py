@@ -19,6 +19,7 @@ S2iD blocks IP addresses outside Brazil, so the GitHub runner sets FLOODWATCH_S2
 project PC (in Brazil) pushes to the branch `s2id` whenever it is switched on, about once a week
 (scripts/s2id_export.ps1, scheduled by scripts/install_s2id_task.ps1).
 """
+
 import json
 import os
 import re
@@ -57,9 +58,12 @@ def coverage_end():
 def latest_release():
     """(file name, release date, last covered year) of the newest consolidated CSV listed on the download page."""
     import requests
+
     html = requests.get(DOWNLOADS, headers=UA, timeout=30).text
-    found = [(m.group(0), m.group(1), pd.Timestamp(f'{m.group(4)}-{m.group(5)}-{m.group(6)}'), int(m.group(3)))
-             for m in RELEASE.finditer(html)]
+    found = [
+        (m.group(0), m.group(1), pd.Timestamp(f'{m.group(4)}-{m.group(5)}-{m.group(6)}'), int(m.group(3)))
+        for m in RELEASE.finditer(html)
+    ]
     if not found:
         return None
     return max(found, key=lambda x: (x[2], x[3]))
@@ -69,6 +73,7 @@ def update(force=False):
     """Weekly check for a new official release; loads it when found. Never raises on network errors."""
     from .fetch import download
     from .forecast_db import load_events
+
     st = state()
     now = datetime.now(UTC)
     last = pd.Timestamp(st['checked_utc']) if st.get('checked_utc') else None
@@ -85,11 +90,16 @@ def update(force=False):
         local = ATLAS / name
         for audit in ATLAS.glob('*.http.json'):  # the same release may already be on disk under another name
             if json.loads(audit.read_text(encoding='utf-8')).get('url', '').endswith(name):
-                local = audit.with_name(audit.name[:-len('.http.json')])
+                local = audit.with_name(audit.name[: -len('.http.json')])
         download(BASE + path, local)
         n = load_events(local)
-        st.update(file=name, released=str(released.date()), coverage_end=f'{last_year}-12-31', records_loaded=n,
-                  loaded_utc=now.isoformat())
+        st.update(
+            file=name,
+            released=str(released.date()),
+            coverage_end=f'{last_year}-12-31',
+            records_loaded=n,
+            loaded_utc=now.isoformat(),
+        )
         print(f'official release {name}: {n} corridor flood records loaded')
     STATE.parent.mkdir(parents=True, exist_ok=True)
     STATE.write_text(json.dumps(st, indent=1), encoding='utf-8')
@@ -98,10 +108,10 @@ def update(force=False):
 
 S2ID_REPORTS = 'https://s2id.mi.gov.br/paginas/relatorios/'
 S2ID_DIR = RAW / 's2id'
-S2ID_LABELS = ('12100', '12200', '12300', '13214')   # same flood types as the study (COBRADE label prefixes)
-S2ID_DAYS = 60                                       # registration window re-read every day (the report allows 365)
-S2ID_STALE_DAYS = 10                                 # FLOODWATCH_S2ID=file: older exports are loaded with a warning
-PROTOCOL = re.compile(r'^[A-Z]{2}-[A-Z]-(\d{7})-(\d{5})-(\d{8})$')   # UF-F-<IBGE>-<COBRADE>-<event date>
+S2ID_LABELS = ('12100', '12200', '12300', '13214')  # same flood types as the study (COBRADE label prefixes)
+S2ID_DAYS = 60  # registration window re-read every day (the report allows 365)
+S2ID_STALE_DAYS = 10  # FLOODWATCH_S2ID=file: older exports are loaded with a warning
+PROTOCOL = re.compile(r'^[A-Z]{2}-[A-Z]-(\d{7})-(\d{5})-(\d{8})$')  # UF-F-<IBGE>-<COBRADE>-<event date>
 
 
 def fetch_s2id(days=S2ID_DAYS):
@@ -110,6 +120,7 @@ def fetch_s2id(days=S2ID_DAYS):
     import hashlib
 
     from playwright.sync_api import sync_playwright
+
     end = pd.Timestamp.now(tz='America/Sao_Paulo').tz_localize(None).normalize()
     start = end - pd.Timedelta(days=days)
     s, e = start.strftime('%d/%m/%Y'), end.strftime('%d/%m/%Y')
@@ -128,9 +139,16 @@ def fetch_s2id(days=S2ID_DAYS):
         finally:
             browser.close()
     raw = path.read_bytes()
-    meta = {'url': S2ID_REPORTS, 'report': 'Relatório Gerencial - Danos informados', 'uf': 'RS', 'cobrade': list(S2ID_LABELS),
-            'registration_period': [str(start.date()), str(end.date())], 'downloaded_at_utc': datetime.now(UTC).isoformat(),
-            'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest()}
+    meta = {
+        'url': S2ID_REPORTS,
+        'report': 'Relatório Gerencial - Danos informados',
+        'uf': 'RS',
+        'cobrade': list(S2ID_LABELS),
+        'registration_period': [str(start.date()), str(end.date())],
+        'downloaded_at_utc': datetime.now(UTC).isoformat(),
+        'bytes': len(raw),
+        'sha256': hashlib.sha256(raw).hexdigest(),
+    }
     path.with_name(path.name + '.http.json').write_text(json.dumps(meta, indent=1), encoding='utf-8')
     return path
 
@@ -162,8 +180,10 @@ def _export_s2id(pg, path, s, e):
     uf = pg.locator("input[name='abas:sanfonas:estadosDanosInformados'][value='RS']")
     uf.check(force=True)
     pg.wait_for_timeout(500)
-    for widget, field, value in (('widget_abas_sanfonas_j_idt74', 'abas:sanfonas:j_idt74_input', s),
-                                 ('widget_abas_sanfonas_dt_final_danos', 'abas:sanfonas:dt_final_danos_input', e)):
+    for widget, field, value in (
+        ('widget_abas_sanfonas_j_idt74', 'abas:sanfonas:j_idt74_input', s),
+        ('widget_abas_sanfonas_dt_final_danos', 'abas:sanfonas:dt_final_danos_input', e),
+    ):
         pg.evaluate(f"() => PF('{widget}').setDate($.datepicker.parseDate('dd/mm/yy', '{value}'))")
         pg.locator(f"[id='{field}']").evaluate(f"(el) => {{ el.value = '{value}'; }}")
     pg.wait_for_timeout(800)
@@ -175,6 +195,7 @@ def _export_s2id(pg, path, s, e):
 def read_s2id(path):
     """Records of the exported report: protocol, codarea, event date (from the protocol), cobrade, status, registration."""
     import io
+
     raw = path.read_bytes()
     text = next(raw.decode(enc) for enc in ('utf-8', 'cp1252', 'latin1') if _decodes(raw, enc))
     lines = text.splitlines()
@@ -183,8 +204,16 @@ def read_s2id(path):
     parts = d.Protocolo.str.strip().str.extract(PROTOCOL)
     d = d.assign(codarea=parts[0], cobrade=parts[1], date=pd.to_datetime(parts[2], format='%Y%m%d', errors='coerce'))
     d = d.dropna(subset=['date'])
-    return pd.DataFrame({'protocol': d.Protocolo.str.strip(), 'codarea': d.codarea, 'date': d.date.dt.strftime('%Y-%m-%d'),
-                         'cobrade': d.cobrade, 'status': d.Status, 'registered': d.Registro})
+    return pd.DataFrame(
+        {
+            'protocol': d.Protocolo.str.strip(),
+            'codarea': d.codarea,
+            'date': d.date.dt.strftime('%Y-%m-%d'),
+            'cobrade': d.cobrade,
+            'status': d.Status,
+            'registered': d.Registro,
+        }
+    )
 
 
 def _decodes(raw, enc):
@@ -199,6 +228,7 @@ def update_s2id(force=False):
     """Daily: export the recent S2iD records and load the corridor ones into the archive (protocol is the key)."""
     from .forecast_db import connect
     from .study import CODES
+
     st = state()
     last = pd.Timestamp(st['s2id_checked_utc']) if st.get('s2id_checked_utc') else None
     if not force and last is not None and (pd.Timestamp(datetime.now(UTC)) - last).total_seconds() < 20 * 3600:
@@ -212,8 +242,10 @@ def update_s2id(force=False):
         if not (path.exists() and audit.exists()):
             print('S2iD export missing: no file on branch s2id (run scripts/s2id_export.ps1 on the PC)')
             return st
-        age_h = (pd.Timestamp(datetime.now(UTC))
-                 - pd.Timestamp(json.loads(audit.read_text(encoding='utf-8'))['downloaded_at_utc'])).total_seconds() / 3600
+        age_h = (
+            pd.Timestamp(datetime.now(UTC))
+            - pd.Timestamp(json.loads(audit.read_text(encoding='utf-8'))['downloaded_at_utc'])
+        ).total_seconds() / 3600
         print(f'S2iD export from the PC: {age_h / 24:.1f} days old')
         if age_h > S2ID_STALE_DAYS * 24:
             print(f'S2iD export stale (> {S2ID_STALE_DAYS} days): switch the PC on to refresh it')
@@ -228,8 +260,10 @@ def update_s2id(force=False):
     con = connect()
     units = {r[0] for r in con.execute('SELECT DISTINCT codarea FROM municipal')}
     rec = rec[rec.codarea.isin(units)]
-    con.executemany('INSERT OR REPLACE INTO events (protocol, codarea, date, cobrade) VALUES (?,?,?,?)',
-                    rec[['protocol', 'codarea', 'date', 'cobrade']].itertuples(index=False, name=None))
+    con.executemany(
+        'INSERT OR REPLACE INTO events (protocol, codarea, date, cobrade) VALUES (?,?,?,?)',
+        rec[['protocol', 'codarea', 'date', 'cobrade']].itertuples(index=False, name=None),
+    )
     con.commit()
     con.close()
     st.update(s2id_checked_utc=datetime.now(UTC).isoformat(), s2id_corridor_records=int(len(rec)))
@@ -267,6 +301,7 @@ def export_s2id():
 
 if __name__ == '__main__':
     import sys
+
     if sys.argv[1:] == ['export-s2id']:
         export_s2id()
         sys.exit(0)

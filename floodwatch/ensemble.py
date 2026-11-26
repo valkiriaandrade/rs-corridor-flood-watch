@@ -8,6 +8,7 @@ Warning is stored per municipality and day (table `ensemble`). Verification (Bri
 a full year of archive.
     python -m floodwatch.ensemble        # archive for the latest deterministic run (data/processed/forecast/latest.json)
 """
+
 import json
 import time
 from urllib.parse import urlencode
@@ -23,12 +24,27 @@ ENSEMBLES = {'ECMWF ENS': ('ecmwf_ifs025', 'ecmwf_ifs025_ensemble'), 'GEFS': ('g
 URL = 'https://ensemble-api.open-meteo.com/v1/ensemble?'
 FORECAST_DAYS = 7
 STEP = 0.5
-COLS = ['run_id', 'model', 'init_utc', 'members', 'date', 'codarea', 'lead_days', 'rain_mean', 'rain_p90',
-        'p_watch', 'p_warning', 'p_watch_api', 'p_warning_api']
+COLS = [
+    'run_id',
+    'model',
+    'init_utc',
+    'members',
+    'date',
+    'codarea',
+    'lead_days',
+    'rain_mean',
+    'rain_p90',
+    'p_watch',
+    'p_warning',
+    'p_watch_api',
+    'p_warning_api',
+]
 
 
 def init_time(meta_id):
-    meta = _get(f'https://ensemble-api.open-meteo.com/data/{meta_id}/static/meta.json', timeout=20, retry_on=(404,)).json()
+    meta = _get(
+        f'https://ensemble-api.open-meteo.com/data/{meta_id}/static/meta.json', timeout=20, retry_on=(404,)
+    ).json()
     return pd.Timestamp(meta['last_run_initialisation_time'], unit='s', tz='UTC')
 
 
@@ -41,10 +57,16 @@ def member_rain(points, model, stamp, batch_size=40, pause=6.0):
     for off in range(0, len(pts), batch_size):
         if off:
             time.sleep(pause)  # members weigh as variables: keep well under the per-minute quota
-        batch = pts[off:off + batch_size]
-        params = {'latitude': ','.join(f'{p[1]:.4f}' for p in batch), 'longitude': ','.join(f'{p[2]:.4f}' for p in batch),
-                  'hourly': 'precipitation', 'models': identifier, 'forecast_days': FORECAST_DAYS, 'past_days': 1,
-                  'timezone': 'UTC'}
+        batch = pts[off : off + batch_size]
+        params = {
+            'latitude': ','.join(f'{p[1]:.4f}' for p in batch),
+            'longitude': ','.join(f'{p[2]:.4f}' for p in batch),
+            'hourly': 'precipitation',
+            'models': identifier,
+            'forecast_days': FORECAST_DAYS,
+            'past_days': 1,
+            'timezone': 'UTC',
+        }
         r = _get(URL + urlencode(params))
         path = RAWF / stamp / f'ens_{identifier}_{off}.json'
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -84,6 +106,7 @@ def member_index_table(series):
     library's API takes ~0.7 s per basin on the full 1998- series, ~1 min per member. EDI and windows exactly as
     index_table; equality on the recent days is checked by tests/test_ensemble.py."""
     from . import indices, study
+
     start = pd.Timestamp(series.index.max().year - 1, 1, 1)
     tail = series.index >= start
     pe, edi, api = {}, {}, {}
@@ -110,20 +133,37 @@ def probabilities(observed, member_fc, weights, rule):
         series = pd.concat([observed, pd.DataFrame(np.nan, index=gap, columns=observed.columns), fc])
         t = member_index_table(series)
         t = t[t.date > cutoff]
-        levels.append(pd.DataFrame({'date': t.date.to_numpy(), 'codarea': t.codarea.to_numpy(), 'member': member,
-                                    'edi': np.asarray(rules.classify(t.EDI, t.P3, rule['EDI'])),
-                                    'api': np.asarray(rules.classify(t.API, t.P3, rule['API']))}))
+        levels.append(
+            pd.DataFrame(
+                {
+                    'date': t.date.to_numpy(),
+                    'codarea': t.codarea.to_numpy(),
+                    'member': member,
+                    'edi': np.asarray(rules.classify(t.EDI, t.P3, rule['EDI'])),
+                    'api': np.asarray(rules.classify(t.API, t.P3, rule['API'])),
+                }
+            )
+        )
         r = fc.stack().rename('rain').reset_index()
         r.columns = ['date', 'codarea', 'rain']
         rain.append(r)
     lv, rn = pd.concat(levels), pd.concat(rain)
     g = lv.groupby(['date', 'codarea'])
-    out = pd.DataFrame({'members': g.member.nunique(),
-                        'p_watch': g.edi.apply(_share, at=1), 'p_warning': g.edi.apply(_share, at=2),
-                        'p_watch_api': g.api.apply(_share, at=1), 'p_warning_api': g.api.apply(_share, at=2)}).reset_index()
+    out = pd.DataFrame(
+        {
+            'members': g.member.nunique(),
+            'p_watch': g.edi.apply(_share, at=1),
+            'p_warning': g.edi.apply(_share, at=2),
+            'p_watch_api': g.api.apply(_share, at=1),
+            'p_warning_api': g.api.apply(_share, at=2),
+        }
+    ).reset_index()
     rg = rn.groupby(['date', 'codarea']).rain
-    out = out.merge(pd.DataFrame({'rain_mean': rg.mean(), 'rain_p90': rg.quantile(0.9)}).reset_index(),
-                    on=['date', 'codarea'], how='left')
+    out = out.merge(
+        pd.DataFrame({'rain_mean': rg.mean(), 'rain_p90': rg.quantile(0.9)}).reset_index(),
+        on=['date', 'codarea'],
+        how='left',
+    )
     out['lead_days'] = (pd.to_datetime(out.date) - cutoff).dt.days
     return out
 
@@ -131,12 +171,13 @@ def probabilities(observed, member_fc, weights, rule):
 def archive(run_dir=None, observed=None):
     """Ensemble probabilities for the deterministic run in run_dir (default: latest.json), stored in `ensemble`."""
     from .forecast_db import connect
+
     if run_dir is None:
         run_dir = ROOT / json.loads((OUT / 'latest.json').read_text(encoding='utf-8'))['run']
     meta = json.loads((run_dir / 'metadata.json').read_text(encoding='utf-8'))
     if observed is None:
         observed, _ = observed_rain()
-    observed = observed.loc[:meta['observed_cutoff']]
+    observed = observed.loc[: meta['observed_cutoff']]
     points, weights = upstream.forecast_grid(step=STEP)
     rule = rules.load_rules()
     con = connect()
@@ -147,10 +188,17 @@ def archive(run_dir=None, observed=None):
         except Exception as error:  # one ensemble failing never blocks the other or the forecast
             print(f'ensemble {model} failed:', type(error).__name__, str(error)[:200])
             continue
-        p = p.assign(run_id=run_dir.name, model=model, init_utc=init.isoformat(),
-                     date=pd.to_datetime(p.date).dt.strftime('%Y-%m-%d'), codarea=p.codarea.astype(str))
+        p = p.assign(
+            run_id=run_dir.name,
+            model=model,
+            init_utc=init.isoformat(),
+            date=pd.to_datetime(p.date).dt.strftime('%Y-%m-%d'),
+            codarea=p.codarea.astype(str),
+        )
         rows = p[COLS].astype(object).where(p[COLS].notna(), None).itertuples(index=False, name=None)
-        con.executemany(f'INSERT OR REPLACE INTO ensemble ({",".join(COLS)}) VALUES ({",".join("?" * len(COLS))})', rows)
+        con.executemany(
+            f'INSERT OR REPLACE INTO ensemble ({",".join(COLS)}) VALUES ({",".join("?" * len(COLS))})', rows
+        )
         con.commit()
         print(f'ensemble {model} (init {init:%Y-%m-%dT%HZ}, {int(p.members.max())} members): {len(p)} rows')
     con.close()

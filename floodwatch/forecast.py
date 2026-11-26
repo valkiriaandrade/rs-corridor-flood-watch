@@ -13,6 +13,7 @@ says `backfill: true`; the observed rainfall used is the version available when 
     python -m floodwatch.forecast                 # catch up missing days (up to 14), then today's run
     python -m floodwatch.forecast --no-catchup    # today's run only
 """
+
 import json
 import time
 from datetime import UTC, datetime
@@ -99,9 +100,15 @@ def forecast_daily(points, model, stamp, run=None, batch_size=50, pause=1.0):
     for off in range(0, len(pts), batch_size):
         if off:
             time.sleep(pause)
-        batch = pts[off:off + batch_size]
-        params = {'latitude': ','.join(f'{p[1]:.4f}' for p in batch), 'longitude': ','.join(f'{p[2]:.4f}' for p in batch),
-                  'hourly': 'precipitation', 'models': identifier, 'forecast_days': FORECAST_DAYS, 'timezone': 'UTC'}
+        batch = pts[off : off + batch_size]
+        params = {
+            'latitude': ','.join(f'{p[1]:.4f}' for p in batch),
+            'longitude': ','.join(f'{p[2]:.4f}' for p in batch),
+            'hourly': 'precipitation',
+            'models': identifier,
+            'forecast_days': FORECAST_DAYS,
+            'timezone': 'UTC',
+        }
         url = 'https://single-runs-api.open-meteo.com/v1/forecast?'
         for cand in candidates if run is None else [run]:  # first batch picks the run; the others reuse it
             try:
@@ -155,6 +162,7 @@ def refresh_merge(days):
     """Refresh recent MERGE files (missing days, 'early' -> newer versions); offline keeps the local files."""
     try:
         from .fetch import merge as fetch_merge
+
         today = pd.Timestamp.now(tz='UTC').tz_localize(None).normalize()
         fetch_merge(today - pd.Timedelta(days=days), today)
     except Exception as error:
@@ -199,7 +207,9 @@ def run(issue=None, observed=None, states=None):
         series = pd.concat([observed, pd.DataFrame(np.nan, index=gap, columns=observed.columns), fc])
         table = index_table(series)
         # daily basin rainfall of the day itself (the predictors take the max over d-1 and d)
-        table['rain_mm'] = series.stack(future_stack=True).reindex(pd.MultiIndex.from_frame(table[['date', 'codarea']])).to_numpy()
+        table['rain_mm'] = (
+            series.stack(future_stack=True).reindex(pd.MultiIndex.from_frame(table[['date', 'codarea']])).to_numpy()
+        )
         table = table[table.date > cutoff - pd.Timedelta(days=OBSERVED_DAYS_KEPT)].copy()
         table['model'] = model
         table['source'] = np.where(table.date > cutoff, 'previsão', 'observado')
@@ -211,18 +221,27 @@ def run(issue=None, observed=None, states=None):
     run_dir.mkdir(parents=True)
     result.to_csv(run_dir / 'municipal_levels.csv', index=False)
     last30 = pd.Series(states)
-    last30 = last30[(last30.index >= str((cutoff - pd.Timedelta(days=29)).date())) & (last30.index <= str(cutoff.date()))]
-    meta = {'created_utc': stamp, 'runs': runs, 'observed_cutoff': str(cutoff.date()),
-            'rainfall': f'upstream-basin mean (ANA ottobacias); forecast on a 0.25-degree grid of {len(points)} points',
-            'antecedent_product_last_30d': last30.value_counts().to_dict(),
-            'rules': {ix: r.as_dict() for ix, r in rule.items()}, 'api_k': indices.API_K, 'units': len(units),
-            'backfill': issue is not None,
-            'note': 'Regras validadas com chuva observada (MERGE V07B final, 2013-2024); na previsão herdam o erro do modelo.'}
+    last30 = last30[
+        (last30.index >= str((cutoff - pd.Timedelta(days=29)).date())) & (last30.index <= str(cutoff.date()))
+    ]
+    meta = {
+        'created_utc': stamp,
+        'runs': runs,
+        'observed_cutoff': str(cutoff.date()),
+        'rainfall': f'upstream-basin mean (ANA ottobacias); forecast on a 0.25-degree grid of {len(points)} points',
+        'antecedent_product_last_30d': last30.value_counts().to_dict(),
+        'rules': {ix: r.as_dict() for ix, r in rule.items()},
+        'api_k': indices.API_K,
+        'units': len(units),
+        'backfill': issue is not None,
+        'note': 'Regras validadas com chuva observada (MERGE V07B final, 2013-2024); na previsão herdam o erro do modelo.',
+    }
     (run_dir / 'metadata.json').write_text(json.dumps(meta, indent=1, default=str), encoding='utf-8')
     if issue is None:
         (OUT / 'latest.json').write_text(json.dumps({'run': run_dir.relative_to(ROOT).as_posix()}), encoding='utf-8')
     try:  # archive for later verification (sql/validation.sql); never blocks the forecast itself
         from .forecast_db import ingest
+
         ingest(run_dir)
     except Exception as error:
         print('forecast_db ingest failed:', error)
@@ -233,9 +252,12 @@ def run(issue=None, observed=None, states=None):
 def missing_issues(today_run):
     """Issuance dates (12 UTC runs) without an archived run, from BACKFILL_DAYS ago up to the day before today_run."""
     from .forecast_db import connect
+
     con = connect()
-    have = {pd.Timestamp(r[0]).tz_convert(None).normalize() if pd.Timestamp(r[0]).tzinfo else pd.Timestamp(r[0]).normalize()
-            for r in con.execute('SELECT ecmwf_run FROM runs WHERE ecmwf_run IS NOT NULL')}
+    have = {
+        pd.Timestamp(r[0]).tz_convert(None).normalize() if pd.Timestamp(r[0]).tzinfo else pd.Timestamp(r[0]).normalize()
+        for r in con.execute('SELECT ecmwf_run FROM runs WHERE ecmwf_run IS NOT NULL')
+    }
     con.close()
     if not have:
         return []  # a fresh archive starts today; nothing to reconstruct
@@ -260,17 +282,20 @@ def daily(catchup=True):
     run_dir = run(observed=observed, states=states)
     try:  # ensemble probabilities (protocol §9.7): archived only, verified after a year; never blocks the forecast
         from . import ensemble
+
         ensemble.archive(run_dir=run_dir, observed=observed)
     except Exception as error:
         print('ensemble archive failed:', type(error).__name__, error)
     try:
         from . import official_records
-        official_records.update()       # weekly: new Atlas Digital release
+
+        official_records.update()  # weekly: new Atlas Digital release
         official_records.update_s2id()  # daily: recent S2iD records (headless export of the public report)
     except Exception as error:
         print('official records not updated:', type(error).__name__, error)
     try:
         from .forecast_db import write_summary
+
         write_summary()  # forecast vs observed (and reported floods) -> verification.json, published with the run
     except Exception as error:
         print('verification summary failed:', type(error).__name__, error)
@@ -278,4 +303,5 @@ def daily(catchup=True):
 
 if __name__ == '__main__':
     import sys
+
     daily(catchup='--no-catchup' not in sys.argv)

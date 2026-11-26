@@ -9,6 +9,7 @@ Water on the road also follows ordinary heavy rain: this measures road impact, n
     python -m floodwatch.ground_truth            -> data/processed/study/ground_truth.json
     python -m floodwatch.ground_truth download   # PRF files from provenance.json (sha256 checked)
 """
+
 import io
 import json
 import zipfile
@@ -23,8 +24,10 @@ from .paths import RAW, STUDY
 
 PRF = RAW / 'prf'
 YEARS = range(2021, 2026)
-CAUSES = {'primary': ['Acumulo de água sobre o pavimento'],
-          'sensitivity': ['Acumulo de água sobre o pavimento', 'Chuva']}
+CAUSES = {
+    'primary': ['Acumulo de água sobre o pavimento'],
+    'sensitivity': ['Acumulo de água sobre o pavimento', 'Chuva'],
+}
 BRS = (116, 386, 290)
 N_BOOT, SEED = 2000, 20261124
 
@@ -35,12 +38,16 @@ def download():
     import hashlib
 
     import requests
+
     prov = json.loads((PRF / 'provenance.json').read_text(encoding='utf-8'))
     for year, p in prov.items():
         path = PRF / f'datatran{year}.zip'
         if not path.exists():
-            r = requests.get('https://drive.usercontent.google.com/download',
-                             params={'id': p['drive_id'], 'export': 'download', 'confirm': 't'}, timeout=600)
+            r = requests.get(
+                'https://drive.usercontent.google.com/download',
+                params={'id': p['drive_id'], 'export': 'download', 'confirm': 't'},
+                timeout=600,
+            )
             r.raise_for_status()
             path.write_bytes(r.content)
         if hashlib.sha256(path.read_bytes()).hexdigest() != p['sha256']:
@@ -67,6 +74,7 @@ def prf_records():
 def level_table():
     """Frozen-rule levels on observed basin rainfall for every corridor municipality-day 2021-2025."""
     from . import validation_2025 as V
+
     rain, _ = V.rain_through_2025()
     t = V.predictor_table(rain)
     t = t[(t.date >= '2021-01-01') & (t.date <= '2025-12-31')].copy()
@@ -85,7 +93,7 @@ def _boot_share(hit, groups, rng):
     for _ in range(N_BOOT):
         i = rng.integers(0, len(s), len(s))
         reps.append(s[i].sum() / n[i].sum())
-    return [float(np.quantile(reps, .025)), float(np.quantile(reps, .975))]
+    return [float(np.quantile(reps, 0.025)), float(np.quantile(reps, 0.975))]
 
 
 def municipal_scores(levels, days, rng):
@@ -96,13 +104,15 @@ def municipal_scores(levels, days, rng):
         ok = lv >= 0
         acc, watch, warn = m.acc[ok] == 1, lv[ok] >= 1, lv[ok] == 2
         base = acc.mean()
-        out[ix] = {'n_with_level': int(acc.sum()),
-                   'share_at_watch_or_above': float(watch[acc].mean()),
-                   'share_at_watch_CI95': _boot_share(watch[acc].to_numpy(), m.date[ok][acc].to_numpy(), rng),
-                   'share_at_warning': float(warn[acc].mean()),
-                   'share_of_all_days_at_watch_or_above': float(watch.mean()),
-                   'rate_ratio_watch': float(acc[watch].mean() / base) if watch.any() else None,
-                   'rate_ratio_warning': float(acc[warn].mean() / base) if warn.any() else None}
+        out[ix] = {
+            'n_with_level': int(acc.sum()),
+            'share_at_watch_or_above': float(watch[acc].mean()),
+            'share_at_watch_CI95': _boot_share(watch[acc].to_numpy(), m.date[ok][acc].to_numpy(), rng),
+            'share_at_warning': float(warn[acc].mean()),
+            'share_of_all_days_at_watch_or_above': float(watch.mean()),
+            'rate_ratio_watch': float(acc[watch].mean() / base) if watch.any() else None,
+            'rate_ratio_warning': float(acc[warn].mean() / base) if warn.any() else None,
+        }
     return out
 
 
@@ -122,9 +132,15 @@ def corridor_scores(levels, rec):
         c = pd.concat(rows)
         c = c[c.level >= 0]
         pod, pofd = float((c.level[c.acc] >= 1).mean()), float((c.level[~c.acc] >= 1).mean())
-        out[ix] = {'corridor_days': int(len(c)), 'accident_corridor_days': int(c.acc.sum()), 'POD_watch': pod,
-                   'POFD_watch': pofd, 'TSS_watch': pod - pofd,
-                   'POD_warning': float((c.level[c.acc] == 2).mean()), 'POFD_warning': float((c.level[~c.acc] == 2).mean())}
+        out[ix] = {
+            'corridor_days': int(len(c)),
+            'accident_corridor_days': int(c.acc.sum()),
+            'POD_watch': pod,
+            'POFD_watch': pofd,
+            'TSS_watch': pod - pofd,
+            'POD_warning': float((c.level[c.acc] == 2).mean()),
+            'POFD_warning': float((c.level[~c.acc] == 2).mean()),
+        }
     return out
 
 
@@ -142,13 +158,17 @@ def ems_overlap():
     from shapely import wkt
 
     from . import study
+
     act = json.loads((RAW / 'copernicus_ems' / 'EMSR720_activation.json').read_text(encoding='utf-8'))['results'][0]
     aoi = gpd.GeoDataFrame([{'aoi': a['name'], 'geometry': wkt.loads(a['extent'])} for a in act['aois']], crs=4326)
     units = gpd.read_file(study.OUT / 'units.geojson')
     hit = gpd.sjoin(units[['codarea', 'nome', 'geometry']], aoi, predicate='intersects')
-    return {'activation': act['code'], 'aois': aoi.aoi.tolist(),
-            'corridor_municipalities_intersecting': hit[['codarea', 'nome', 'aoi']].astype(str).to_dict('records'),
-            'note': 'No AOI intersects a corridor municipality: the test is not informative.' if hit.empty else ''}
+    return {
+        'activation': act['code'],
+        'aois': aoi.aoi.tolist(),
+        'corridor_municipalities_intersecting': hit[['codarea', 'nome', 'aoi']].astype(str).to_dict('records'),
+        'note': 'No AOI intersects a corridor municipality: the test is not informative.' if hit.empty else '',
+    }
 
 
 def run():
@@ -160,15 +180,30 @@ def run():
         inside = rec[rec.codarea.notna()]
         days = inside[['date', 'codarea']].drop_duplicates()
         rng = np.random.default_rng(SEED)
-        res = {'causes': causes, 'records': int(len(rec)), 'records_in_corridor_municipalities': int(len(inside)),
-               'records_by_year': {str(k): int(v) for k, v in rec.date.dt.year.value_counts().sort_index().items()},
-               'municipal': municipal_scores(levels, days, rng), 'corridor_rule': corridor_scores(levels, rec)}
+        res = {
+            'causes': causes,
+            'records': int(len(rec)),
+            'records_in_corridor_municipalities': int(len(inside)),
+            'records_by_year': {str(k): int(v) for k, v in rec.date.dt.year.value_counts().sort_index().items()},
+            'municipal': municipal_scores(levels, days, rng),
+            'corridor_rule': corridor_scores(levels, rec),
+        }
         out['sets'][name] = res
         for ix in ('EDI', 'API'):
             m = res['municipal'][ix]
-            print(name, ix, 'accident days at Watch+', round(m['share_at_watch_or_above'], 3), m['share_at_watch_CI95'],
-                  'all days at Watch+', round(m['share_of_all_days_at_watch_or_above'], 3), 'rate ratio', m['rate_ratio_watch'],
-                  '| corridor TSS', round(res['corridor_rule'][ix]['TSS_watch'], 3))
+            print(
+                name,
+                ix,
+                'accident days at Watch+',
+                round(m['share_at_watch_or_above'], 3),
+                m['share_at_watch_CI95'],
+                'all days at Watch+',
+                round(m['share_of_all_days_at_watch_or_above'], 3),
+                'rate ratio',
+                m['rate_ratio_watch'],
+                '| corridor TSS',
+                round(res['corridor_rule'][ix]['TSS_watch'], 3),
+            )
     out['copernicus_ems'] = ems_overlap()
     out['cemaden'] = 'no open occurrence data found; to be requested through the access-to-information law'
     (STUDY / 'ground_truth.json').write_text(json.dumps(out, indent=1, default=float), encoding='utf-8')
@@ -177,4 +212,5 @@ def run():
 
 if __name__ == '__main__':
     import sys
+
     download() if sys.argv[1:] == ['download'] else run()

@@ -6,6 +6,7 @@ Rule for each index (EDI, API), all values frozen from the 2013-2024 study (docs
     Normal   otherwise; 'no data' (-1) when the index is missing (never shown as Normal)
 Sources: results.json (thresholds) and second_trigger.json (P3 trigger, refit on 2013-2024 and frozen).
 """
+
 import json
 from dataclasses import asdict, dataclass
 
@@ -34,9 +35,16 @@ def load_rules(study_dir=STUDY):
     final = json.loads((study_dir / 'results.json').read_text(encoding='utf-8'))['final_thresholds_all_years']
     trig_path = study_dir / 'second_trigger.json'
     trig = json.loads(trig_path.read_text(encoding='utf-8'))['final_frozen'] if trig_path.exists() else {}
-    return {ix: Rule(ix, float(final[ix]['attention']), float(final[ix]['alert_pofd2pct']),
-                     float(trig[ix]['P3_mm']) if ix in trig else None)
-            for ix in INDICES if ix in final}
+    return {
+        ix: Rule(
+            ix,
+            float(final[ix]['attention']),
+            float(final[ix]['alert_pofd2pct']),
+            float(trig[ix]['P3_mm']) if ix in trig else None,
+        )
+        for ix in INDICES
+        if ix in final
+    }
 
 
 def classify(index_values, p3, rule, use_trigger=True):

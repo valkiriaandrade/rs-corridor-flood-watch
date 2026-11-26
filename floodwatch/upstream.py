@@ -7,6 +7,7 @@ covered by valid cells), 1998 onward, from the archived GRIB2 files (full MERGE 
     python -m floodwatch.upstream rain        # daily upstream rainfall -> data/processed/study/upstream_rain.csv.gz
 Archive of 1998-2024 GRIB2 files: env FLOODWATCH_MERGE_ARCHIVE (default data/raw/merge), see floodwatch.merge_cube.
 """
+
 import argparse
 import json
 
@@ -53,12 +54,16 @@ def basins():
     width = max(len(c) for c in codes)
     digits = np.full((len(codes), width), -1, dtype=np.int8)
     for i, c in enumerate(codes):
-        digits[i, :len(c)] = [int(ch) for ch in c]
+        digits[i, : len(c)] = [int(ch) for ch in c]
     x0, y0, x1, y1 = units.to_crs('EPSG:4674').total_bounds
-    local = pyogrio.read_dataframe(BHO, columns=[CODE], bbox=(x0 - .1, y0 - .1, x1 + .1, y1 + .1))
+    local = pyogrio.read_dataframe(BHO, columns=[CODE], bbox=(x0 - 0.1, y0 - 0.1, x1 + 0.1, y1 + 0.1))
     local[CODE] = local[CODE].astype(str)
-    inter = gpd.overlay(local.to_crs('EPSG:5880'), units[['codarea', 'geometry']].to_crs('EPSG:5880'),
-                        how='intersection', keep_geom_type=True)
+    inter = gpd.overlay(
+        local.to_crs('EPSG:5880'),
+        units[['codarea', 'geometry']].to_crs('EPSG:5880'),
+        how='intersection',
+        keep_geom_type=True,
+    )
     inter['km2'] = inter.area / 1e6
     seeds = inter[inter.km2 >= MIN_SEED_KM2].groupby('codarea')[CODE].apply(lambda s: sorted(set(s)))
     index = {c: i for i, c in enumerate(codes)}
@@ -71,17 +76,23 @@ def basins():
     needed = sorted(set().union(*sets.values()))
     geo = []
     for i in range(0, len(needed), 900):  # read only the needed basins
-        chunk = ','.join(f"'{c}'" for c in needed[i:i + 900])
+        chunk = ','.join(f"'{c}'" for c in needed[i : i + 900])
         geo.append(pyogrio.read_dataframe(BHO, columns=[CODE], where=f'{CODE} IN ({chunk})'))
     geo = pd.concat(geo, ignore_index=True)
     geo[CODE] = geo[CODE].astype(str)
     geo = gpd.GeoDataFrame(geo, geometry='geometry', crs='EPSG:4674').to_crs('EPSG:4326')
     # Basin x MERGE cell overlap (equal-area), full-grid indices.
     bx0, by0, bx1, by1 = geo.total_bounds
-    iy = np.where((LAT >= by0 - .1) & (LAT <= by1 + .1))[0]
-    ix = np.where((LON >= bx0 - .1) & (LON <= bx1 + .1))[0]
-    cells = gpd.GeoDataFrame([{'iy': i, 'ix': j, 'geometry': box(LON[j] - .05, LAT[i] - .05, LON[j] + .05, LAT[i] + .05)}
-                              for i in iy for j in ix], crs='EPSG:4326')
+    iy = np.where((LAT >= by0 - 0.1) & (LAT <= by1 + 0.1))[0]
+    ix = np.where((LON >= bx0 - 0.1) & (LON <= bx1 + 0.1))[0]
+    cells = gpd.GeoDataFrame(
+        [
+            {'iy': i, 'ix': j, 'geometry': box(LON[j] - 0.05, LAT[i] - 0.05, LON[j] + 0.05, LAT[i] + 0.05)}
+            for i in iy
+            for j in ix
+        ],
+        crs='EPSG:4326',
+    )
     pieces = gpd.overlay(geo, cells, how='intersection', keep_geom_type=True)
     pieces['area'] = pieces.to_crs('EPSG:5880').area
     pieces = pieces[[CODE, 'iy', 'ix', 'area']]
@@ -92,9 +103,17 @@ def basins():
         w['codarea'] = codarea
         rows.append(w)
         u = units.loc[units.codarea == codarea].iloc[0]
-        summary.append({'codarea': codarea, 'nome': u.nome, 'corridors': u.corridors, 'seed_basins': len(seeds[codarea]),
-                        'upstream_basins': len(s), 'upstream_km2': float(area_by_code[list(s)].sum()),
-                        'municipality_km2': float(units.loc[units.codarea == codarea].to_crs('EPSG:5880').area.iloc[0] / 1e6)})
+        summary.append(
+            {
+                'codarea': codarea,
+                'nome': u.nome,
+                'corridors': u.corridors,
+                'seed_basins': len(seeds[codarea]),
+                'upstream_basins': len(s),
+                'upstream_km2': float(area_by_code[list(s)].sum()),
+                'municipality_km2': float(units.loc[units.codarea == codarea].to_crs('EPSG:5880').area.iloc[0] / 1e6),
+            }
+        )
         shapes.append({'codarea': codarea, 'geometry': geo[geo[CODE].isin(s)].union_all().simplify(0.01)})
     weights = pd.concat(rows, ignore_index=True)[['codarea', 'iy', 'ix', 'area']]
     weights.to_csv(STUDY / 'upstream_weights.csv', index=False)
@@ -102,9 +121,15 @@ def basins():
     summary['ratio'] = summary.upstream_km2 / summary.municipality_km2
     summary.to_csv(STUDY / 'upstream_units.csv', index=False)
     gpd.GeoDataFrame(shapes, crs='EPSG:4326').to_file(STUDY / 'upstream_basins.geojson', driver='GeoJSON')
-    meta = {'source': 'ANA BHO 2017 5k, Ottobacias nível 6 (geoft_bho_ach_otto_nivel_06.gpkg)', 'units': len(sets),
-            'min_seed_km2': MIN_SEED_KM2, 'basins_used': len(needed), 'bounds': [float(v) for v in geo.total_bounds],
-            'grid_rows': [int(iy.min()), int(iy.max())], 'grid_cols': [int(ix.min()), int(ix.max())]}
+    meta = {
+        'source': 'ANA BHO 2017 5k, Ottobacias nível 6 (geoft_bho_ach_otto_nivel_06.gpkg)',
+        'units': len(sets),
+        'min_seed_km2': MIN_SEED_KM2,
+        'basins_used': len(needed),
+        'bounds': [float(v) for v in geo.total_bounds],
+        'grid_rows': [int(iy.min()), int(iy.max())],
+        'grid_cols': [int(ix.min()), int(ix.max())],
+    }
     (STUDY / 'upstream.metadata.json').write_text(json.dumps(meta, indent=1), encoding='utf-8')
     print(json.dumps(meta, indent=1))
     print(summary.sort_values('upstream_km2').to_string())
@@ -138,11 +163,15 @@ def rain(start='1998-01-01', end=None, workers=6):
     frame, states = compute_rain(start, end, workers, verbose=True)
     last_ok = frame.index.max()
     frame.to_csv(STUDY / 'upstream_rain.csv.gz')
-    counts = pd.Series(states).loc[:str(last_ok.date())].value_counts().to_dict()
+    counts = pd.Series(states).loc[: str(last_ok.date())].value_counts().to_dict()
     meta = json.loads((STUDY / 'upstream.metadata.json').read_text(encoding='utf-8'))
-    meta['rain'] = {'first_day': str(frame.index.min().date()), 'last_day': str(last_ok.date()), 'status_counts': counts,
-                    'not_final_days_to_2024': [d for d, s in states.items() if s != 'final' and d <= '2024-12-31'],
-                    'rule': 'area-weighted mean; day valid only with >= 99% of the upstream area in valid cells'}
+    meta['rain'] = {
+        'first_day': str(frame.index.min().date()),
+        'last_day': str(last_ok.date()),
+        'status_counts': counts,
+        'not_final_days_to_2024': [d for d, s in states.items() if s != 'final' and d <= '2024-12-31'],
+        'rule': 'area-weighted mean; day valid only with >= 99% of the upstream area in valid cells',
+    }
     (STUDY / 'upstream.metadata.json').write_text(json.dumps(meta, indent=1), encoding='utf-8')
     print(json.dumps(meta['rain'], indent=1)[:2000])
 

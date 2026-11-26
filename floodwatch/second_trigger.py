@@ -6,6 +6,7 @@ training years) and b maximises the TSS of the OR rule on the same training year
 came from the 2025 test); confirmation is prospective (records from 2026 onwards, forecast archive).
     python -m floodwatch.second_trigger   -> data/processed/study/second_trigger.json
 """
+
 import json
 
 import numpy as np
@@ -68,9 +69,12 @@ def run():
         out['designs'][dn] = {}
         for ix in INDICES:
             alone, both, params = oos(df, ix, folds)
-            res = {'alone': scores(alone[m], y[m], sub), 'with_P3': scores(both[m], y[m], sub),
-                   'paired_with_minus_alone': paired(both[m], alone[m], y[m], sub),
-                   'P3_fold_range': [min(p['P3'] for p in params.values()), max(p['P3'] for p in params.values())]}
+            res = {
+                'alone': scores(alone[m], y[m], sub),
+                'with_P3': scores(both[m], y[m], sub),
+                'paired_with_minus_alone': paired(both[m], alone[m], y[m], sub),
+                'P3_fold_range': [min(p['P3'] for p in params.values()), max(p['P3'] for p in params.values())],
+            }
             res['alone']['TSS_without_AprMay2024'] = float(score(alone[no24], y[no24])['TSS'])
             res['with_P3']['TSS_without_AprMay2024'] = float(score(both[no24], y[no24])['TSS'])
             out['designs'][dn][ix] = res
@@ -83,14 +87,24 @@ def run():
     (STUDY / 'second_trigger.json').write_text(json.dumps(out, indent=1, default=float), encoding='utf-8')
     for dn, d in out['designs'].items():
         for ix, r in d.items():
-            print(dn, ix, 'alone', round(r['alone']['TSS'], 3), 'with P3', round(r['with_P3']['TSS'], 3),
-                  'diff', round(r['paired_with_minus_alone']['diff'], 3), r['paired_with_minus_alone']['CI95'])
+            print(
+                dn,
+                ix,
+                'alone',
+                round(r['alone']['TSS'], 3),
+                'with P3',
+                round(r['with_P3']['TSS'], 3),
+                'diff',
+                round(r['paired_with_minus_alone']['diff'], 3),
+                r['paired_with_minus_alone']['CI95'],
+            )
     print(json.dumps(out['final_frozen'], indent=1))
     return out
 
 
 def test_2025(final):
     from . import validation_2025 as V
+
     rain, _ = V.rain_through_2025()
     sample, _, _ = V.sample_2025(V.predictor_table(rain))
     sample = sample.dropna(subset=['EDI', 'API', 'P3']).reset_index(drop=True)
@@ -101,9 +115,13 @@ def test_2025(final):
     for ix, f in final.items():
         alone = (sample[ix] >= f['index_attention']).to_numpy(float)
         both = ((sample[ix] >= f['index_attention']) | (sample.P3 >= f['P3_mm'])).to_numpy(float)
-        res[ix] = {'alone': scores(alone, y, W), 'with_P3': scores(both, y, W), 'paired': paired(both, alone, y, W),
-                   'june_share_alone': float(alone[june].mean()) if june.any() else None,
-                   'june_share_with_P3': float(both[june].mean()) if june.any() else None}
+        res[ix] = {
+            'alone': scores(alone, y, W),
+            'with_P3': scores(both, y, W),
+            'paired': paired(both, alone, y, W),
+            'june_share_alone': float(alone[june].mean()) if june.any() else None,
+            'june_share_with_P3': float(both[june].mean()) if june.any() else None,
+        }
     return res
 
 

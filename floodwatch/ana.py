@@ -4,6 +4,7 @@ Selection, daily value and flood rule follow docs/protocol.md §8.2.
     python -m floodwatch.ana download     # inventory + HidroSerieHistorica (cota) per station, polite and sequential
     python -m floodwatch.ana series       # daily level per station -> data/processed/study/ana_levels.csv.gz
 """
+
 import argparse
 import json
 import time
@@ -19,8 +20,10 @@ from .paths import RAW, STUDY
 DIR = RAW / 'ana' / 'hidroweb'
 WS = 'http://telemetriaws1.ana.gov.br/ServiceANA.asmx/'
 INVENTORY = DIR / 'inventario_fluviometricas_RS.xml'
-INVENTORY_URL = (WS + 'HidroInventario?codEstDE=&codEstATE=&tpEst=1&nmEst=&nmRio=&codSubBacia=&codBacia=&nmMunicipio='
-                 '&nmEstado=RIO%20GRANDE%20DO%20SUL&sgResp=&sgOper=&telemetrica=')
+INVENTORY_URL = (
+    WS + 'HidroInventario?codEstDE=&codEstATE=&tpEst=1&nmEst=&nmRio=&codSubBacia=&codBacia=&nmMunicipio='
+    '&nmEstado=RIO%20GRANDE%20DO%20SUL&sgResp=&sgOper=&telemetrica='
+)
 START, END = '01/01/2012', '31/12/2025'
 REGULATED = 'UHE|PCH|CGH|BARRAG|RESERVAT|USINA|REPRESA'
 MIN_AREA_KM2 = 100
@@ -44,7 +47,9 @@ def stations():
     st = st[~regulated & (st.AreaDrenagem >= MIN_AREA_KM2)]
     # A station that started after 2016 cannot reach 8 years in 2013-2024: not downloaded.
     st = st[pd.to_datetime(st.PeriodoEscalaInicio, errors='coerce') <= '2016-12-31']
-    return st[['Codigo', 'Nome', 'RioNome', 'codarea', 'nome', 'AreaDrenagem', 'Latitude', 'Longitude']].reset_index(drop=True)
+    return st[['Codigo', 'Nome', 'RioNome', 'codarea', 'nome', 'AreaDrenagem', 'Latitude', 'Longitude']].reset_index(
+        drop=True
+    )
 
 
 def fetch_all(pause=1.0):
@@ -53,8 +58,10 @@ def fetch_all(pause=1.0):
     st = stations()
     out = {}
     for code in st.Codigo:
-        url = (WS + f'HidroSerieHistorica?codEstacao={code}&dataInicio={START}&dataFim={END}'
-               '&tipoDados=1&nivelConsistencia=')
+        url = (
+            WS + f'HidroSerieHistorica?codEstacao={code}&dataInicio={START}&dataFim={END}'
+            '&tipoDados=1&nivelConsistencia='
+        )
         path = DIR / f'cota_{code}.xml'
         try:
             existed = path.exists()
