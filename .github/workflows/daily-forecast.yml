@@ -64,7 +64,7 @@ jobs:
           Copy-Item data/processed/forecast/forecasts.sqlite (Join-Path $env:RUNNER_TEMP 'forecasts-before.sqlite')
 
       - name: Keep the archive as it was before this run (30 days)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: forecast-archive-before-${{ github.run_id }}
           path: ${{ runner.temp }}/forecasts-before.sqlite
@@ -98,7 +98,7 @@ jobs:
 
       - name: Upload S2iD page (only when its export failed)
         if: always() && hashFiles('logs/s2id_failure/*') != ''
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: s2id-failure-${{ github.run_id }}
           path: logs/s2id_failure/
