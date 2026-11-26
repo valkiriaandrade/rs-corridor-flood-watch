@@ -50,7 +50,7 @@ def _warn_unverified():
     if not _warned:
         _warned.append(True)
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-        print('AVISO: certificado TLS do CPTEC inválido; MERGE baixado sem verificação (tls_verified: false)')
+        print('WARNING: invalid CPTEC TLS certificate; MERGE downloaded without verification (tls_verified: false)')
 
 
 def download(url, path, s=None, force=False, timeout=(15, 120)):

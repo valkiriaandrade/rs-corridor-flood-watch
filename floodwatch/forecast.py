@@ -120,7 +120,7 @@ def forecast_daily(points, model, stamp, run=None, batch_size=50, pause=1.0):
         bodies = r.json()
         bodies = bodies if isinstance(bodies, list) else [bodies]
         if len(bodies) != len(batch):
-            raise ValueError('Open-Meteo: resposta incompleta')
+            raise ValueError('Open-Meteo: incomplete response')
         for (point, _, _), body in zip(batch, bodies):
             t = pd.to_datetime(body['hourly']['time'], utc=True)
             for day, val in daily_12utc(pd.Series(body['hourly']['precipitation'], index=t, dtype=float)).items():
@@ -158,7 +158,7 @@ def refresh_merge(days):
         today = pd.Timestamp.now(tz='UTC').tz_localize(None).normalize()
         fetch_merge(today - pd.Timedelta(days=days), today)
     except Exception as error:
-        print('MERGE recente não atualizado:', type(error).__name__)
+        print('Recent MERGE not updated:', type(error).__name__)
 
 
 def observed_rain():

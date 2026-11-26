@@ -49,7 +49,7 @@ def basins():
     # Basins that are not subdivided down to level 6 keep shorter codes. Codes of one level never nest, so the first
     # differing digit always falls inside both codes; padding (-1) is never compared.
     if len(set(codes)) != len(codes):
-        raise ValueError('Código Pfafstetter repetido')
+        raise ValueError('Repeated Pfafstetter code')
     width = max(len(c) for c in codes)
     digits = np.full((len(codes), width), -1, dtype=np.int8)
     for i, c in enumerate(codes):

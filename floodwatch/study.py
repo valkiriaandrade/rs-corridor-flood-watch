@@ -84,7 +84,7 @@ def study_rain(end=END):
     """Daily rainfall used by the study and the forecast: mean over the upstream basin (floodwatch.upstream)."""
     path = OUT / 'upstream_rain.csv.gz'
     if not path.exists():
-        raise SystemExit('Falta upstream_rain.csv.gz: rode python -m floodwatch.upstream basins e rain')
+        raise SystemExit('upstream_rain.csv.gz is missing: run python -m floodwatch.upstream basins, then rain')
     rain = pd.read_csv(path, index_col=0, parse_dates=True)
     rain.columns = rain.columns.astype(str)
     return rain.loc[:end]

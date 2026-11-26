@@ -34,7 +34,7 @@ def rain_through_2025(hist=None, recent=None):
         recent, states = compute_rain(str(START.date()), str(END.date()))
     rain = pd.concat([hist, recent.loc[:END, hist.columns]])
     if rain.loc[START:END].isna().any().any():
-        raise ValueError('Chuva de 2025 incompleta: rode python -m floodwatch.fetch merge-recent')
+        raise ValueError('2025 rainfall is incomplete: run python -m floodwatch.fetch merge-recent')
     return rain, states
 
 
