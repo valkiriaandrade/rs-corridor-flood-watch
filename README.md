@@ -381,8 +381,8 @@ the levels computed from forecast rainfall are verified prospectively, from Nove
   operational paths of the daily job: Open-Meteo run selection and its 06/00 UTC fallback (fake responses), the
   catch-up dates, the SQLite archive writes, the verification pairing, the archive check, and both dashboard pages
   (Streamlit `AppTest`, Portuguese and English). Tests never use the network.
-- `pyflakes` clean (pinned in `requirements-dev.txt`). Both run on every push and pull request
-  (`.github/workflows/tests.yml`). External requests are paced, honour `Retry-After` and never retry aggressively.
+- `ruff` lint and format clean (settings in `ruff.toml`; version pinned in `requirements-dev.txt` and
+  `.pre-commit-config.yaml`). Tests and ruff run on every push and pull request (`.github/workflows/tests.yml`). External requests are paced, honour `Retry-After` and never retry aggressively.
 
 ---
 
@@ -415,7 +415,8 @@ streamlit run app.py                                # uses the bundled processed
   licences accepted): `python -m floodwatch.stats_extra`, `python -m floodwatch.ground_truth [download]`,
   `python -m floodwatch.hindcast download|evaluate|bias-correction`, `python -m floodwatch.glofas download|evaluate`,
   `python -m floodwatch.soil_moisture download|evaluate`. Downloads are resumable.
-- **Tests:** `pip install -r requirements-dev.txt && pytest -q`.
+- **Tests:** `pip install -r requirements-dev.txt && pytest -q`; `ruff check . && ruff format --check .` for
+  style (`pre-commit install` runs ruff on every commit).
 
 ---
 

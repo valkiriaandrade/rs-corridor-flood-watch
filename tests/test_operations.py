@@ -1,5 +1,6 @@
 """Tests for the operational paths of the daily job: Open-Meteo run selection, catch-up dates, the SQLite archive
 and the dashboard pages. Open-Meteo is replaced by recorded-style fake responses; nothing is downloaded."""
+
 import json
 import shutil
 import socket
@@ -91,7 +92,9 @@ def test_no_run_of_the_day_available_raises(monkeypatch, offline, points):
 
 
 def test_other_http_errors_are_not_treated_as_a_missing_run(monkeypatch, offline, points):
-    fake = _install(monkeypatch, FakeOpenMeteo(missing={'2026-11-20T12:00'}, body={'error': True, 'reason': 'Bad latitude'}))
+    fake = _install(
+        monkeypatch, FakeOpenMeteo(missing={'2026-11-20T12:00'}, body={'error': True, 'reason': 'Bad latitude'})
+    )
     with pytest.raises(requests.HTTPError):
         forecast.forecast_daily(points, 'GFS', 'stamp', run=RUN_12Z, pause=0)
     assert fake.runs == ['2026-11-20T12:00']
@@ -107,11 +110,16 @@ def test_run_missing_only_for_400_not_available():
 
 
 def test_latest_run_retries_a_transient_404_and_picks_the_last_12utc_run(monkeypatch, offline):
-    answers = [_response(404, {}), _response(200, {'last_run_initialisation_time': pd.Timestamp('2026-11-20T18:00Z').timestamp()})]
+    answers = [
+        _response(404, {}),
+        _response(200, {'last_run_initialisation_time': pd.Timestamp('2026-11-20T18:00Z').timestamp()}),
+    ]
     monkeypatch.setattr(forecast.requests, 'get', lambda url, timeout=None: answers.pop(0))
     assert forecast.latest_run('ncep_gfs013') == RUN_12Z and not answers
     early = pd.Timestamp('2026-11-20T06:00Z').timestamp()
-    monkeypatch.setattr(forecast.requests, 'get', lambda url, timeout=None: _response(200, {'last_run_initialisation_time': early}))
+    monkeypatch.setattr(
+        forecast.requests, 'get', lambda url, timeout=None: _response(200, {'last_run_initialisation_time': early})
+    )
     assert forecast.latest_run('ncep_gfs013') == RUN_12Z - pd.Timedelta(days=1)
 
 
@@ -135,7 +143,9 @@ def archive(monkeypatch, tmp_path):
 
 def _add_runs(path, ecmwf_runs):
     con = forecast_db.connect(path)
-    con.executemany('INSERT INTO runs (run_id, ecmwf_run) VALUES (?, ?)', [(f'r{i}', r) for i, r in enumerate(ecmwf_runs)])
+    con.executemany(
+        'INSERT INTO runs (run_id, ecmwf_run) VALUES (?, ?)', [(f'r{i}', r) for i, r in enumerate(ecmwf_runs)]
+    )
     con.commit()
     con.close()
 
@@ -154,29 +164,59 @@ def test_missing_issues_after_the_last_archived_run(archive):
 def test_missing_issues_never_goes_back_more_than_backfill_days(archive):
     _add_runs(archive, ['2026-10-01T12:00:00'])
     todo = forecast.missing_issues(pd.Timestamp('2026-11-23T12:00Z'))
-    assert len(todo) == forecast.BACKFILL_DAYS and todo[0] == pd.Timestamp('2026-11-09') and todo[-1] == pd.Timestamp('2026-11-22')
+    assert (
+        len(todo) == forecast.BACKFILL_DAYS
+        and todo[0] == pd.Timestamp('2026-11-09')
+        and todo[-1] == pd.Timestamp('2026-11-22')
+    )
 
 
 # ---------------------------------------------------------------- SQLite archive
-RULES = {'EDI': {'index': 'EDI', 'attention': 1.25, 'alert': 3.37, 'trigger_p3_mm': 60.0},
-         'API': {'index': 'API', 'attention': 72.0, 'alert': 128.0, 'trigger_p3_mm': 60.0}}
+RULES = {
+    'EDI': {'index': 'EDI', 'attention': 1.25, 'alert': 3.37, 'trigger_p3_mm': 60.0},
+    'API': {'index': 'API', 'attention': 72.0, 'alert': 128.0, 'trigger_p3_mm': 60.0},
+}
 
 
 def _run_folder(root, name, cutoff, fc_level=1, obs_level=0):
     """A run folder as forecast.run() writes it: two municipalities, both models, one observed and one forecast day."""
     run_dir = root / name
     run_dir.mkdir(parents=True)
-    meta = {'created_utc': name, 'runs': {'ECMWF': f'{cutoff}T12:00:00+00:00', 'GFS': f'{cutoff}T12:00:00+00:00'},
-            'observed_cutoff': cutoff, 'rules': RULES, 'antecedent_product_last_30d': {'early': 30}}
+    meta = {
+        'created_utc': name,
+        'runs': {'ECMWF': f'{cutoff}T12:00:00+00:00', 'GFS': f'{cutoff}T12:00:00+00:00'},
+        'observed_cutoff': cutoff,
+        'rules': RULES,
+        'antecedent_product_last_30d': {'early': 30},
+    }
     (run_dir / 'metadata.json').write_text(json.dumps(meta), encoding='utf-8')
     rows = []
-    for date, source, level in [(cutoff, 'observado', obs_level),
-                                (str((pd.Timestamp(cutoff) + pd.Timedelta(days=1)).date()), 'previsão', fc_level)]:
+    for date, source, level in [
+        (cutoff, 'observado', obs_level),
+        (str((pd.Timestamp(cutoff) + pd.Timedelta(days=1)).date()), 'previsão', fc_level),
+    ]:
         for model in ('ECMWF', 'GFS'):
             for code, nome, corridors in [('4300001', 'A', '116'), ('4300002', 'B', '116/386')]:
-                rows.append({'date': date, 'codarea': code, 'nome': nome, 'corridors': corridors, 'model': model,
-                             'source': source, 'P1': 5.0, 'P3': 20.0, 'P7': 30.0, 'P30': 90.0, 'PE': 40.0, 'EDI': 0.5,
-                             'level': level, 'API': 50.0, 'level_api': level, 'rain_mm': 5.0})
+                rows.append(
+                    {
+                        'date': date,
+                        'codarea': code,
+                        'nome': nome,
+                        'corridors': corridors,
+                        'model': model,
+                        'source': source,
+                        'P1': 5.0,
+                        'P3': 20.0,
+                        'P7': 30.0,
+                        'P30': 90.0,
+                        'PE': 40.0,
+                        'EDI': 0.5,
+                        'level': level,
+                        'API': 50.0,
+                        'level_api': level,
+                        'rain_mm': 5.0,
+                    }
+                )
     pd.DataFrame(rows).to_csv(run_dir / 'municipal_levels.csv', index=False)
     return run_dir
 
@@ -195,7 +235,9 @@ def test_ingest_writes_run_municipal_and_corridor_rows_and_is_idempotent(archive
     assert counts['runs'] == 1 and counts['municipal'] == 8 and counts['corridor'] == 2 * 2 * len(forecast_db.CORRIDORS)
     con = sqlite3.connect(archive)
     leads = dict(con.execute('SELECT source, MAX(lead_days) FROM municipal GROUP BY source').fetchall())
-    br386 = con.execute("SELECT n, level FROM corridor WHERE br = 'BR-386' AND source = 'previsão' AND model = 'ECMWF'").fetchone()
+    br386 = con.execute(
+        "SELECT n, level FROM corridor WHERE br = 'BR-386' AND source = 'previsão' AND model = 'ECMWF'"
+    ).fetchone()
     thr = con.execute('SELECT thr_attention, thr_api_alert, trigger_p3_edi FROM runs').fetchone()
     con.close()
     assert leads == {'observado': 0, 'previsão': 1}
@@ -209,8 +251,9 @@ def test_verification_pairs_a_forecast_with_the_later_observed_day(archive, tmp_
     forecast_db.ingest(_run_folder(tmp_path / 'runs', '20261120T200000Z', '2026-11-20', fc_level=1))
     forecast_db.ingest(_run_folder(tmp_path / 'runs', '20261121T200000Z', '2026-11-21', obs_level=2))
     con = sqlite3.connect(archive)
-    rows = con.execute("SELECT DISTINCT run_id, date, lead_days, fc_level, obs_level FROM verification "
-                       "WHERE date = '2026-11-21'").fetchall()
+    rows = con.execute(
+        "SELECT DISTINCT run_id, date, lead_days, fc_level, obs_level FROM verification WHERE date = '2026-11-21'"
+    ).fetchall()
     con.close()
     assert rows == [('20261120T200000Z', '2026-11-21', 1, 1, 2)]
 
@@ -246,6 +289,7 @@ def test_check_archive_accepts_growth_and_rejects_loss_or_damage(archive, tmp_pa
 @pytest.mark.parametrize('lang', ['pt', 'en'])
 def test_dashboard_page_renders_without_errors(page, lang):
     from streamlit.testing.v1 import AppTest
+
     at = AppTest.from_string(f'from floodwatch import {page}\n{page}.render()\n', default_timeout=120)
     at.session_state['lang'] = lang
     at.run()

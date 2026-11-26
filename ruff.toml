@@ -1,0 +1,28 @@
+# ruff: lint and format. The version is pinned in requirements-dev.txt and .pre-commit-config.yaml.
+line-length = 120
+target-version = "py311"
+extend-exclude = ["data", "experiments"]
+
+[lint]
+# pycodestyle errors, pyflakes, import order, bugbear, pyupgrade
+select = ["E4", "E7", "E9", "F", "W", "I", "B", "UP"]
+ignore = [
+    "E701", "E702",  # several statements on one line: `ruff format` splits them
+    "E731",  # lambdas assigned to names are part of the style of the analysis code
+    "E741",  # short names such as `l` in the analysis code
+    "B023",  # every closure flagged is called inside the same loop iteration (checked)
+    "B905",  # zip(strict=...) would change behaviour where lengths are allowed to differ
+]
+
+[lint.isort]
+combine-as-imports = true
+
+[lint.per-file-ignores]
+# deliberate: Streamlit page set-up before the pages are imported; Agg backend before pyplot
+"app.py" = ["E402"]
+"floodwatch/briefing.py" = ["E402"]
+# read-only default grid, never modified
+"floodwatch/soil_moisture.py" = ["B008"]
+
+[format]
+quote-style = "single"

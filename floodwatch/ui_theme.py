@@ -1,13 +1,26 @@
 """Visual system for the executive app: corporate light palette (navy, slate, muted status)."""
+
 import html
 
 import streamlit as st
 
 C = {
-    'bg': '#F4F6F9', 'panel': '#FFFFFF', 'panel2': '#EEF2F7', 'border': '#DCE3EB',
-    'text': '#0F1B2D', 'muted': '#5B6B7F', 'accent': '#1F3A5F', 'accent2': '#2E5E8C', 'header': '#0F1B2D',
-    'normal': '#3F8A6B', 'atencao': '#D3961E', 'alerta': '#B83A3A', 'nodata': '#B8C2CE',
-    'ECMWF': '#1F6FB2', 'GFS': '#7A4FB3', 'merge': '#0F1B2D',
+    'bg': '#F4F6F9',
+    'panel': '#FFFFFF',
+    'panel2': '#EEF2F7',
+    'border': '#DCE3EB',
+    'text': '#0F1B2D',
+    'muted': '#5B6B7F',
+    'accent': '#1F3A5F',
+    'accent2': '#2E5E8C',
+    'header': '#0F1B2D',
+    'normal': '#3F8A6B',
+    'atencao': '#D3961E',
+    'alerta': '#B83A3A',
+    'nodata': '#B8C2CE',
+    'ECMWF': '#1F6FB2',
+    'GFS': '#7A4FB3',
+    'merge': '#0F1B2D',
 }
 LEVEL_COLOR = [C['normal'], C['atencao'], C['alerta']]
 LEVEL_TEXT = ['#FFFFFF', '#0F1B2D', '#FFFFFF']
@@ -160,8 +173,10 @@ def kpis(items):
         k, v, s = it[:3]
         body = f'<div class="k">{esc(k)}</div><div class="v">{v}</div><div class="s">{esc(s)}</div>'
         if len(it) > 3 and it[3]:
-            cells += (f'<details class="kpi more"><summary>{body}<span class="hint">{tr("ver detalhes", "view details")}</span></summary>'
-                      f'<div class="d">{it[3]}</div></details>')
+            cells += (
+                f'<details class="kpi more"><summary>{body}<span class="hint">{tr("ver detalhes", "view details")}</span></summary>'
+                f'<div class="d">{it[3]}</div></details>'
+            )
         else:
             cells += f'<div class="kpi">{body}</div>'
     st.markdown(f'<div class="kpis">{cells}</div>', unsafe_allow_html=True)
@@ -180,17 +195,21 @@ def s2id_vs_rivers(s2id, river, n_mun):
     rows = [(tr('Detecção', 'Detection'), 'POD', 0), (tr('Alarme falso', 'False alarm'), 'POFD', 1)]
     body = ''.join(f'<tr><td>{n}</td><td>{pct(s2id[k], d)}</td><td>{pct(river[k], d)}</td></tr>' for n, k, d in rows)
     body += f'<tr><td>TSS</td><td>{num(s2id["TSS"], 2)}</td><td>{num(river["TSS"], 2)}</td></tr>'
-    head = tr('<tr><th></th><th>S2iD</th><th>Rios (ANA)</th></tr>', '<tr><th></th><th>S2iD</th><th>Rivers (ANA)</th></tr>')
-    note = tr(f'<p class="note">Mesma regra, dois gabaritos. <b>S2iD</b>: evento = registro de desastre da Defesa Civil, todos os municípios dos corredores, '
-              f'limiares escolhidos sem o ano testado. <b>Rios</b>: evento = cota de uma estação da ANA acima da mediana dos máximos anuais, '
-              f'{n_mun} municípios com estação, limiares congelados. A detecção é maior nos rios porque o rio só sobe depois de dias de chuva '
-              f'acumulada, o que o índice mede; muitos registros do S2iD vêm de chuva forte localizada (alagamento urbano, deslizamento), que o índice não vê. '
-              f'Detalhes na aba <b>Nível dos rios</b>.</p>',
-              f'<p class="note">Same rule, two answer keys. <b>S2iD</b>: event = Civil Defence disaster record, all corridor municipalities, '
-              f'thresholds chosen without the tested year. <b>Rivers</b>: event = an ANA gauge stage above its median annual maximum, '
-              f'{n_mun} municipalities with a gauge, frozen thresholds. Detection is higher for rivers because a river only rises after days of '
-              f'accumulated rain, which is what the index measures; many S2iD records come from local downpours (urban flooding, landslides), which the index cannot see. '
-              f'Details in the <b>River levels</b> tab.</p>')
+    head = tr(
+        '<tr><th></th><th>S2iD</th><th>Rios (ANA)</th></tr>', '<tr><th></th><th>S2iD</th><th>Rivers (ANA)</th></tr>'
+    )
+    note = tr(
+        f'<p class="note">Mesma regra, dois gabaritos. <b>S2iD</b>: evento = registro de desastre da Defesa Civil, todos os municípios dos corredores, '
+        f'limiares escolhidos sem o ano testado. <b>Rios</b>: evento = cota de uma estação da ANA acima da mediana dos máximos anuais, '
+        f'{n_mun} municípios com estação, limiares congelados. A detecção é maior nos rios porque o rio só sobe depois de dias de chuva '
+        f'acumulada, o que o índice mede; muitos registros do S2iD vêm de chuva forte localizada (alagamento urbano, deslizamento), que o índice não vê. '
+        f'Detalhes na aba <b>Nível dos rios</b>.</p>',
+        f'<p class="note">Same rule, two answer keys. <b>S2iD</b>: event = Civil Defence disaster record, all corridor municipalities, '
+        f'thresholds chosen without the tested year. <b>Rivers</b>: event = an ANA gauge stage above its median annual maximum, '
+        f'{n_mun} municipalities with a gauge, frozen thresholds. Detection is higher for rivers because a river only rises after days of '
+        f'accumulated rain, which is what the index measures; many S2iD records come from local downpours (urban flooding, landslides), which the index cannot see. '
+        f'Details in the <b>River levels</b> tab.</p>',
+    )
     return f'<table class="t wrap">{head}{body}</table>{note}'
 
 
@@ -208,10 +227,16 @@ def chip(level):
 
 
 def legend():
-    st.markdown('<div class="legend">' + ''.join(
-        f'<span><i style="background:{c}"></i>{n}</span>' for c, n in zip(LEVEL_COLOR + [C['nodata']], level_names() + [nodata_name()]))
+    st.markdown(
+        '<div class="legend">'
+        + ''.join(
+            f'<span><i style="background:{c}"></i>{n}</span>'
+            for c, n in zip(LEVEL_COLOR + [C['nodata']], level_names() + [nodata_name()])
+        )
         + f'<span><i style="background:{C["accent"]}"></i>{tr("Corredor federal", "Federal corridor")}</span>'
-        + f'<span>● {tr("Polo logístico/industrial (referência pública)", "Logistics/industrial hub (public reference)")}</span></div>', unsafe_allow_html=True)
+        + f'<span>● {tr("Polo logístico/industrial (referência pública)", "Logistics/industrial hub (public reference)")}</span></div>',
+        unsafe_allow_html=True,
+    )
 
 
 WEEKDAYS = ['seg', 'ter', 'qua', 'qui', 'sex', 'sáb', 'dom']
@@ -221,6 +246,7 @@ WEEKDAYS_EN = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 def day_label(d):
     """Short weekday + date in the current language, independent of OS locale."""
     import pandas as pd
+
     t = pd.Timestamp(d)
     if lang() == 'en':
         return f'{WEEKDAYS_EN[t.weekday()]} {t:%d %b}'

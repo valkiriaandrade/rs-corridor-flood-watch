@@ -15,11 +15,12 @@ Pre-registered before looking at any result (2026-11-04):
   A model is called the more accurate only if the CI of its difference to the other excludes 0.
 Run: python -m floodwatch.forecast_skill download | evaluate
 """
+
 import argparse
 import json
 import time
 from collections import deque
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import geopandas as gpd
 import numpy as np
@@ -37,7 +38,7 @@ PRIMARY = ['ECMWF IFS', 'GFS']
 LEADS = [1, 2, 3, 4, 5]
 BOX = 0.5
 CHUNK_DAYS = 91
-HOUR_BUDGET, DAY_BUDGET = 4000, 9000   # stay below the free-tier limits (5,000/h, 10,000/day)
+HOUR_BUDGET, DAY_BUDGET = 4000, 9000  # stay below the free-tier limits (5,000/h, 10,000/day)
 UA = {'User-Agent': 'rs-corridor-flood-watch/1.0 (research)'}
 
 
@@ -45,8 +46,12 @@ def boxes():
     u = gpd.read_file(STUDY / 'units.geojson')
     p = u.to_crs(5880).geometry.representative_point().to_crs(4326)
     u['by'], u['bx'] = np.floor(p.y / BOX).astype(int), np.floor(p.x / BOX).astype(int)
-    b = u.groupby(['by', 'bx']).agg(n=('codarea', 'size'), codareas=('codarea', lambda s: ','.join(map(str, s)))).reset_index()
-    b['lat'], b['lon'] = (b.by + .5) * BOX, (b.bx + .5) * BOX
+    b = (
+        u.groupby(['by', 'bx'])
+        .agg(n=('codarea', 'size'), codareas=('codarea', lambda s: ','.join(map(str, s))))
+        .reset_index()
+    )
+    b['lat'], b['lon'] = (b.by + 0.5) * BOX, (b.bx + 0.5) * BOX
     b['box'] = [f'B{i:02d}' for i in range(len(b))]
     return b
 
@@ -57,6 +62,7 @@ def weight(n_loc, n_days, n_vars):
 
 class Budget:
     """Client-side pacing so the free-tier limits are respected (no retry storms)."""
+
     def __init__(self):
         self.log = deque()
 
@@ -84,9 +90,20 @@ def last_obs_day():
 def model_start(code):
     """First day with lead-5 data (probe one location)."""
     for d in pd.date_range('2024-03-01', '2026-06-01', freq='MS'):
-        r = requests.get(API, params={'latitude': -30.0, 'longitude': -51.2, 'hourly': 'precipitation_previous_day5',
-                                      'models': code, 'start_date': f'{d:%Y-%m-%d}', 'end_date': f'{d:%Y-%m-%d}',
-                                      'timezone': 'UTC'}, headers=UA, timeout=60)
+        r = requests.get(
+            API,
+            params={
+                'latitude': -30.0,
+                'longitude': -51.2,
+                'hourly': 'precipitation_previous_day5',
+                'models': code,
+                'start_date': f'{d:%Y-%m-%d}',
+                'end_date': f'{d:%Y-%m-%d}',
+                'timezone': 'UTC',
+            },
+            headers=UA,
+            timeout=60,
+        )
         r.raise_for_status()
         if any(v is not None for v in r.json()['hourly']['precipitation_previous_day5']):
             return d
@@ -112,9 +129,15 @@ def download(models=None):
             path = folder / f'{c0:%Y%m%d}_{c1:%Y%m%d}.json'
             if path.exists():
                 continue
-            params = {'latitude': ','.join(f'{x:.2f}' for x in b.lat), 'longitude': ','.join(f'{x:.2f}' for x in b.lon),
-                      'hourly': hourly, 'models': code, 'start_date': f'{c0:%Y-%m-%d}', 'end_date': f'{c1:%Y-%m-%d}',
-                      'timezone': 'UTC'}
+            params = {
+                'latitude': ','.join(f'{x:.2f}' for x in b.lat),
+                'longitude': ','.join(f'{x:.2f}' for x in b.lon),
+                'hourly': hourly,
+                'models': code,
+                'start_date': f'{c0:%Y-%m-%d}',
+                'end_date': f'{c1:%Y-%m-%d}',
+                'timezone': 'UTC',
+            }
             for attempt in range(6):
                 budget.wait(weight(len(b), (c1 - c0).days + 1, len(LEADS)))
                 r = requests.get(API, params=params, headers=UA, timeout=300)
@@ -128,8 +151,10 @@ def download(models=None):
             else:
                 raise RuntimeError('rate limited repeatedly; stopping')
             path.write_text(r.text, encoding='utf-8')
-            (path.with_suffix('.http.json')).write_text(json.dumps({
-                'url': r.url, 'time_utc': datetime.now(timezone.utc).isoformat(), 'bytes': len(r.content)}), encoding='utf-8')
+            (path.with_suffix('.http.json')).write_text(
+                json.dumps({'url': r.url, 'time_utc': datetime.now(UTC).isoformat(), 'bytes': len(r.content)}),
+                encoding='utf-8',
+            )
             print(f'{name} {c0:%Y-%m-%d}..{c1:%Y-%m-%d} ok', flush=True)
 
 
@@ -148,21 +173,27 @@ def forecast_table(b):
             for bx, d in zip(b.box, data):
                 t = pd.to_datetime(d['hourly']['time'], utc=True)
                 for n in LEADS:
-                    per_box[bx][n].append(pd.Series(d['hourly'][f'precipitation_previous_day{n}'], index=t, dtype=float))
+                    per_box[bx][n].append(
+                        pd.Series(d['hourly'][f'precipitation_previous_day{n}'], index=t, dtype=float)
+                    )
         for bx, leads in per_box.items():
             for n, parts in leads.items():
                 s = pd.concat(parts).sort_index()
                 s = s[~s.index.duplicated()]
                 daily = daily_12utc(s.dropna())
                 daily.index = pd.to_datetime(daily.index)
-                rows.append(pd.DataFrame({'model': name, 'box': bx, 'lead': n, 'date': daily.index, 'fc': daily.values}))
+                rows.append(
+                    pd.DataFrame({'model': name, 'box': bx, 'lead': n, 'date': daily.index, 'fc': daily.values})
+                )
     return pd.concat(rows, ignore_index=True)
 
 
 def observed_table(b, start='2024-02-25'):
     """MERGE box means: V07B final cube up to 2024, then the IMERG late/early daily files (state recorded)."""
     from concurrent.futures import ProcessPoolExecutor
+
     from .merge_cube import read_crop
+
     z = np.load(STUDY / 'merge_rs_cube.npz', allow_pickle=True)
     dates = pd.to_datetime(z['dates'])
     keep = (dates >= start) & (dates <= '2024-12-31')
@@ -172,7 +203,8 @@ def observed_table(b, start='2024-02-25'):
     with ProcessPoolExecutor(6) as pool:
         for day, crop, state in pool.map(read_crop, recent, chunksize=16):
             grids.append(crop if crop is not None else np.full((len(lat), len(lon)), np.nan, 'float32'))
-            days.append(pd.Timestamp(day)); states.append(state)
+            days.append(pd.Timestamp(day))
+            states.append(state)
     rain = np.stack(grids)
     out = []
     for x in b.itertuples():
@@ -205,9 +237,20 @@ def scores(df):
     f, o = df.fc.to_numpy(), df.obs.to_numpy()
     e20, p20, f20, n20 = cat_scores(f, o, 20)
     e50, p50, f50, n50 = cat_scores(f, o, 50)
-    return {'n': len(df), 'obs_days_ge20': n20, 'ETS20': e20, 'POD20': p20, 'FAR20': f20, 'ETS50': e50, 'POD50': p50,
-            'FAR50': f50, 'obs_days_ge50': n50, 'MAE': float(np.abs(f - o).mean()), 'bias': float(f.sum() / o.sum()),
-            'r': float(np.corrcoef(f, o)[0, 1])}
+    return {
+        'n': len(df),
+        'obs_days_ge20': n20,
+        'ETS20': e20,
+        'POD20': p20,
+        'FAR20': f20,
+        'ETS50': e50,
+        'POD50': p50,
+        'FAR50': f50,
+        'obs_days_ge50': n50,
+        'MAE': float(np.abs(f - o).mean()),
+        'bias': float(f.sum() / o.sum()),
+        'r': float(np.corrcoef(f, o)[0, 1]),
+    }
 
 
 def three_day(df):
@@ -229,12 +272,21 @@ def evaluate(models, label, rng_seed=20261104, reps=2000):
     common = cnt[cnt == len(models)].index
     df = df.set_index(key).loc[common].reset_index()
     df = three_day(df)
-    res = {'label': label, 'models': models, 'period': [str(df.date.min().date()), str(df.date.max().date())],
-           'boxes': int(df.box.nunique()), 'by_model_lead': {}, 'primary': {}, 'three_day_ge50': {}}
+    res = {
+        'label': label,
+        'models': models,
+        'period': [str(df.date.min().date()), str(df.date.max().date())],
+        'boxes': int(df.box.nunique()),
+        'by_model_lead': {},
+        'primary': {},
+        'three_day_ge50': {},
+    }
     for (m, n), g in df.groupby(['model', 'lead']):
         res['by_model_lead'].setdefault(m, {})[int(n)] = scores(g)
         g3 = g.dropna(subset=['fc3', 'obs3'])
-        res['three_day_ge50'].setdefault(m, {})[int(n)] = dict(zip(['ETS', 'POD', 'FAR', 'n_obs'], cat_scores(g3.fc3.to_numpy(), g3.obs3.to_numpy(), 50)))
+        res['three_day_ge50'].setdefault(m, {})[int(n)] = dict(
+            zip(['ETS', 'POD', 'FAR', 'n_obs'], cat_scores(g3.fc3.to_numpy(), g3.obs3.to_numpy(), 50))
+        )
     prim = df[df.lead.isin([1, 2, 3])]
     for m, g in prim.groupby('model'):
         res['primary'][m] = float(np.mean([ets20(x) for _, x in g.groupby('lead')]))
@@ -261,9 +313,13 @@ def evaluate(models, label, rng_seed=20261104, reps=2000):
     res['ranking'] = ranking
     res['primary_CI95'] = {m: [float(np.percentile(boot[m], 2.5)), float(np.percentile(boot[m], 97.5))] for m in models}
     best = ranking[0]
-    res['best_vs_others'] = {m: {'diff': float(res['primary'][best] - res['primary'][m]),
-                                 'CI95': [float(np.percentile(boot[best] - boot[m], 2.5)), float(np.percentile(boot[best] - boot[m], 97.5))]}
-                             for m in ranking[1:]}
+    res['best_vs_others'] = {
+        m: {
+            'diff': float(res['primary'][best] - res['primary'][m]),
+            'CI95': [float(np.percentile(boot[best] - boot[m], 2.5)), float(np.percentile(boot[best] - boot[m], 97.5))],
+        }
+        for m in ranking[1:]
+    }
     res['best_is_significant'] = all(v['CI95'][0] > 0 for v in res['best_vs_others'].values())
     # event days (S2iD) inside the period: forecast vs observed rain of the 3 days ending on the event day, lead 1 and 3
     ev = pd.concat([pd.read_csv(STUDY / f) for f in ('events.csv', 'events_2025.csv') if (STUDY / f).exists()])
@@ -272,13 +328,26 @@ def evaluate(models, label, rng_seed=20261104, reps=2000):
     ev['box'] = ev.codarea.astype(int).map(code2box)
     ev = ev.dropna(subset=['box']).drop_duplicates(['box', 'date'])
     evd = df.merge(ev[['box', 'date']], on=['box', 'date'])
-    res['event_days'] = {m: {int(n): {'n': len(g), 'fc3_over_obs3': float(g.fc3.sum() / g.obs3.sum()) if g.obs3.sum() else None,
-                                      'share_fc3_ge50_when_obs3_ge50': float((g[g.obs3 >= 50].fc3 >= 50).mean()) if (g.obs3 >= 50).any() else None}
-                             for n, g in gg.groupby('lead') if n in (1, 3)} for m, gg in evd.dropna(subset=['fc3', 'obs3']).groupby('model')}
+    res['event_days'] = {
+        m: {
+            int(n): {
+                'n': len(g),
+                'fc3_over_obs3': float(g.fc3.sum() / g.obs3.sum()) if g.obs3.sum() else None,
+                'share_fc3_ge50_when_obs3_ge50': float((g[g.obs3 >= 50].fc3 >= 50).mean())
+                if (g.obs3 >= 50).any()
+                else None,
+            }
+            for n, g in gg.groupby('lead')
+            if n in (1, 3)
+        }
+        for m, gg in evd.dropna(subset=['fc3', 'obs3']).groupby('model')
+    }
     res['observation_note'] = 'MERGE V07B final to 2024; IMERG late/early from 2025 (preliminary).'
     # data-quality flag found after download (before interpretation): the archived GFS lead-5 series holds about half
     # the rainfall of leads 1-4 in every quarter (archive artefact); it is reported but not interpreted.
-    res['suspect'] = {'GFS': {'5': 'archived previous_day5 series holds ~50% of the rainfall of leads 1-4 in every chunk'}}
+    res['suspect'] = {
+        'GFS': {'5': 'archived previous_day5 series holds ~50% of the rainfall of leads 1-4 in every chunk'}
+    }
     res['observation_states_days'] = {str(k): int(v) for k, v in obs_states.items()}
     return res
 
@@ -296,7 +365,15 @@ def main():
         prim = [m for m in PRIMARY if m in have]
         out = {'primary': evaluate(prim, 'common period, primary models')}
         (OUT / 'forecast_skill.json').write_text(json.dumps(out, indent=1, default=float), encoding='utf-8')
-        print(json.dumps({k: {'ranking': v['ranking'], 'primary': v['primary'], 'sig': v['best_is_significant']} for k, v in out.items()}, indent=1))
+        print(
+            json.dumps(
+                {
+                    k: {'ranking': v['ranking'], 'primary': v['primary'], 'sig': v['best_is_significant']}
+                    for k, v in out.items()
+                },
+                indent=1,
+            )
+        )
 
 
 if __name__ == '__main__':

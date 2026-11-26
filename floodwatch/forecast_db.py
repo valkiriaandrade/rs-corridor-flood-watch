@@ -12,6 +12,7 @@ covers the period: `python -m floodwatch.forecast_db events <atlas.csv>`.
     python -m floodwatch.forecast_db check BEFORE AFTER  # archive sound and no table shrank (run before it is replaced)
     sqlite3 data/processed/forecast/forecasts.sqlite < sql/validation.sql   # same, with the sqlite3 CLI
 """
+
 import argparse
 import json
 import sqlite3
@@ -19,8 +20,8 @@ from pathlib import Path
 
 import pandas as pd
 
-from .rules import run_rules
 from .paths import FORECAST, ROOT
+from .rules import run_rules
 
 DB = FORECAST / 'forecasts.sqlite'
 SCHEMA = ROOT / 'sql' / 'schema.sql'
@@ -28,9 +29,11 @@ CORRIDORS = ['116', '386', '290']
 CORRIDOR_SHARE = 0.20  # same display rule as the forecast page
 
 
-MIGRATIONS = {'runs': ['thr_api_attention REAL', 'thr_api_alert REAL', 'trigger_p3_edi REAL', 'trigger_p3_api REAL'],
-              'municipal': ['API REAL', 'level_api INTEGER', 'rain_mm REAL'],
-              'corridor': ['level_api INTEGER', 'n_att_api INTEGER', 'n_alert_api INTEGER']}
+MIGRATIONS = {
+    'runs': ['thr_api_attention REAL', 'thr_api_alert REAL', 'trigger_p3_edi REAL', 'trigger_p3_api REAL'],
+    'municipal': ['API REAL', 'level_api INTEGER', 'rain_mm REAL'],
+    'corridor': ['level_api INTEGER', 'n_att_api INTEGER', 'n_alert_api INTEGER'],
+}
 
 
 def connect(path=DB):
@@ -57,12 +60,25 @@ def corridor_rows(df):
     for (date, model), g in df.groupby(['date', 'model']):
         for br in CORRIDORS:
             sub = g[g.corridors.astype(str).str.split('/').apply(lambda x: br in x)]
-            row = {'date': date, 'model': model, 'br': 'BR-' + br, 'level': corridor_level(sub.level),
-                   'n_att': int((sub.level >= 1).sum()), 'n_alert': int((sub.level == 2).sum()), 'n': int(len(sub)),
-                   'source': sub.source.iloc[0] if len(sub) else None, 'level_api': None, 'n_att_api': None, 'n_alert_api': None}
+            row = {
+                'date': date,
+                'model': model,
+                'br': 'BR-' + br,
+                'level': corridor_level(sub.level),
+                'n_att': int((sub.level >= 1).sum()),
+                'n_alert': int((sub.level == 2).sum()),
+                'n': int(len(sub)),
+                'source': sub.source.iloc[0] if len(sub) else None,
+                'level_api': None,
+                'n_att_api': None,
+                'n_alert_api': None,
+            }
             if has_api:
-                row.update(level_api=corridor_level(sub.level_api), n_att_api=int((sub.level_api >= 1).sum()),
-                           n_alert_api=int((sub.level_api == 2).sum()))
+                row.update(
+                    level_api=corridor_level(sub.level_api),
+                    n_att_api=int((sub.level_api >= 1).sum()),
+                    n_alert_api=int((sub.level_api == 2).sum()),
+                )
             rows.append(row)
     return pd.DataFrame(rows)
 
@@ -76,27 +92,74 @@ def ingest(run_dir, con=None):
     con.execute('DELETE FROM municipal WHERE run_id = ?', (run_id,))
     con.execute('DELETE FROM corridor WHERE run_id = ?', (run_id,))
     edi, api = rules.get('EDI', {}), rules.get('API', {})
-    con.execute('INSERT OR REPLACE INTO runs (run_id, created_utc, ecmwf_run, gfs_run, observed_cutoff, predictor, thr_attention, '
-                'thr_alert, antecedent_json, thr_api_attention, thr_api_alert, trigger_p3_edi, trigger_p3_api) '
-                'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)',
-                (run_id, meta['created_utc'], meta['runs'].get('ECMWF'), meta['runs'].get('GFS'), meta['observed_cutoff'],
-                 'EDI', edi.get('attention'), edi.get('alert'), json.dumps(meta.get('antecedent_product_last_30d', {})),
-                 api.get('attention'), api.get('alert'), edi.get('trigger_p3_mm'), api.get('trigger_p3_mm')))
+    con.execute(
+        'INSERT OR REPLACE INTO runs (run_id, created_utc, ecmwf_run, gfs_run, observed_cutoff, predictor, thr_attention, '
+        'thr_alert, antecedent_json, thr_api_attention, thr_api_alert, trigger_p3_edi, trigger_p3_api) '
+        'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)',
+        (
+            run_id,
+            meta['created_utc'],
+            meta['runs'].get('ECMWF'),
+            meta['runs'].get('GFS'),
+            meta['observed_cutoff'],
+            'EDI',
+            edi.get('attention'),
+            edi.get('alert'),
+            json.dumps(meta.get('antecedent_product_last_30d', {})),
+            api.get('attention'),
+            api.get('alert'),
+            edi.get('trigger_p3_mm'),
+            api.get('trigger_p3_mm'),
+        ),
+    )
     df = pd.read_csv(run_dir / 'municipal_levels.csv', dtype={'codarea': str})
     cutoff = pd.Timestamp(meta['observed_cutoff'])
     df['lead_days'] = (pd.to_datetime(df.date) - cutoff).dt.days
     df['run_id'] = run_id
-    cols = ['run_id', 'date', 'codarea', 'nome', 'corridors', 'model', 'source', 'lead_days', 'P1', 'P3', 'P7', 'P30', 'PE', 'EDI', 'level']
+    cols = [
+        'run_id',
+        'date',
+        'codarea',
+        'nome',
+        'corridors',
+        'model',
+        'source',
+        'lead_days',
+        'P1',
+        'P3',
+        'P7',
+        'P30',
+        'PE',
+        'EDI',
+        'level',
+    ]
     cols += [c for c in ('API', 'level_api', 'rain_mm') if c in df]  # older runs lack them
-    con.executemany(f'INSERT INTO municipal ({",".join(cols)}) VALUES ({",".join("?" * len(cols))})',
-                    df[cols].astype(object).where(df[cols].notna(), None).itertuples(index=False, name=None))
+    con.executemany(
+        f'INSERT INTO municipal ({",".join(cols)}) VALUES ({",".join("?" * len(cols))})',
+        df[cols].astype(object).where(df[cols].notna(), None).itertuples(index=False, name=None),
+    )
     c = corridor_rows(df)
     c['run_id'] = run_id
     c['lead_days'] = (pd.to_datetime(c.date) - cutoff).dt.days
-    ccols = ['run_id', 'date', 'model', 'br', 'source', 'lead_days', 'level', 'n_att', 'n_alert', 'n', 'level_api', 'n_att_api',
-             'n_alert_api']
-    con.executemany(f'INSERT INTO corridor ({",".join(ccols)}) VALUES ({",".join("?" * len(ccols))})',
-                    c[ccols].astype(object).itertuples(index=False, name=None))
+    ccols = [
+        'run_id',
+        'date',
+        'model',
+        'br',
+        'source',
+        'lead_days',
+        'level',
+        'n_att',
+        'n_alert',
+        'n',
+        'level_api',
+        'n_att_api',
+        'n_alert_api',
+    ]
+    con.executemany(
+        f'INSERT INTO corridor ({",".join(ccols)}) VALUES ({",".join("?" * len(ccols))})',
+        c[ccols].astype(object).itertuples(index=False, name=None),
+    )
     con.commit()
     if own:
         con.close()
@@ -117,6 +180,7 @@ def ingest_all():
 def load_events(path):
     """Official flood records (Atlas Digital CSV: ';', latin1) for the corridor municipalities."""
     from .study import CODES
+
     atlas = pd.read_csv(path, sep=';', encoding='latin1', low_memory=False)
     atlas = atlas[(atlas.Sigla_UF == 'RS') & atlas.Cod_Cobrade.isin(CODES)].copy()
     atlas['date'] = pd.to_datetime(atlas.Data_Evento, dayfirst=True).dt.strftime('%Y-%m-%d')
@@ -124,8 +188,10 @@ def load_events(path):
     con = connect()
     units = {r[0] for r in con.execute('SELECT DISTINCT codarea FROM municipal')}
     atlas = atlas[atlas.codarea.isin(units)]
-    con.executemany('INSERT OR REPLACE INTO events (protocol, codarea, date, cobrade) VALUES (?,?,?,?)',
-                    atlas[['Protocolo_S2iD', 'codarea', 'date', 'Cod_Cobrade']].astype(str).itertuples(index=False, name=None))
+    con.executemany(
+        'INSERT OR REPLACE INTO events (protocol, codarea, date, cobrade) VALUES (?,?,?,?)',
+        atlas[['Protocolo_S2iD', 'codarea', 'date', 'Cod_Cobrade']].astype(str).itertuples(index=False, name=None),
+    )
     con.commit()
     con.close()
     return len(atlas)
@@ -140,19 +206,31 @@ def _contingency(fc, obs):
     ok = (fc >= 0) & (obs >= 0)
     f, o = fc[ok] >= 1, obs[ok] >= 1
     hits, fa, miss = int((f & o).sum()), int((f & ~o).sum()), int((~f & o).sum())
-    return {'n': int(ok.sum()), 'hits': hits, 'false_alarms': fa, 'misses': miss, 'correct_negatives': int((~f & ~o).sum()),
-            'POD': hits / (hits + miss) if hits + miss else None, 'FAR': fa / (hits + fa) if hits + fa else None}
+    return {
+        'n': int(ok.sum()),
+        'hits': hits,
+        'false_alarms': fa,
+        'misses': miss,
+        'correct_negatives': int((~f & ~o).sum()),
+        'POD': hits / (hits + miss) if hits + miss else None,
+        'FAR': fa / (hits + fa) if hits + fa else None,
+    }
 
 
 def _rain(v):
     v = v.dropna(subset=['fc_rain', 'obs_rain'])
     if v.empty:
         return None
-    return {'n': int(len(v)), 'fc_mean': float(v.fc_rain.mean()), 'obs_mean': float(v.obs_rain.mean()),
-            'bias_ratio': float(v.fc_rain.sum() / v.obs_rain.sum()) if v.obs_rain.sum() > 0 else None,
-            'mae': float((v.fc_rain - v.obs_rain).abs().mean()),
-            'heavy_observed': int((v.obs_rain >= 20).sum()), 'heavy_hits': int(((v.fc_rain >= 20) & (v.obs_rain >= 20)).sum()),
-            'heavy_forecast': int((v.fc_rain >= 20).sum())}
+    return {
+        'n': int(len(v)),
+        'fc_mean': float(v.fc_rain.mean()),
+        'obs_mean': float(v.obs_rain.mean()),
+        'bias_ratio': float(v.fc_rain.sum() / v.obs_rain.sum()) if v.obs_rain.sum() > 0 else None,
+        'mae': float((v.fc_rain - v.obs_rain).abs().mean()),
+        'heavy_observed': int((v.obs_rain >= 20).sum()),
+        'heavy_hits': int(((v.fc_rain >= 20) & (v.obs_rain >= 20)).sum()),
+        'heavy_forecast': int((v.fc_rain >= 20).sum()),
+    }
 
 
 def occurrences(con):
@@ -160,8 +238,11 @@ def occurrences(con):
     releases), plus preliminary reports with no official record in the same municipality within one day.
     Columns: date, codarea, source ('S2iD' | 'preliminar'), tipo, fonte, url."""
     from .official_records import preliminary_reports
+
     off = pd.read_sql_query('SELECT date, codarea, cobrade, protocol FROM events', con)
-    off = off.assign(source='S2iD', tipo='COBRADE ' + off.cobrade.astype(str), fonte='S2iD ' + off.protocol.astype(str), url='')
+    off = off.assign(
+        source='S2iD', tipo='COBRADE ' + off.cobrade.astype(str), fonte='S2iD ' + off.protocol.astype(str), url=''
+    )
     pre = preliminary_reports().assign(source='preliminar')
     if len(pre) and len(off):
         od = off.assign(d=pd.to_datetime(off.date))[['codarea', 'd']]
@@ -178,14 +259,31 @@ def _occurrence_block(v, occ):
         return {'items': [], 'by_model': {}}
     last = v[v.run_id == v.groupby(['date', 'model']).run_id.transform('max')]
     m = last.merge(occ, on=['date', 'codarea'], how='inner')
-    items = [{'date': r.date, 'nome': r.nome, 'model': r.model, 'lead_days': int(r.lead_days), 'source': r.source,
-              'tipo': r.tipo, 'fonte': r.fonte, 'url': r.url,
-              'EDI': {'forecast': r.fc_level, 'observed': r.obs_level},
-              'API': {'forecast': r.fc_level_api, 'observed': r.obs_level_api}} for r in m.itertuples()]
+    items = [
+        {
+            'date': r.date,
+            'nome': r.nome,
+            'model': r.model,
+            'lead_days': int(r.lead_days),
+            'source': r.source,
+            'tipo': r.tipo,
+            'fonte': r.fonte,
+            'url': r.url,
+            'EDI': {'forecast': r.fc_level, 'observed': r.obs_level},
+            'API': {'forecast': r.fc_level_api, 'observed': r.obs_level_api},
+        }
+        for r in m.itertuples()
+    ]
     by_model = {}
     for model, g in m.groupby('model'):
-        by_model[model] = {ix: {'n': int(g[fc].notna().sum()), 'at_watch': int((g[fc] >= 1).sum()),
-                                'at_warning': int((g[fc] == 2).sum())} for ix, (fc, _) in LEVEL_COLS.items()}
+        by_model[model] = {
+            ix: {
+                'n': int(g[fc].notna().sum()),
+                'at_watch': int((g[fc] >= 1).sum()),
+                'at_warning': int((g[fc] == 2).sum()),
+            }
+            for ix, (fc, _) in LEVEL_COLS.items()
+        }
     return {'items': items, 'by_model': by_model}
 
 
@@ -201,38 +299,59 @@ def summary(con=None):
     if own:
         con.close()
     from .official_records import state
-    out = {'verified_days': sorted(v.date.unique().tolist()), 'issuances': int(v.run_id.nunique()), 'by_lead': {}, 'latest': None,
-           'official_release': {k: state().get(k) for k in ('file', 'released', 'coverage_end', 'checked_utc',
-                                                            's2id_checked_utc', 's2id_corridor_records')}}
+
+    out = {
+        'verified_days': sorted(v.date.unique().tolist()),
+        'issuances': int(v.run_id.nunique()),
+        'by_lead': {},
+        'latest': None,
+        'official_release': {
+            k: state().get(k)
+            for k in ('file', 'released', 'coverage_end', 'checked_utc', 's2id_checked_utc', 's2id_corridor_records')
+        },
+    }
     if v.empty:
         return out
     out['occurrences'] = _occurrence_block(v, occ)
     v['lead'] = v.lead_days.clip(upper=4)  # D+4 and beyond pooled
     for (model, lead), g in v.groupby(['model', 'lead']):
         out['by_lead'].setdefault(model, {})[str(int(lead))] = {
-            'days': int(g.date.nunique()), 'rain': _rain(g),
-            **{ix: _contingency(g[fc], g[ob]) for ix, (fc, ob) in LEVEL_COLS.items() if g[fc].notna().any()}}
+            'days': int(g.date.nunique()),
+            'rain': _rain(g),
+            **{ix: _contingency(g[fc], g[ob]) for ix, (fc, ob) in LEVEL_COLS.items() if g[fc].notna().any()},
+        }
     out['since_start'] = _since_start(v)
     day = v.date.max()
     first = v[(v.date == day)]
     first = first[first.run_id == first.run_id.max()]  # the latest forecast issued before the day was observed
     rid = first.run_id.iloc[0]
-    latest = {'date': day, 'lead_days': int(first.lead_days.min()), 'run_id': rid, 'model_runs': {
-        'ECMWF': runs.at[rid, 'ecmwf_run'], 'GFS': runs.at[rid, 'gfs_run']}, 'observed_cutoff': runs.at[rid, 'observed_cutoff'],
-        'models': {}}
+    latest = {
+        'date': day,
+        'lead_days': int(first.lead_days.min()),
+        'run_id': rid,
+        'model_runs': {'ECMWF': runs.at[rid, 'ecmwf_run'], 'GFS': runs.at[rid, 'gfs_run']},
+        'observed_cutoff': runs.at[rid, 'observed_cutoff'],
+        'models': {},
+    }
     for model, g in first.groupby('model'):
         r = {'rain': _rain(g)}
         if r['rain']:
             fmax, omax = g.loc[g.fc_rain.idxmax()], g.loc[g.obs_rain.idxmax()]
-            r['rain'].update(fc_max=float(fmax.fc_rain), fc_max_nome=fmax.nome, obs_max=float(omax.obs_rain), obs_max_nome=omax.nome)
+            r['rain'].update(
+                fc_max=float(fmax.fc_rain), fc_max_nome=fmax.nome, obs_max=float(omax.obs_rain), obs_max_nome=omax.nome
+            )
         for ix, (fc, ob) in LEVEL_COLS.items():
             if not g[fc].notna().any():
                 continue
             c = _contingency(g[fc], g[ob])
             c['missed'] = sorted(g.loc[(g[fc] == 0) & (g[ob] >= 1), 'nome'].tolist())
             c['false_alarm_names'] = sorted(g.loc[(g[fc] >= 1) & (g[ob] == 0), 'nome'].tolist())
-            reported = set(occ.loc[occ.date == day, 'codarea'])  # a flood was reported there: not a false alarm in practice
-            c['false_alarm_reported'] = sorted(g.loc[(g[fc] >= 1) & (g[ob] == 0) & g.codarea.isin(reported), 'nome'].tolist())
+            reported = set(
+                occ.loc[occ.date == day, 'codarea']
+            )  # a flood was reported there: not a false alarm in practice
+            c['false_alarm_reported'] = sorted(
+                g.loc[(g[fc] >= 1) & (g[ob] == 0) & g.codarea.isin(reported), 'nome'].tolist()
+            )
             c['forecast_watch'], c['observed_watch'] = int((g[fc] >= 1).sum()), int((g[ob] >= 1).sum())
             r[ix] = c
         latest['models'][model] = r
@@ -246,12 +365,21 @@ def _since_start(v):
     out = {'days': int(v.date.nunique()), 'first': v.date.min(), 'last': v.date.max(), 'models': {}}
     for model, g in v.groupby('model'):
         g = g[g.run_id == g.groupby('date').run_id.transform('max')]
-        r = {'days': int(g.date.nunique()), 'leads': sorted(int(x) for x in g.groupby('date').lead_days.min().unique()),
-             'rain': _rain(g)}
+        r = {
+            'days': int(g.date.nunique()),
+            'leads': sorted(int(x) for x in g.groupby('date').lead_days.min().unique()),
+            'rain': _rain(g),
+        }
         if r['rain']:
             fmax, omax = g.loc[g.fc_rain.idxmax()], g.loc[g.obs_rain.idxmax()]
-            r['rain'].update(fc_max=float(fmax.fc_rain), fc_max_nome=fmax.nome, fc_max_date=fmax.date,
-                             obs_max=float(omax.obs_rain), obs_max_nome=omax.nome, obs_max_date=omax.date)
+            r['rain'].update(
+                fc_max=float(fmax.fc_rain),
+                fc_max_nome=fmax.nome,
+                fc_max_date=fmax.date,
+                obs_max=float(omax.obs_rain),
+                obs_max_nome=omax.nome,
+                obs_max_date=omax.date,
+            )
         for ix, (fc, ob) in LEVEL_COLS.items():
             h = g[g[fc].notna()]
             if h.empty:
@@ -274,7 +402,9 @@ def report():
     """Run sql/validation.sql without the sqlite3 command-line tool."""
     con = connect()
     nl = chr(10)
-    text = nl.join(l for l in (ROOT / 'sql' / 'validation.sql').read_text(encoding='utf-8').splitlines() if not l.startswith('.'))
+    text = nl.join(
+        l for l in (ROOT / 'sql' / 'validation.sql').read_text(encoding='utf-8').splitlines() if not l.startswith('.')
+    )
     for block in [b.strip() for b in text.split(';') if b.strip()]:
         title = [l for l in block.splitlines() if l.startswith('--')]
         sql = nl.join(l for l in block.splitlines() if not l.startswith('--'))
@@ -287,8 +417,10 @@ def report():
 
 
 def table_counts(con):
-    return {t: con.execute(f'SELECT COUNT(*) FROM "{t}"').fetchone()[0]
-            for (t,) in con.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
+    return {
+        t: con.execute(f'SELECT COUNT(*) FROM "{t}"').fetchone()[0]
+        for (t,) in con.execute("SELECT name FROM sqlite_master WHERE type = 'table'")
+    }
 
 
 def _read_only(path):
@@ -317,8 +449,11 @@ def check_archive(before, after):
     con.close()
     for table, n in old.items():
         if new.get(table, -1) < n:
-            problems.append(f'table {table}: {n} rows before, ' + (f'{new[table]} after' if table in new else 'missing after'))
+            problems.append(
+                f'table {table}: {n} rows before, ' + (f'{new[table]} after' if table in new else 'missing after')
+            )
     return problems
+
 
 def main():
     ap = argparse.ArgumentParser()

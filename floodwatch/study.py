@@ -8,6 +8,7 @@ Predictors: rainfall accumulations, PE and EDI (calibration 1999-2012) and the A
 Run: python -m floodwatch.study --stage units   (then python -m floodwatch.upstream basins/rain)
      python -m floodwatch.study [--stage all|data|eval]
 """
+
 import argparse
 import json
 
@@ -18,8 +19,22 @@ from shapely.geometry import box
 
 from . import indices
 from .paths import RAW, STUDY as OUT
-from .stats import (N_BOOT, BlockBootstrap, alert_threshold, auc, best_tss, candidates, ci, contingency,
-                    holdout_folds, oos_alert, oos_predictions, score, year_folds)
+from .stats import (
+    N_BOOT,
+    BlockBootstrap,
+    alert_threshold,
+    auc,
+    best_tss,
+    candidates,
+    ci,
+    contingency,
+    holdout_folds,
+    oos_alert,
+    oos_predictions,
+    score,
+    year_folds,
+)
+
 CODES = [12100, 12200, 12300, 13214]
 CAL = (1999, 2012)
 START, END = pd.Timestamp('2013-01-01'), pd.Timestamp('2024-12-31')
@@ -38,8 +53,12 @@ def corridor_units():
     roads = gpd.read_file(RAW / 'spatial/snv202404_corridors_rs.geojson')
     roads = roads[roads.Superficie_Federal != 'PLA']  # planned (unbuilt) segments are not roads yet
     # A municipality belongs to a corridor only with >= MIN_ROAD_KM of that BR inside it (no boundary slivers).
-    inter = gpd.overlay(roads[['Codigo_BR', 'geometry']].to_crs('EPSG:5880'), mun[['codarea', 'geometry']].to_crs('EPSG:5880'),
-                        how='intersection', keep_geom_type=True)
+    inter = gpd.overlay(
+        roads[['Codigo_BR', 'geometry']].to_crs('EPSG:5880'),
+        mun[['codarea', 'geometry']].to_crs('EPSG:5880'),
+        how='intersection',
+        keep_geom_type=True,
+    )
     inter['km'] = inter.length / 1000
     km = inter.groupby(['codarea', 'Codigo_BR']).km.sum().reset_index()
     km = km[km.km >= MIN_ROAD_KM]
@@ -52,11 +71,14 @@ def corridor_units():
 def cell_weights(units, lat, lon, step=0.1):
     """Area of overlap of each grid cell (default 0.1 deg MERGE) with each municipality (equal-area CRS)."""
     half = step / 2
-    cells = [{'iy': i, 'ix': j, 'geometry': box(lo - half, la - half, lo + half, la + half)}
-             for i, la in enumerate(lat) for j, lo in enumerate(lon)]
+    cells = [
+        {'iy': i, 'ix': j, 'geometry': box(lo - half, la - half, lo + half, la + half)}
+        for i, la in enumerate(lat)
+        for j, lo in enumerate(lon)
+    ]
     grid = gpd.GeoDataFrame(cells, crs='EPSG:4326')
     region = units.total_bounds
-    grid = grid.cx[region[0] - .2:region[2] + .2, region[1] - .2:region[3] + .2]
+    grid = grid.cx[region[0] - 0.2 : region[2] + 0.2, region[1] - 0.2 : region[3] + 0.2]
     inter = gpd.overlay(units[['codarea', 'geometry']], grid, how='intersection', keep_geom_type=True)
     inter['area'] = inter.to_crs('EPSG:5880').area
     return inter[['codarea', 'iy', 'ix', 'area']]
@@ -84,7 +106,7 @@ def study_rain(end=END):
     """Daily rainfall used by the study and the forecast: mean over the upstream basin (floodwatch.upstream)."""
     path = OUT / 'upstream_rain.csv.gz'
     if not path.exists():
-        raise SystemExit('Falta upstream_rain.csv.gz: rode python -m floodwatch.upstream basins e rain')
+        raise SystemExit('upstream_rain.csv.gz is missing: run python -m floodwatch.upstream basins, then rain')
     rain = pd.read_csv(path, index_col=0, parse_dates=True)
     rain.columns = rain.columns.astype(str)
     return rain.loc[:end]
@@ -97,8 +119,15 @@ def compute_indices(rain):
         pe[code] = result.pe_mm.to_numpy()
         edi[code] = result.edi.to_numpy()
         api[code] = indices.api(rain[code])
-        meta[code] = {k: info[k] for k in ('missing_rain_days', 'pe_valid_days', 'edi_valid_days',
-                                           'calibration_pe_samples_per_calendar_position')}
+        meta[code] = {
+            k: info[k]
+            for k in (
+                'missing_rain_days',
+                'pe_valid_days',
+                'edi_valid_days',
+                'calibration_pe_samples_per_calendar_position',
+            )
+        }
     frame = lambda d: pd.DataFrame(d, index=rain.index)
     return frame(pe), frame(edi), frame(api), meta
 
@@ -202,15 +231,21 @@ def build():
     api.to_csv(OUT / 'index_api.csv.gz')
     events.to_csv(OUT / 'events.csv', index=False)
     sample.to_csv(OUT / 'samples.csv.gz', index=False)
-    meta = {'protocol': 'docs/protocol.md', 'units': len(units), 'calibration': CAL,
-            'rainfall': 'MERGE V07B final, area-weighted mean over the upstream basin (ANA ottobacias level 6)',
-            'period': [str(START.date()), str(END.date())], 'codes': CODES,
-            'atlas_records_corridor_period': int(len(atlas_corr)), 'events_after_dedup': int(len(events)),
-            'episodes': int(events.episode_id.nunique()),
-            'samples': {'positives': int(sample.label.sum()), 'negatives': int((sample.label == 0).sum())},
-            'positives_with_all_predictors': int(sample[sample.label == 1][PREDICTORS].notna().all(axis=1).sum()),
-            'rain_missing_days_by_unit_max': int(rain.loc[START:END].isna().sum().max()),
-            'index_meta_example': next(iter(index_meta.values()))}
+    meta = {
+        'protocol': 'docs/protocol.md',
+        'units': len(units),
+        'calibration': CAL,
+        'rainfall': 'MERGE V07B final, area-weighted mean over the upstream basin (ANA ottobacias level 6)',
+        'period': [str(START.date()), str(END.date())],
+        'codes': CODES,
+        'atlas_records_corridor_period': int(len(atlas_corr)),
+        'events_after_dedup': int(len(events)),
+        'episodes': int(events.episode_id.nunique()),
+        'samples': {'positives': int(sample.label.sum()), 'negatives': int((sample.label == 0).sum())},
+        'positives_with_all_predictors': int(sample[sample.label == 1][PREDICTORS].notna().all(axis=1).sum()),
+        'rain_missing_days_by_unit_max': int(rain.loc[START:END].isna().sum().max()),
+        'index_meta_example': next(iter(index_meta.values())),
+    }
     (OUT / 'data.metadata.json').write_text(json.dumps(meta, indent=1, default=str), encoding='utf-8')
     print(json.dumps(meta, indent=1, default=str))
 
@@ -229,7 +264,7 @@ def oos_combined(df, folds, a_col='EDI', b_col='P3'):
         best = (-1, None, None)
         for a in ga:
             ma = A >= a
-            hit = (ma[:, None] & (B[:, None] >= gb[None, :]))
+            hit = ma[:, None] & (B[:, None] >= gb[None, :])
             tss = hit[y].mean(axis=0) - hit[~y].mean(axis=0)
             j = int(np.argmax(tss))
             if tss[j] > best[0]:
@@ -247,7 +282,12 @@ def big_episode_mask(df):
     block = may24.block.value_counts().idxmax()
     span = df.loc[df.block == block, 'date']
     mask = ((df.block == block) | (~pos & df.date.between(span.min(), span.max()))).to_numpy()
-    return mask, {'block': block, 'start': str(span.min().date()), 'end': str(span.max().date()), 'rows_removed': int(mask.sum())}
+    return mask, {
+        'block': block,
+        'start': str(span.min().date()),
+        'end': str(span.max().date()),
+        'rows_removed': int(mask.sum()),
+    }
 
 
 def evaluate():
@@ -256,10 +296,16 @@ def evaluate():
     y = df.label.to_numpy()
     W = BlockBootstrap(df)  # positives by episode, negatives by year-month
     is_pos = W.pos
-    results = {'n': {'rows': int(len(df)), 'positives': int(is_pos.sum()), 'negatives': int((~is_pos).sum()),
-                     'episodes': int(W.n_pos_blocks),
-                     'episodes_by_year': df[is_pos].groupby('year').block.nunique().to_dict(),
-                     'positives_by_year': df[is_pos].groupby('year').size().to_dict()}}
+    results = {
+        'n': {
+            'rows': int(len(df)),
+            'positives': int(is_pos.sum()),
+            'negatives': int((~is_pos).sum()),
+            'episodes': int(W.n_pos_blocks),
+            'episodes_by_year': df[is_pos].groupby('year').block.nunique().to_dict(),
+            'positives_by_year': df[is_pos].groupby('year').size().to_dict(),
+        }
+    }
 
     # 1) discrimination (AUC) on all data, per predictor + month baseline
     month_rate = df.groupby('month').label.mean()
@@ -314,15 +360,26 @@ def evaluate():
     best_rain = max(rain_cols, key=lambda c: oos['LOYO'][c]['TSS'])
     paired = {}
     for cand in ['EDI', 'PE', 'EDI&P3', 'API']:
-        diffs = [score(preds[('LOYO', cand)], y, W[b])['TSS'] - score(preds[('LOYO', best_rain)], y, W[b])['TSS']
-                 for b in range(N_BOOT)]
-        paired[cand] = {'vs': best_rain, 'TSS_diff': oos['LOYO'][cand]['TSS'] - oos['LOYO'][best_rain]['TSS'],
-                        'CI95': ci(diffs), 'adds_skill': bool(ci(diffs)[0] > 0)}
+        diffs = [
+            score(preds[('LOYO', cand)], y, W[b])['TSS'] - score(preds[('LOYO', best_rain)], y, W[b])['TSS']
+            for b in range(N_BOOT)
+        ]
+        paired[cand] = {
+            'vs': best_rain,
+            'TSS_diff': oos['LOYO'][cand]['TSS'] - oos['LOYO'][best_rain]['TSS'],
+            'CI95': ci(diffs),
+            'adds_skill': bool(ci(diffs)[0] > 0),
+        }
     results['paired_vs_best_rain'] = paired
-    diffs = [score(preds[('LOYO', 'API')], y, W[b])['TSS'] - score(preds[('LOYO', 'EDI')], y, W[b])['TSS']
-             for b in range(N_BOOT)]
-    results['paired_API_vs_EDI'] = {'TSS_diff': oos['LOYO']['API']['TSS'] - oos['LOYO']['EDI']['TSS'],
-                                    'CI95': ci(diffs), 'adds_skill': bool(ci(diffs)[0] > 0)}
+    diffs = [
+        score(preds[('LOYO', 'API')], y, W[b])['TSS'] - score(preds[('LOYO', 'EDI')], y, W[b])['TSS']
+        for b in range(N_BOOT)
+    ]
+    results['paired_API_vs_EDI'] = {
+        'TSS_diff': oos['LOYO']['API']['TSS'] - oos['LOYO']['EDI']['TSS'],
+        'CI95': ci(diffs),
+        'adds_skill': bool(ci(diffs)[0] > 0),
+    }
 
     # 4) final thresholds refit on all 2013-2024 (procedure validated above)
     final = {}
@@ -336,13 +393,18 @@ def evaluate():
             pd_, pf_ = contingency(pos, neg, grid, wp, wn)
             bs_thr.append(grid[int(np.argmax(pd_ - pf_))])
         alert = alert_threshold(neg, grid)
-        final[col] = {'attention': float(thr), 'attention_CI95': ci(bs_thr), 'POD': float(pod), 'POFD': float(pofd),
-                      'alert_pofd2pct': float(alert),
-                      'alert_POD': float((pos >= alert).mean()) if np.isfinite(alert) else None}
+        final[col] = {
+            'attention': float(thr),
+            'attention_CI95': ci(bs_thr),
+            'POD': float(pod),
+            'POFD': float(pofd),
+            'alert_pofd2pct': float(alert),
+            'alert_POD': float((pos >= alert).mean()) if np.isfinite(alert) else None,
+        }
     # Combined rule refit on all rows.
     A, B = df.EDI.to_numpy(), df.P3.to_numpy()
-    ga = np.unique(np.quantile(A, np.linspace(0, .98, 25)))
-    gb = np.unique(np.quantile(B, np.linspace(.5, .999, 40)))
+    ga = np.unique(np.quantile(A, np.linspace(0, 0.98, 25)))
+    gb = np.unique(np.quantile(B, np.linspace(0.5, 0.999, 40)))
     best = (-1, None, None, None, None)
     for a in ga:
         hit = (A >= a)[:, None] & (B[:, None] >= gb[None, :])
@@ -357,14 +419,23 @@ def evaluate():
     dev_eps = df[is_pos & (df.year <= 2020)].block.nunique()
     test_eps = df[is_pos & (df.year >= 2021)].block.nunique()
     validated = {c: bool(oos['LOYO'][c]['TSS_CI95'][0] > 0.2) for c in oos['LOYO']}
-    results['decision'] = {'episodes_dev_2013_2020': int(dev_eps), 'episodes_test_2021_2024': int(test_eps),
-                           'sample_rule_met': bool(dev_eps >= 30 and test_eps >= 10),
-                           'validated_TSS_lower_gt_0.2_LOYO': validated, 'best_rain_predictor': best_rain}
+    results['decision'] = {
+        'episodes_dev_2013_2020': int(dev_eps),
+        'episodes_test_2021_2024': int(test_eps),
+        'sample_rule_met': bool(dev_eps >= 30 and test_eps >= 10),
+        'validated_TSS_lower_gt_0.2_LOYO': validated,
+        'best_rain_predictor': best_rain,
+    }
     (OUT / 'results.json').write_text(json.dumps(results, indent=1, default=float), encoding='utf-8')
     print(json.dumps({k: results[k] for k in ('n', 'auc', 'paired_vs_best_rain', 'decision')}, indent=1, default=float))
     for d in oos:
-        print(d, {c: (round(v['TSS'], 3), [round(x, 3) for x in v['TSS_CI95']], round(v['POD'], 3), round(v['POFD'], 3))
-                  for c, v in oos[d].items()})
+        print(
+            d,
+            {
+                c: (round(v['TSS'], 3), [round(x, 3) for x in v['TSS_CI95']], round(v['POD'], 3), round(v['POFD'], 3))
+                for c, v in oos[d].items()
+            },
+        )
 
 
 if __name__ == '__main__':

@@ -4,15 +4,16 @@ Levels use the operational rule of floodwatch.rules (thresholds + frozen 3-day t
 forecast page shows. Run after the evaluation and the second-trigger test: python -m floodwatch.figures
 Index-specific outputs: EDI (no suffix) and API (suffix _API).
 """
+
 import json
 import unicodedata
 
 import numpy as np
 import pandas as pd
 
-from . import rules as R
-from . import study as s
+from . import rules as R, study as s
 from .paths import ROAD_IMPACTS
+
 IMPACTS = ROAD_IMPACTS / 'impact_precision_review.csv'
 
 
@@ -56,21 +57,38 @@ def index_outputs(table, rule, suffix):
     table['onset'] = [k in onset for k in zip(table.codarea, table.date)]
     full = table[table.level >= 0]
     base = full.onset.mean()
-    lift = {'population': f'todos os município-dias 2013-2024 com {index} válido (in-sample: regra final)', 'index': index,
-            'rule': rule.as_dict(),
-            'n_days': int(len(full)), 'n_onsets': int(full.onset.sum()), 'base_rate': float(base)}
-    for name, mask in [('normal', full.level == 0), ('atencao', full.level == 1), ('alerta', full.level == 2),
-                       ('atencao_ou_alerta', full.level >= 1)]:
+    lift = {
+        'population': f'todos os município-dias 2013-2024 com {index} válido (in-sample: regra final)',
+        'index': index,
+        'rule': rule.as_dict(),
+        'n_days': int(len(full)),
+        'n_onsets': int(full.onset.sum()),
+        'base_rate': float(base),
+    }
+    for name, mask in [
+        ('normal', full.level == 0),
+        ('atencao', full.level == 1),
+        ('alerta', full.level == 2),
+        ('atencao_ou_alerta', full.level >= 1),
+    ]:
         rate = full.onset[mask].mean()
-        lift[name] = {'share_days': float(mask.mean()), 'share_events': float(full.onset[mask].sum() / full.onset.sum()),
-                      'event_rate': float(rate), 'lift_vs_base': float(rate / base)}
+        lift[name] = {
+            'share_days': float(mask.mean()),
+            'share_events': float(full.onset[mask].sum() / full.onset.sum()),
+            'event_rate': float(rate),
+            'lift_vs_base': float(rate / base),
+        }
     lift['alert_pofd_all_non_onset_days'] = float((full.level[~full.onset] == 2).mean())
     lift['attention_or_alert_pofd_all_non_onset_days'] = float((full.level[~full.onset] >= 1).mean())
     (s.OUT / f'level_lift{suffix}.json').write_text(json.dumps(lift, indent=1), encoding='utf-8')
 
     # May 2024 timeline: share of corridor municipalities at each level + records per day
     w = table[table.date.between('2024-04-10', '2024-05-31')]
-    tl = w.groupby('date')['level'].agg(attention=lambda x: (x >= 1).mean(), alert=lambda x: (x == 2).mean()).reset_index()
+    tl = (
+        w.groupby('date')['level']
+        .agg(attention=lambda x: (x >= 1).mean(), alert=lambda x: (x == 2).mean())
+        .reset_index()
+    )
     rec = events[events.date.between('2024-04-10', '2024-05-31')].groupby('date').size().rename('records')
     tl = tl.merge(rec, left_on='date', right_index=True, how='left').fillna({'records': 0})
     tl.to_csv(s.OUT / f'timeline_2024{suffix}.csv', index=False)
@@ -80,11 +98,20 @@ def index_outputs(table, rule, suffix):
     leads = []
     for e in events.itertuples():
         d, n = e.date, 0
-        while (e.codarea, d - pd.Timedelta(days=n + 1)) in lv.index and lv[(e.codarea, d - pd.Timedelta(days=n + 1))] >= 1:
+        while (e.codarea, d - pd.Timedelta(days=n + 1)) in lv.index and lv[
+            (e.codarea, d - pd.Timedelta(days=n + 1))
+        ] >= 1:
             n += 1
         at = lv.get((e.codarea, d), np.nan)
-        leads.append({'codarea': e.codarea, 'date': e.date, 'episode_id': e.episode_id, 'level_on_day': at,
-                      'days_before_at_attention': n if at >= 1 else 0})
+        leads.append(
+            {
+                'codarea': e.codarea,
+                'date': e.date,
+                'episode_id': e.episode_id,
+                'level_on_day': at,
+                'days_before_at_attention': n if at >= 1 else 0,
+            }
+        )
     pd.DataFrame(leads).to_csv(s.OUT / f'event_leads{suffix}.csv', index=False)
 
     # Independent road check (never used in calibration)
@@ -99,17 +126,34 @@ def index_outputs(table, rule, suffix):
         muni = str(r.municipality).split('–')[0].split('(')[0].split(',')[0].strip()
         code = names.get(norm(muni))
         if not when or code is None:
-            rows.append({'impact_id': r.impact_id, 'road': r.road, 'km': r.km_start_original, 'municipio': muni,
-                         'data': when[0] if when else None, 'status': 'sem data ou município no corredor'})
+            rows.append(
+                {
+                    'impact_id': r.impact_id,
+                    'road': r.road,
+                    'km': r.km_start_original,
+                    'municipio': muni,
+                    'data': when[0] if when else None,
+                    'status': 'sem data ou município no corredor',
+                }
+            )
             continue
         d = pd.Timestamp(when[0])
         window = [lv.get((code, d - pd.Timedelta(days=k)), np.nan) for k in range(0, 8)]
         best = np.nanmax(window[:3]) if np.isfinite(window[:3]).any() else np.nan
         first = next((k for k in range(7, -1, -1) if np.isfinite(window[k]) and window[k] >= 1), None)
-        rows.append({'impact_id': r.impact_id, 'road': r.road, 'km': r.km_start_original, 'municipio': muni,
-                     'data': str(d.date()), 'nivel_max_d-2_a_d': best,
-                     'primeiro_dia_atencao_ate_7d_antes': (-first if first is not None else None),
-                     'status': 'avaliado' if np.isfinite(best) else 'fora do período (2013–2024)', 'episodio': r.episode_id})
+        rows.append(
+            {
+                'impact_id': r.impact_id,
+                'road': r.road,
+                'km': r.km_start_original,
+                'municipio': muni,
+                'data': str(d.date()),
+                'nivel_max_d-2_a_d': best,
+                'primeiro_dia_atencao_ate_7d_antes': (-first if first is not None else None),
+                'status': 'avaliado' if np.isfinite(best) else 'fora do período (2013–2024)',
+                'episodio': r.episode_id,
+            }
+        )
     pd.DataFrame(rows).to_csv(s.OUT / f'road_check{suffix}.csv', index=False)
     print(index, pd.DataFrame(rows).status.value_counts().to_dict())
 

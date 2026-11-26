@@ -1,4 +1,5 @@
 """Focused tests for the rules that the published numbers depend on."""
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -31,16 +32,20 @@ def test_block_bootstrap_resamples_whole_blocks():
     W = stats.BlockBootstrap(df, n=50)
     for b in range(W.n):
         w = W[b]
-        assert w[0] == w[1] and w[3] == w[4] and w[5] == w[6]   # rows of one block always move together
-        assert w[0] + w[2] == 2 and w[3] + w[5] == 2             # two blocks drawn per class
+        assert w[0] == w[1] and w[3] == w[4] and w[5] == w[6]  # rows of one block always move together
+        assert w[0] + w[2] == 2 and w[3] + w[5] == 2  # two blocks drawn per class
     mask = np.array([True] * 3 + [False] * 4)
     assert np.array_equal(W.subset(mask)[0], W[0][:3])
 
 
 # ---------------------------------------------------------------- events and calendar
 def test_chain_events_uses_previous_record_and_episodes():
-    rec = pd.DataFrame({'codarea': ['A', 'A', 'A', 'A', 'B'],
-                        'date': pd.to_datetime(['2020-01-01', '2020-01-06', '2020-01-12', '2020-02-01', '2020-01-03'])})
+    rec = pd.DataFrame(
+        {
+            'codarea': ['A', 'A', 'A', 'A', 'B'],
+            'date': pd.to_datetime(['2020-01-01', '2020-01-06', '2020-01-12', '2020-02-01', '2020-01-03']),
+        }
+    )
     ev = study.chain_events(rec, dedup_days=7, episode_gap=5)
     # A: 01-01, 01-06 (5 d), 01-12 (6 d from previous) -> one event; 02-01 new event. B separate municipality.
     assert sorted(ev[ev.codarea == 'A'].date.dt.strftime('%m-%d')) == ['01-01', '02-01']
@@ -67,8 +72,10 @@ def test_levels_never_report_normal_without_data_and_trigger_only_lifts_to_watch
 
 def test_run_rules_reads_old_and_new_metadata():
     new = {'rules': {'EDI': {'index': 'EDI', 'attention': 1.0, 'alert': 3.0, 'trigger_p3_mm': 60.0}}}
-    old = {'thresholds': {'predictor': 'EDI', 'attention': 1.25, 'alert': 3.37},
-           'thresholds_api': {'predictor': 'API', 'attention': 72.0, 'alert': 128.0}}
+    old = {
+        'thresholds': {'predictor': 'EDI', 'attention': 1.25, 'alert': 3.37},
+        'thresholds_api': {'predictor': 'API', 'attention': 72.0, 'alert': 128.0},
+    }
     assert rules.run_rules(new) == new['rules']
     assert set(rules.run_rules(old)) == {'EDI', 'API'} and rules.run_rules(old)['API']['attention'] == 72.0
 
@@ -115,7 +122,7 @@ def test_api_is_the_library_recursion_and_propagates_gaps():
     rain = pd.Series([10.0, 0.0, 5.0, np.nan, 1.0], index=days)
     api = indices.api(rain, k=0.9)
     assert api[:3] == pytest.approx([10.0, 9.0, 13.1])
-    assert np.isnan(api[3:]).all()   # a missing day never becomes zero rain
+    assert np.isnan(api[3:]).all()  # a missing day never becomes zero rain
 
 
 def test_study_keeps_indices_module_reachable():
@@ -125,7 +132,7 @@ def test_study_keeps_indices_module_reachable():
 
 def test_forecast_verification_counts_watch_and_skips_missing_levels():
     fc = pd.Series([2, 1, 0, 0, 1, -1])
-    obs = pd.Series([1, 0, 1, 0, 2, 1])   # the last pair has no forecast level and is excluded
+    obs = pd.Series([1, 0, 1, 0, 2, 1])  # the last pair has no forecast level and is excluded
     c = _contingency(fc, obs)
     assert (c['n'], c['hits'], c['false_alarms'], c['misses'], c['correct_negatives']) == (5, 2, 1, 1, 1)
     assert c['POD'] == pytest.approx(2 / 3) and c['FAR'] == pytest.approx(1 / 3)
@@ -133,11 +140,15 @@ def test_forecast_verification_counts_watch_and_skips_missing_levels():
 
 def test_preliminary_reports_keep_only_water_events_in_corridor_municipalities(tmp_path, monkeypatch):
     from floodwatch import official_records
+
     f = tmp_path / 'reports.csv'
-    f.write_text('date,municipio,tipo,fonte,url,observacao\n'
-                 '2026-11-05,caxias do sul,Alagamento,x,,\n'      # accents/case-insensitive match, kept
-                 '2026-11-05,Lajeado,granizo,x,,\n'               # hail is not a flood type, dropped
-                 '2026-11-05,Tapera,inundação,x,,\n', encoding='utf-8')  # outside the corridors, dropped
+    f.write_text(
+        'date,municipio,tipo,fonte,url,observacao\n'
+        '2026-11-05,caxias do sul,Alagamento,x,,\n'  # accents/case-insensitive match, kept
+        '2026-11-05,Lajeado,granizo,x,,\n'  # hail is not a flood type, dropped
+        '2026-11-05,Tapera,inundação,x,,\n',
+        encoding='utf-8',
+    )  # outside the corridors, dropped
     monkeypatch.setattr(official_records, 'REPORTS', f)
     r = official_records.preliminary_reports()
     assert r.nome.tolist() == ['Caxias do Sul'] and r.date.tolist() == ['2026-11-05']

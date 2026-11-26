@@ -13,6 +13,7 @@ Tests, leave-one-year-out, same samples and bootstrap as §7:
     python -m floodwatch.soil_moisture check      # 4-hour mean vs 24-hour mean on the months fetched both ways
     python -m floodwatch.soil_moisture evaluate   # -> data/processed/study/soil_moisture.json
 """
+
 import json
 import pathlib
 import sys
@@ -23,7 +24,7 @@ import pandas as pd
 from .paths import RAW, STUDY
 
 ARCHIVE = RAW / 'era5land'
-AREA = [-26.0, -57.5, -34.5, -49.0]   # N, W, S, E: every upstream MERGE cell (-34.45..-26.25, -57.35..-49.25)
+AREA = [-26.0, -57.5, -34.5, -49.0]  # N, W, S, E: every upstream MERGE cell (-34.45..-26.25, -57.35..-49.25)
 YEARS = range(1999, 2026)
 CAL = (1999, 2012)
 LAYERS = {'swvl1': 7, 'swvl2': 21, 'swvl3': 72}  # thickness (cm) within 0-100 cm
@@ -33,12 +34,14 @@ SYNOPTIC = ['00:00', '06:00', '12:00', '18:00']
 
 def _client():
     import cdsapi
+
     return cdsapi.Client(quiet=True, progress=False)
 
 
 def _retrieve(dataset, request, path):
     """One request at a time; wait while the dataset's global queue is full. Only complete files count as done."""
     import time
+
     tmp = path.with_suffix('.part')
     while True:
         try:
@@ -61,10 +64,24 @@ def download():
         path = ARCHIVE / f'sm6h_{year}.nc'
         if path.exists():
             continue
-        _retrieve('reanalysis-era5-land', {
-            'variable': ['volumetric_soil_water_layer_1', 'volumetric_soil_water_layer_2', 'volumetric_soil_water_layer_3'],
-            'year': str(year), 'month': [f'{m:02d}' for m in range(1, 13)], 'day': [f'{d:02d}' for d in range(1, 32)],
-            'time': SYNOPTIC, 'data_format': 'netcdf', 'download_format': 'unarchived', 'area': AREA}, path)
+        _retrieve(
+            'reanalysis-era5-land',
+            {
+                'variable': [
+                    'volumetric_soil_water_layer_1',
+                    'volumetric_soil_water_layer_2',
+                    'volumetric_soil_water_layer_3',
+                ],
+                'year': str(year),
+                'month': [f'{m:02d}' for m in range(1, 13)],
+                'day': [f'{d:02d}' for d in range(1, 32)],
+                'time': SYNOPTIC,
+                'data_format': 'netcdf',
+                'download_format': 'unarchived',
+                'area': AREA,
+            },
+            path,
+        )
         print('ERA5-Land', year, 'ok', flush=True)
 
 
@@ -78,7 +95,9 @@ def _daily(d):
 def basin_sm():
     """Daily 0-100 cm soil moisture (m3/m3) per upstream basin (date x codarea)."""
     import xarray as xr
+
     from . import upstream
+
     w = upstream.weights()
     lat = np.floor(upstream.LAT[w.iy] * 10 + 0.5) / 10
     lon = np.floor(upstream.LON[w.ix] * 10 + 0.5) / 10
@@ -86,7 +105,9 @@ def basin_sm():
     for path in sorted(ARCHIVE.glob('sm6h_*.nc')):
         with xr.open_dataset(path) as d:
             sm = _daily(d)
-            pick = sm.sel(latitude=xr.DataArray(lat, dims='cell'), longitude=xr.DataArray(lon, dims='cell'), method='nearest')
+            pick = sm.sel(
+                latitude=xr.DataArray(lat, dims='cell'), longitude=xr.DataArray(lon, dims='cell'), method='nearest'
+            )
             vals = pick.to_numpy()  # time x cell
             times = pd.to_datetime(pick['time'].to_numpy()).normalize()
         cell = pd.DataFrame(vals, index=times)
@@ -103,7 +124,9 @@ def check_synoptic_mean():
     daily-statistics dataset (sm_YYYYMM.nc, zip archives with one file per layer)."""
     import tempfile
     import zipfile
+
     import xarray as xr
+
     rows = []
     for path in sorted(ARCHIVE.glob('sm_[0-9]*.nc')):
         year = int(path.stem[3:7])
@@ -123,8 +146,14 @@ def check_synoptic_mean():
             syn = _daily(d).sel(time=full['time']).load()
         diff = (syn - full).to_numpy().ravel()
         diff = diff[np.isfinite(diff)]
-        rows.append({'month': path.stem[3:], 'mean_diff': float(diff.mean()), 'p99_abs_diff': float(np.quantile(abs(diff), 0.99)),
-                     'sd_full': float(np.nanstd(full.to_numpy()))})
+        rows.append(
+            {
+                'month': path.stem[3:],
+                'mean_diff': float(diff.mean()),
+                'p99_abs_diff': float(np.quantile(abs(diff), 0.99)),
+                'sd_full': float(np.nanstd(full.to_numpy())),
+            }
+        )
     print(pd.DataFrame(rows).to_string(index=False))
     return rows
 
@@ -158,9 +187,10 @@ def _fit_or(df, train, thr_api, b_api, s_grid_q=np.linspace(0.80, 0.995, 40)):
 
 
 def evaluate():
+    from . import study
     from .second_trigger import fit_rule
     from .stats import BlockBootstrap, auc, oos_predictions, paired, scores, year_folds
-    from . import study
+
     an = anomaly(basin_sm())
     windowed = an.rolling(2, min_periods=2).max().stack(future_stack=True).rename('SM').reset_index()
     windowed.columns = ['date', 'codarea', 'SM']
@@ -185,12 +215,20 @@ def evaluate():
         api_rule[test] = rule.to_numpy(float)
         combo[test] = (rule | ((te.SM >= s) & (te.P1 >= q))).to_numpy(float)
     pos, neg = df.label == 1, df.label == 0
-    out = {'rows': int(len(df)), 'rows_without_sm': missing, 'positives': int(y.sum()),
-           'AUC_SM': auc(df.SM[pos].to_numpy(), df.SM[neg].to_numpy()),
-           'i_SM_alone': scores(sm_alone, y, W), 'i_API_alone': scores(api_alone, y, W),
-           'i_paired_SM_minus_API': paired(sm_alone, api_alone, y, W), 'SM_thresholds_by_fold': sm_thr,
-           'ii_API_rule': scores(api_rule, y, W), 'ii_API_rule_OR_SM_and_P1': scores(combo, y, W),
-           'ii_paired_combo_minus_rule': paired(combo, api_rule, y, W), 'ii_params_by_fold': params}
+    out = {
+        'rows': int(len(df)),
+        'rows_without_sm': missing,
+        'positives': int(y.sum()),
+        'AUC_SM': auc(df.SM[pos].to_numpy(), df.SM[neg].to_numpy()),
+        'i_SM_alone': scores(sm_alone, y, W),
+        'i_API_alone': scores(api_alone, y, W),
+        'i_paired_SM_minus_API': paired(sm_alone, api_alone, y, W),
+        'SM_thresholds_by_fold': sm_thr,
+        'ii_API_rule': scores(api_rule, y, W),
+        'ii_API_rule_OR_SM_and_P1': scores(combo, y, W),
+        'ii_paired_combo_minus_rule': paired(combo, api_rule, y, W),
+        'ii_params_by_fold': params,
+    }
     (STUDY / 'soil_moisture.json').write_text(json.dumps(out, indent=1, default=float), encoding='utf-8')
     for k in ('i_SM_alone', 'i_API_alone', 'ii_API_rule', 'ii_API_rule_OR_SM_and_P1'):
         print(k, round(out[k]['TSS'], 3), out[k]['TSS_CI95'])

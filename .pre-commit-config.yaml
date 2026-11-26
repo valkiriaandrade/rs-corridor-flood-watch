@@ -1,0 +1,8 @@
+# Run `pre-commit install` once; ruff then checks and formats the staged Python files on commit.
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.6  # same version as requirements-dev.txt
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format

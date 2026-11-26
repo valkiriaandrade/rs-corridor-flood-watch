@@ -4,6 +4,7 @@ TSS (Peirce skill score) = POD - POFD. Thresholds: Watch = maximum TSS, Warning 
 Block bootstrap (2,000 replicates, seed 20261103): positives resampled by flood episode, negatives by year-month,
 so one storm with dozens of records never counts as dozens of independent cases.
 """
+
 import numpy as np
 import pandas as pd
 
@@ -153,7 +154,7 @@ def ci(values):
     """Percentile 95 % interval of the finite replicate values."""
     v = np.asarray(values, float)
     v = v[np.isfinite(v)]
-    return [float(np.quantile(v, .025)), float(np.quantile(v, .975))] if len(v) else [None, None]
+    return [float(np.quantile(v, 0.025)), float(np.quantile(v, 0.975))] if len(v) else [None, None]
 
 
 def scores(pred, y, boot):
@@ -169,5 +170,8 @@ def paired(pred_a, pred_b, y, boot):
     """Paired TSS difference a - b with a bootstrap 95 % CI; 'improves' only if the whole CI is above 0."""
     reps = [score(pred_a, y, boot[b])['TSS'] - score(pred_b, y, boot[b])['TSS'] for b in range(boot.n)]
     c = ci(reps)
-    return {'diff': float(score(pred_a, y)['TSS'] - score(pred_b, y)['TSS']), 'CI95': c,
-            'improves': bool(c[0] is not None and c[0] > 0)}
+    return {
+        'diff': float(score(pred_a, y)['TSS'] - score(pred_b, y)['TSS']),
+        'CI95': c,
+        'improves': bool(c[0] is not None and c[0] > 0),
+    }

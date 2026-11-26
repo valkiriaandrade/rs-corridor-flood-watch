@@ -7,39 +7,55 @@
 Existing files are kept unless their provenance is missing; MERGE days whose product is
 'early' are re-downloaded (CPTEC replaces them with 'late' and later 'final' versions).
 """
+
 import argparse
-from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timezone
 import hashlib
 import json
+from concurrent.futures import ThreadPoolExecutor
+from datetime import UTC, datetime
 
 import pandas as pd
 import requests
-from requests.adapters import HTTPAdapter
 import urllib3
+from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from .paths import ATLAS, MERGE, SPATIAL
 
 MERGE_BASE = 'https://ftp.cptec.inpe.br/modelos/tempo/MERGE/GPM/DAILY/'
 STATIC = [
-    (ATLAS / 'BD_Atlas_1991_2025_v1.1.csv',
-     'https://atlasdigital.mdr.gov.br/arquivos/2026/BD_Atlas_1991_2025_v1.1_2026.08.06_Consolidado.csv'),
-    (ATLAS / 'Atlas_Manual.pdf', 'https://atlasdigital.mdr.gov.br/arquivos/Atlas_Digital_Desastres_Manual_Aplicacao.pdf'),
-    (SPATIAL / 'ibge_rs_municipios.geojson',
-     'https://servicodados.ibge.gov.br/api/v3/malhas/estados/43?intrarregiao=municipio'
-     '&formato=application/vnd.geo%2Bjson&qualidade=intermediaria'),
-    (SPATIAL / 'ibge_rs_municipios_nomes.json', 'https://servicodados.ibge.gov.br/api/v1/localidades/estados/43/municipios'),
-    (SPATIAL / 'snv202404_corridors_rs.geojson',
-     'https://servicos.dnit.gov.br/dnitgeo/geoserver/ows?service=WFS&version=2.0.0&request=GetFeature'
-     '&typeNames=vgeo%3Avw_snv_rod&outputFormat=application%2Fjson&srsName=EPSG%3A4326&count=2000'
-     '&CQL_FILTER=Unidade_Federacao%3D%27RS%27+AND+Versao_SNV%3D%27202404A%27+AND+Codigo_BR+IN+%28%27116%27%2C%27386%27%2C%27290%27%29'),
+    (
+        ATLAS / 'BD_Atlas_1991_2025_v1.1.csv',
+        'https://atlasdigital.mdr.gov.br/arquivos/2026/BD_Atlas_1991_2025_v1.1_2026.08.06_Consolidado.csv',
+    ),
+    (
+        ATLAS / 'Atlas_Manual.pdf',
+        'https://atlasdigital.mdr.gov.br/arquivos/Atlas_Digital_Desastres_Manual_Aplicacao.pdf',
+    ),
+    (
+        SPATIAL / 'ibge_rs_municipios.geojson',
+        'https://servicodados.ibge.gov.br/api/v3/malhas/estados/43?intrarregiao=municipio'
+        '&formato=application/vnd.geo%2Bjson&qualidade=intermediaria',
+    ),
+    (
+        SPATIAL / 'ibge_rs_municipios_nomes.json',
+        'https://servicodados.ibge.gov.br/api/v1/localidades/estados/43/municipios',
+    ),
+    (
+        SPATIAL / 'snv202404_corridors_rs.geojson',
+        'https://servicos.dnit.gov.br/dnitgeo/geoserver/ows?service=WFS&version=2.0.0&request=GetFeature'
+        '&typeNames=vgeo%3Avw_snv_rod&outputFormat=application%2Fjson&srsName=EPSG%3A4326&count=2000'
+        '&CQL_FILTER=Unidade_Federacao%3D%27RS%27+AND+Versao_SNV%3D%27202404A%27+AND+Codigo_BR+IN+%28%27116%27%2C%27386%27%2C%27290%27%29',
+    ),
 ]
 
 
 def session():
     s = requests.Session()
-    s.mount('https://', HTTPAdapter(max_retries=Retry(total=3, backoff_factor=.5, status_forcelist=[429, 500, 502, 503, 504])))
+    s.mount(
+        'https://',
+        HTTPAdapter(max_retries=Retry(total=3, backoff_factor=0.5, status_forcelist=[429, 500, 502, 503, 504])),
+    )
     return s
 
 
@@ -50,7 +66,7 @@ def _warn_unverified():
     if not _warned:
         _warned.append(True)
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-        print('AVISO: certificado TLS do CPTEC inválido; MERGE baixado sem verificação (tls_verified: false)')
+        print('WARNING: invalid CPTEC TLS certificate; MERGE downloaded without verification (tls_verified: false)')
 
 
 def download(url, path, s=None, force=False, timeout=(15, 120)):
@@ -75,8 +91,13 @@ def download(url, path, s=None, force=False, timeout=(15, 120)):
     tmp = path.with_name(path.name + '.part')
     tmp.write_bytes(r.content)
     tmp.replace(path)
-    meta = {'url': url, 'downloaded_at_utc': datetime.now(timezone.utc).isoformat(), 'bytes': len(r.content),
-            'sha256': hashlib.sha256(r.content).hexdigest(), 'last_modified': r.headers.get('Last-Modified')}
+    meta = {
+        'url': url,
+        'downloaded_at_utc': datetime.now(UTC).isoformat(),
+        'bytes': len(r.content),
+        'sha256': hashlib.sha256(r.content).hexdigest(),
+        'last_modified': r.headers.get('Last-Modified'),
+    }
     if not verified:
         meta['tls_verified'] = False
     audit.write_text(json.dumps(meta, indent=1), encoding='utf-8')
@@ -87,7 +108,9 @@ def merge_state(day):
     ctl = MERGE / f'MERGE_CPTEC_{pd.Timestamp(day):%Y%m%d}.ctl'
     if not ctl.exists():
         return None
-    title = next((x for x in ctl.read_text(encoding='utf-8', errors='replace').splitlines() if x.lower().startswith('title')), '')
+    title = next(
+        (x for x in ctl.read_text(encoding='utf-8', errors='replace').splitlines() if x.lower().startswith('title')), ''
+    )
     return next((k for k in ('final', 'late', 'early') if k in title.lower()), 'unknown')
 
 

@@ -7,6 +7,7 @@
   difference, for the comparisons the study reports as "not proven".
     python -m floodwatch.stats_extra   -> data/processed/study/stats_extra.json
 """
+
 import json
 
 import numpy as np
@@ -30,8 +31,12 @@ def sedi(pod, pofd):
 def with_ci(pred, y, boot):
     point = score(pred, y)
     reps = [score(pred, y, boot[b]) for b in range(boot.n)]
-    out = {'POD': float(point['POD']), 'POFD': float(point['POFD']), 'TSS': float(point['TSS']),
-           'SEDI': float(sedi(point['POD'], point['POFD']))}
+    out = {
+        'POD': float(point['POD']),
+        'POFD': float(point['POFD']),
+        'TSS': float(point['TSS']),
+        'SEDI': float(sedi(point['POD'], point['POFD'])),
+    }
     out['TSS_CI95'] = ci([r['TSS'] for r in reps])
     out['SEDI_CI95'] = ci([sedi(r['POD'], r['POFD']) for r in reps])
     return out
@@ -47,8 +52,12 @@ def detectable(pred_a, pred_b, y, boot):
     """Paired TSS difference a - b, its bootstrap SD, CI and the minimum detectable difference at 80 % power."""
     reps = np.array([score(pred_a, y, boot[b])['TSS'] - score(pred_b, y, boot[b])['TSS'] for b in range(boot.n)])
     sd = float(np.nanstd(reps, ddof=1))
-    return {'diff': float(score(pred_a, y)['TSS'] - score(pred_b, y)['TSS']), 'CI95': ci(reps), 'boot_SD': sd,
-            'min_detectable_80pct_power': 2.8 * sd}
+    return {
+        'diff': float(score(pred_a, y)['TSS'] - score(pred_b, y)['TSS']),
+        'CI95': ci(reps),
+        'boot_SD': sd,
+        'min_detectable_80pct_power': 2.8 * sd,
+    }
 
 
 def run():
@@ -65,8 +74,13 @@ def run():
         preds[f'{ix} Warning level'], _ = oos_alert(df, ix, folds)
     for col in ('P30', 'P3'):
         preds[f'{col} alone'], _ = oos_predictions(df, col, folds)
-    out = {'design': 'leave-one-year-out 2013-2024, same samples and block bootstrap as the study (§7)',
-           'rows': int(len(df)), 'positives': int((y == 1).sum()), 'base_rate': float(y.mean()), 'scores': {}}
+    out = {
+        'design': 'leave-one-year-out 2013-2024, same samples and block bootstrap as the study (§7)',
+        'rows': int(len(df)),
+        'positives': int((y == 1).sum()),
+        'base_rate': float(y.mean()),
+        'scores': {},
+    }
     for name, p in preds.items():
         out['scores'][name] = with_ci(p, y, W)
         print(name, {k: round(v, 3) for k, v in out['scores'][name].items() if not k.endswith('CI95')})
@@ -75,13 +89,17 @@ def run():
     for name in ('API dashboard rule', 'EDI dashboard rule', 'API Warning level', 'EDI Warning level', 'P30 alone'):
         s = out['scores'][name]
         v = economic_value(s['POD'], s['POFD'], out['base_rate'], ratios)
-        out['economic_value'][name] = {'V': [float(x) for x in v], 'V_max': float(np.nanmax(v)),
-                                       'C/L_at_V_max': float(ratios[int(np.nanargmax(v))]),
-                                       'C/L_with_V_above_0': [float(ratios[v > 0].min()), float(ratios[v > 0].max())] if (v > 0).any() else None}
+        out['economic_value'][name] = {
+            'V': [float(x) for x in v],
+            'V_max': float(np.nanmax(v)),
+            'C/L_at_V_max': float(ratios[int(np.nanargmax(v))]),
+            'C/L_with_V_above_0': [float(ratios[v > 0].min()), float(ratios[v > 0].max())] if (v > 0).any() else None,
+        }
     out['detectable_differences'] = {
         'API rule - EDI rule': detectable(preds['API dashboard rule'], preds['EDI dashboard rule'], y, W),
         'API alone - P30 alone': detectable(preds['API alone'], preds['P30 alone'], y, W),
-        'EDI alone - P30 alone': detectable(preds['EDI alone'], preds['P30 alone'], y, W)}
+        'EDI alone - P30 alone': detectable(preds['EDI alone'], preds['P30 alone'], y, W),
+    }
     for k, d in out['detectable_differences'].items():
         print(k, round(d['diff'], 3), d['CI95'], 'MDE', round(d['min_detectable_80pct_power'], 3))
     (STUDY / 'stats_extra.json').write_text(json.dumps(out, indent=1, default=float), encoding='utf-8')

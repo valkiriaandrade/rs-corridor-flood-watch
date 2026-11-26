@@ -1,3 +1,4 @@
 -r requirements-pipeline.txt
 pytest==9.2.0
-pyflakes==4.1.0
+ruff==0.17.6        # lint + format; same version as .pre-commit-config.yaml
+pre-commit==4.7.0
