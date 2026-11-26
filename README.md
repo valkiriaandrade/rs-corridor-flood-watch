@@ -109,21 +109,54 @@ arrived, while the API (about one month of memory) reacted faster.
 Archived runs, March 2024 → November 2026, 34 boxes of 0.5° over the corridors. ECMWF IFS forecast heavy rain
 (≥ 20 mm/day, D+1 to D+3) better than NOAA GFS: equitable threat score 0.345 vs 0.286 (difference +0.059, 95 % CI
 +0.026 to +0.093). Both underestimated 3-day rain on flood-record days (ECMWF 69 %, GFS 61 % of the observed amount at
-D+1). **The skill of the levels computed with forecast rainfall has not been measured yet**; every forecast is archived
-so that it can be (see [Forecast archive](#forecast-archive)).
+D+1).
 
-### Registered analyses in progress (protocol §§9.5–9.8, 9.11)
+### Levels computed with forecast rainfall: hindcast (protocol §9.5–9.6)
 
-Written into the protocol on 2026-11-24, before any data were downloaded. Results will be reported here whatever they
-show.
+Frozen dashboard rules applied to past ECMWF IFS and GFS runs (Open-Meteo previous-runs archive, 0.5° grid), every day
+of March 2024 – December 2025, scored against the official records (170 events, 20 episodes). *Observed* = the same
+rule with MERGE rainfall on the same days; TSS of Watch or above.
 
-| § | Question | Data | Status |
-|---|---|---|---|
-| 9.5 | **Hindcast:** how skilful are the Watch/Warning levels when computed with forecast rainfall, D+1 to D+5? | ECMWF IFS and GFS past runs (Open-Meteo), Mar 2024 – Dec 2025 | downloading |
-| 9.6 | **Bias correction:** does quantile mapping of forecast rainfall (fitted on 2024, tested on 2025) improve the levels? | same as 9.5 | waits for 9.5 |
-| 9.7 | **Ensemble probabilities:** are P(Watch) and P(Warning) from ECMWF ENS (51 members) and GEFS (31) reliable? | archived every day since 2026-11-25 | verified after one year |
-| 9.8 | **GloFAS benchmark:** does a hydrological model's river discharge beat the rainfall rule? | GloFAS v4 reanalysis 1999–2025 (Copernicus EWDS) | downloading |
-| 9.11 | **Soil moisture:** does ERA5-Land soil moisture add skill to the API rule? | ERA5-Land daily 1999–2025 (Copernicus CDS) | downloading |
+| Rule | Observed rain | ECMWF D+1 | D+3 | D+5 | GFS D+1 | D+3 | D+5 | Loss, mean D+1…D+3 (95 % CI) |
+|---|---|---|---|---|---|---|---|---|
+| **API** | 0.60 | 0.47 | 0.46 | 0.52 | 0.40 | 0.27 | 0.25 | ECMWF −0.13 (−0.21 to −0.05); GFS −0.28 (−0.33 to −0.14) |
+| **EDI** | 0.46 | 0.35 | 0.34 | 0.38 | 0.33 | 0.21 | 0.17 | ECMWF −0.12 (−0.17 to −0.07); GFS −0.19 (−0.22 to −0.11) |
+
+- **Forecast levels keep most of the skill with ECMWF and lose about half with GFS.** With ECMWF the API rule still
+  scores TSS ≈ 0.46–0.52 up to D+5 (detection 61–68 %, false alarms 14–16 %). GFS loses skill quickly after D+1. The
+  ranking is the same as for heavy-rain forecasts above, and it holds in 2024 and in 2025 separately.
+- **The loss comes from missed events, not extra alarms:** false-alarm rates stay close to the observed-rain rule; detection drops
+  because both models underestimate the heaviest rain.
+- **ECMWF D+5 scoring slightly above D+1 is not meaningful:** 20 episodes, and the differences between leads are well
+  within the uncertainty.
+- **Bias correction (§9.6), quantile mapping fitted on 2024 and tested on 2025, does not help:** TSS change −0.006 (API,
+  ECMWF; CI −0.06 to +0.01), −0.011 (API, GFS), −0.025 (EDI, ECMWF; CI −0.04 to −0.006), −0.019 (EDI, GFS). Not
+  adopted. Mapping the whole distribution does not fix the missing extremes that drive the misses.
+- Prospective verification of the operational forecasts continues on the dashboard; every run is archived
+  (see [Forecast archive](#forecast-archive)).
+
+### Soil moisture (protocol §9.11)
+
+ERA5-Land soil moisture 0–100 cm over the same upstream basins, standardised per calendar day, leave-one-year-out on the
+same 471 events:
+
+| Rule | TSS (95 % CI) |
+|---|---|
+| API dashboard rule | 0.57 (0.46–0.64) |
+| Soil-moisture anomaly alone | 0.39 (0.21–0.51) |
+| API rule **or** (soil moisture ≥ s **and** day rain ≥ q) | 0.56 (0.45–0.64) |
+
+Soil moisture alone is worse than the API (−0.18, CI −0.29 to −0.10), and adding it to the rule changes nothing
+(−0.003, CI −0.008 to +0.003). **Negative result:** the API already carries the wetness memory that soil moisture
+would add. (A defect found after the first run, which dropped basins partly over lagoons, was fixed and is logged; both
+runs were negative.)
+
+### Registered analyses still open
+
+| § | Question | Status |
+|---|---|---|
+| 9.7 | **Ensemble probabilities:** are P(Watch) and P(Warning) from ECMWF ENS (51 members) and GEFS (31) reliable? | archived every day since 2026-11-25; verified after one year |
+| 9.8 | **GloFAS benchmark:** does a hydrological model's river discharge (GloFAS v4 reanalysis 1999–2025) beat the rainfall rule? | waiting in the Copernicus EWDS queue |
 
 ---
 
@@ -430,9 +463,9 @@ streamlit run app.py                                # uses the bundled processed
 - **Large episodes weigh heavily.** April–May 2024 concentrates many records; results without it are reported.
 - **River floods are defined statistically** (median annual maximum), not by official flood stages. Conventional
   readings at 07:00 and 17:00 can miss the peak.
-- **Levels computed with forecast rainfall have not been verified yet.** They inherit the weather model's error, and
-  both models underestimated the rain on flood days. The hindcast (§9.5) will measure this; prospective verification
-  runs on the dashboard since November 2026.
+- **Levels computed with forecast rainfall are less skilful than the study numbers.** The hindcast (2024–2025, 20
+  episodes) puts the API rule at TSS ≈ 0.47 with ECMWF and ≈ 0.27–0.40 with GFS, against 0.60 with observed rain on the
+  same days; both models miss the heaviest rain. Prefer ECMWF; GFS beyond D+1 is weak.
 - **The ensemble probabilities are archived, not shown.** They will only be shown once a year of data shows that they are
   reliable (§9.7).
 - **Recent S2iD reports depend on the PC in Brazil.** If it stays off, the "reported floods" card ages; the card shows
