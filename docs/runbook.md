@@ -31,7 +31,7 @@ export FLOODWATCH_MERGE_ARCHIVE=data/raw/merge        # folder holding the 1998-
 | 16 | `python -m floodwatch.forecast_skill download` then `evaluate` | ECMWF × GFS verification (paced; can take hours) | hours |
 | 17 | `python -m floodwatch.forecast` | `data/processed/forecast/runs/<utc>/` + SQLite archive | ~3 min |
 | 18 | `streamlit run app.py` | http://localhost:8501 | – |
-| – | `pytest -q` | 17 focused tests | < 1 min |
+| – | `pytest -q` | 35 tests (no network) | < 1 min |
 
 ### Supplementary analyses (protocol §§9.5–9.11)
 
@@ -63,7 +63,10 @@ failure is printed but never blocks the forecast). A cloud run takes about 20 mi
 - **Where it runs (since 2026-11-07).** `.github/workflows/daily-forecast.yml` (windows-latest, cron 20:00 UTC = 17:00
   Brasília, also `workflow_dispatch`) runs `scripts/daily_update.ps1` in the cloud. State between runs: MERGE files in
   the Actions cache (`merge-v1-*`, re-downloadable) and `forecasts.sqlite` on the branch `archive` (restored before the
-  run, force-pushed as a single commit after it; this is the authoritative archive, a local copy is stale). Start a
+  run, force-pushed as a single commit after it; this is the authoritative archive, a local copy is stale). The push
+  only happens if `python -m floodwatch.forecast_db check` passes (SQLite integrity, no table has fewer rows than
+  before the run); the copy restored at the start of each run is kept 30 days as the artifact
+  `forecast-archive-before-<run id>` (download it from the run page to recover an earlier archive). Start a
   run by hand with `gh workflow run daily-forecast.yml`. S2iD blocks IP addresses outside Brazil, so the workflow does
   not export it: the project PC (in Brazil, switched on about once a week) pushes the export to the branch `s2id`
   and every run loads the latest one (`FLOODWATCH_S2ID=file`; re-loading is harmless, the 60-day registration window
