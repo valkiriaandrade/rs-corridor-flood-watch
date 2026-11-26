@@ -3,7 +3,8 @@ name: Daily forecast
 # Replaces the Windows scheduled task: runs scripts/daily_update.ps1 in the cloud and pushes the new run to main.
 # State kept between runs:
 #   data/raw/merge/                          MERGE files from 2025 (re-downloadable)  -> Actions cache
-#   data/processed/forecast/forecasts.sqlite verification archive (must not be lost)  -> branch `archive`, one commit
+#   data/processed/forecast/forecasts.sqlite verification archive (must not be lost)  -> branch `archive`, one commit;
+#                                            checked before each push, previous copy kept 30 days as an artifact
 
 on:
   schedule:
@@ -15,11 +16,13 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   forecast:
     runs-on: windows-latest
+    permissions:
+      contents: write   # pushes the run to main and the archive to branch `archive`
     timeout-minutes: 120
     defaults:
       run:
@@ -57,6 +60,15 @@ jobs:
           cmd /c "git show origin/archive:forecasts.sqlite > data\processed\forecast\forecasts.sqlite"
           if ($LASTEXITCODE -ne 0) { throw 'forecasts.sqlite not found on branch archive' }
           "archive restored: {0:N1} MB" -f ((Get-Item data/processed/forecast/forecasts.sqlite).Length / 1MB)
+          # untouched copy: compared with the updated archive before it replaces branch `archive`, and kept as an artifact
+          Copy-Item data/processed/forecast/forecasts.sqlite (Join-Path $env:RUNNER_TEMP 'forecasts-before.sqlite')
+
+      - name: Keep the archive as it was before this run (30 days)
+        uses: actions/upload-artifact@v4
+        with:
+          name: forecast-archive-before-${{ github.run_id }}
+          path: ${{ runner.temp }}/forecasts-before.sqlite
+          retention-days: 30
 
       - name: Restore S2iD export (pushed from the PC in Brazil, scripts/s2id_export.ps1; S2iD blocks runners abroad)
         run: |
@@ -95,6 +107,9 @@ jobs:
       - name: Save forecast archive
         run: |
           $db = (Resolve-Path data/processed/forecast/forecasts.sqlite).Path
+          # never replace the only copy with a damaged or smaller database (integrity_check, no table loses rows)
+          python -m floodwatch.forecast_db check (Join-Path $env:RUNNER_TEMP 'forecasts-before.sqlite') $db
+          if ($LASTEXITCODE -ne 0) { throw 'forecast archive failed the check; branch archive left unchanged' }
           $tmp = Join-Path $env:RUNNER_TEMP 'archive'
           git worktree add --detach $tmp
           Push-Location $tmp

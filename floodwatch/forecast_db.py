@@ -9,11 +9,13 @@ covers the period: `python -m floodwatch.forecast_db events <atlas.csv>`.
     python -m floodwatch.forecast_db events PATH.csv     # load official records for verification
     python -m floodwatch.forecast_db report              # runs sql/validation.sql
     python -m floodwatch.forecast_db summary             # forecast vs observed -> verification.json (shown in the app)
+    python -m floodwatch.forecast_db check BEFORE AFTER  # archive sound and no table shrank (run before it is replaced)
     sqlite3 data/processed/forecast/forecasts.sqlite < sql/validation.sql   # same, with the sqlite3 CLI
 """
 import argparse
 import json
 import sqlite3
+from pathlib import Path
 
 import pandas as pd
 
@@ -284,11 +286,50 @@ def report():
     con.close()
 
 
+def table_counts(con):
+    return {t: con.execute(f'SELECT COUNT(*) FROM "{t}"').fetchone()[0]
+            for (t,) in con.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
+
+
+def _read_only(path):
+    if not Path(path).is_file():
+        raise sqlite3.OperationalError('file not found')
+    return sqlite3.connect(Path(path).resolve().as_uri() + '?mode=ro', uri=True)
+
+
+def check_archive(before, after):
+    """Problems that make `after` unfit to replace `before` as the only copy of the archive (empty list: fine).
+
+    The archive only grows (runs, events and ensemble rows are inserted or replaced, never deleted), so a table that
+    is missing or has fewer rows than before means a damaged or truncated database."""
+    try:
+        con = _read_only(after)
+        try:
+            status = [r[0] for r in con.execute('PRAGMA integrity_check')]
+            new = table_counts(con)
+        finally:
+            con.close()
+    except sqlite3.DatabaseError as error:
+        return [f'{after}: not a readable SQLite database ({error})']
+    problems = [] if status == ['ok'] else [f'{after}: integrity_check reports ' + '; '.join(status[:5])]
+    con = _read_only(before)
+    old = table_counts(con)
+    con.close()
+    for table, n in old.items():
+        if new.get(table, -1) < n:
+            problems.append(f'table {table}: {n} rows before, ' + (f'{new[table]} after' if table in new else 'missing after'))
+    return problems
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('cmd', choices=['ingest-all', 'events', 'report', 'summary'])
+    ap.add_argument('cmd', choices=['ingest-all', 'events', 'report', 'summary', 'check'])
     ap.add_argument('path', nargs='?')
+    ap.add_argument('after', nargs='?', help='check: the updated archive (path = the archive before the run)')
     a = ap.parse_args()
+    if a.cmd == 'check':
+        problems = check_archive(a.path, a.after)
+        print(chr(10).join(problems) or f'archive ok: {table_counts(_read_only(a.after))}')
+        raise SystemExit(1 if problems else 0)
     if a.cmd == 'report':
         report()
     elif a.cmd == 'summary':

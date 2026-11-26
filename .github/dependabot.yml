@@ -1,0 +1,8 @@
+version: 2
+updates:
+  # Keeps the actions used by the workflows up to date. Python packages stay pinned to the versions
+  # used for the published results and are updated by hand.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

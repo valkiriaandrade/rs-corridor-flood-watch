@@ -374,18 +374,24 @@ the levels computed from forecast rainfall are verified prospectively, from Nove
 
 ### Quality
 
-- `pytest -q`: 17 focused tests, covering block bootstrap and scores, event chaining, the 12 UTC window, the rule and
+- `pytest -q`: 35 tests, covering block bootstrap and scores, event chaining, the 12 UTC window, the rule and
   trigger, rule compatibility with older runs, the Pfafstetter upstream rule, basin means, GRIB cropping, EDI
   calibration, API recursion and missing days, forecast-verification counts, preliminary-report filtering, module
-  reachability, the ensemble's shortened API series (identical to the full one) and quantile mapping.
-- `pyflakes` clean (pinned in `requirements-dev.txt`). External requests are paced, honour `Retry-After` and never retry aggressively.
+  reachability, the ensemble's shortened API series (identical to the full one) and quantile mapping; plus the
+  operational paths of the daily job: Open-Meteo run selection and its 06/00 UTC fallback (fake responses), the
+  catch-up dates, the SQLite archive writes, the verification pairing, the archive check, and both dashboard pages
+  (Streamlit `AppTest`, Portuguese and English). Tests never use the network.
+- `pyflakes` clean (pinned in `requirements-dev.txt`). Both run on every push and pull request
+  (`.github/workflows/tests.yml`). External requests are paced, honour `Retry-After` and never retry aggressively.
 
 ---
 
 ## Run it
 
 ```bash
-python -m venv .venv && .venv/Scripts/activate      # Python 3.11 (bin/activate on Linux/macOS)
+python -m venv .venv                                # Python 3.11
+source .venv/Scripts/activate                       # Git Bash; Linux/macOS: source .venv/bin/activate;
+                                                    # PowerShell: .venv\Scripts\Activate.ps1
 pip install -r requirements.txt                     # app only
 streamlit run app.py                                # uses the bundled processed results
 ```
@@ -395,7 +401,9 @@ streamlit run app.py                                # uses the bundled processed
 - **Rebuild everything from raw data:** 18 steps, listed in [docs/runbook.md](docs/runbook.md).
 - **Daily operation:** the GitHub Actions workflow `.github/workflows/daily-forecast.yml` runs the forecast every day
   (scheduled for 17:00 Brasília; GitHub often starts it hours later) and pushes the new run to `main`. The verification
-  archive `forecasts.sqlite` lives on the branch `archive` (one force-pushed commit), not in the local folder. Each run
+  archive `forecasts.sqlite` lives on the branch `archive` (one force-pushed commit), not in the local folder; before
+  each push it must pass `python -m floodwatch.forecast_db check` (SQLite integrity, no table loses rows), and the
+  previous copy is kept for 30 days as a workflow artifact. Each run
   first reconstructs every missing day (up to 14), each from that day's 12 UTC model runs and the rainfall observed up
   to that day, so the verification has no gaps. It then archives the ensemble probabilities (about 20 min; a failure
   there never blocks the forecast). `scripts/install_daily_task.ps1` (Windows scheduled task) is the former local
