@@ -385,7 +385,9 @@ the levels computed from forecast rainfall are verified prospectively, from Nove
 ## Run it
 
 ```bash
-python -m venv .venv && .venv/Scripts/activate      # Python 3.11 (bin/activate on Linux/macOS)
+python -m venv .venv                                # Python 3.11
+source .venv/Scripts/activate                       # Git Bash; Linux/macOS: source .venv/bin/activate;
+                                                    # PowerShell: .venv\Scripts\Activate.ps1
 pip install -r requirements.txt                     # app only
 streamlit run app.py                                # uses the bundled processed results
 ```
