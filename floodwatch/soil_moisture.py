@@ -3,7 +3,8 @@
 ERA5-Land volumetric soil water, layers 1-3 (0-7, 7-28, 28-100 cm), from the Copernicus Climate Data Store (dataset
 reanalysis-era5-land at 00/06/12/18 UTC, averaged per day; decision log 2026-11-24 and 2026-11-26),
 combined as the 0-100 cm mean (7 L1 + 21 L2 + 72 L3) / 100. Basin means with the MERGE cell weights of the upstream
-basins (each 0.1-degree MERGE cell takes the nearest ERA5-Land point; ties to the north/east), standardised per
+basins (each 0.1-degree MERGE cell takes the nearest ERA5-Land point; ties to the north/east; cells over water, where
+ERA5-Land has no soil value, are left out of the mean, decision log 2026-11-26), standardised per
 calendar day on 1999-2012 (Feb 29 uses Feb 28), predictor = max of d-1 and d like every other predictor.
 Tests, leave-one-year-out, same samples and bootstrap as §7:
   (i)  SM anomaly alone as an index (threshold = max TSS on the training years), paired vs the API alone;
@@ -113,8 +114,10 @@ def basin_sm():
         cell = pd.DataFrame(vals, index=times)
         out = {}
         for code, g in w.reset_index(drop=True).groupby('codarea'):
-            v = cell[g.index.to_numpy()]
-            out[code] = (v * g.area.to_numpy()).sum(axis=1).where(v.notna().all(axis=1)) / g.area.sum()
+            land = ~np.isnan(vals[0, g.index.to_numpy()])  # ERA5-Land has no soil over the lagoons and the sea
+            idx, area = g.index.to_numpy()[land], g.area.to_numpy()[land]
+            v = cell[idx]
+            out[code] = (v * area).sum(axis=1).where(v.notna().all(axis=1)) / area.sum()
         frames.append(pd.DataFrame(out))
     return pd.concat(frames).sort_index()
 
