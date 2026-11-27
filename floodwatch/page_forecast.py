@@ -1,6 +1,7 @@
 """Page 1 · Corridor flood-potential forecast (executive)."""
 
 import json
+from urllib.parse import quote
 
 import altair as alt
 import geopandas as gpd
@@ -8,7 +9,7 @@ import pandas as pd
 import pydeck as pdk
 import streamlit as st
 
-from . import ui_theme as T
+from . import ui_theme as T, verification_summary as VS
 from .exposure import ACTIONS, ACTIONS_EN, NODES
 from .paths import FORECAST as FC, ROOT, SPATIAL, STUDY
 from .rules import run_rules
@@ -28,15 +29,14 @@ def model_hit_rate():
     return {names.get(m, m): sum(r[m][n]['POD20'] for n in ('1', '2', '3')) / 3 for m in r}
 
 
-def view_options():
-    """Scenario labels in the current language -> internal scenario values (ECMWF first: best verified model)."""
-    hit = model_hit_rate()
-    lab = lambda m: f'{m} ({T.num(hit[m] * 100, 0)}%)' if m in hit else m
-    return {
-        lab('ECMWF'): 'ECMWF',
-        lab('GFS'): 'GFS',
-        T.tr('Consenso (ambos os modelos)', 'Consensus (both models)'): 'consensus',
-    }
+VIEWS = {'ECMWF': 'ECMWF', 'GFS': 'GFS', 'consensus': 'Consensus', 'ECMWF ENS': 'ECMWF ENS', 'GEFS': 'GEFS'}
+
+
+def view_options(acc30, has_ensemble):
+    """Scenario value -> label with the current 30-day event hit rate at D+1..D+3 ('ECMWF · 72% (30 d)').
+    The ensembles are offered only when this run published their probabilities."""
+    views = [v for v in VIEWS if has_ensemble or VIEWS[v] not in VS.ENSEMBLES]
+    return {v: csi_label(VIEWS[v], acc30) for v in views}
 
 
 def rule_skill(results, ix):
@@ -184,8 +184,296 @@ def model_skill_section():
         )
 
 
+PROTOCOL_97 = (
+    'https://github.com/valkiriaandrade/rs-corridor-flood-watch/blob/main/docs/protocol.md'
+    '#97-ensemble-probabilities-prospective'
+)
+MODEL_COLOR = {
+    'ECMWF': T.C['ECMWF'],
+    'GFS': T.C['GFS'],
+    'Consensus': '#0F1B2D',
+    'ECMWF ENS': '#6FA8DC',
+    'GEFS': '#B59BD9',
+}
+
+
+def model_name(m):
+    """Display name of a model in the current language."""
+    return T.tr('Consenso', 'Consensus') if m == 'Consensus' else m
+
+
+def pct(x):
+    return '–' if x is None else T.num(x * 100, 0) + '%'
+
+
+@st.cache_data(show_spinner=False)
+def load_daily(key):
+    """Per verified day, model, lead and index (verification_daily.csv, written with each run); None if absent."""
+    path = FC / 'verification_daily.csv'
+    if not path.exists():
+        return None
+    d = pd.read_csv(path)
+    return d if len(d) else None
+
+
+@st.cache_data(show_spinner=False)
+def load_ensemble(run_key):
+    """This run's ensemble probabilities (ensemble_levels.csv in the run folder); None if the run has none."""
+    run = ROOT / json.loads((FC / 'latest.json').read_text(encoding='utf-8'))['run']
+    path = run / 'ensemble_levels.csv'
+    if not path.exists():
+        return None
+    e = pd.read_csv(path, parse_dates=['date'], dtype={'codarea': str})
+    return e if len(e) else None
+
+
+def daily_key():
+    path = FC / 'verification_daily.csv'
+    return str(path.stat().st_mtime) if path.exists() else ''
+
+
+@st.cache_data(show_spinner=False)
+def accuracy_cached(key, ix, window):
+    daily = load_daily(key)
+    return None if daily is None else VS.accuracy(daily, ix, window)
+
+
+def csi_label(m, acc):
+    """'ECMWF · 72% (30 d)' or 'GEFS · acumulando' for the model selector (pooled D+1..D+3, last 30 days)."""
+    x = (acc or {}).get('models', {}).get(m)
+    if not x:
+        return model_name(m)
+    p = x['pooled']
+    if p['status'] == 'accumulating' or p['CSI'] is None:
+        return f'{model_name(m)} · ' + T.tr('acumulando', 'accumulating')
+    return f'{model_name(m)} · {pct(p["CSI"])} (30 d)'
+
+
+def best_sentence(daily, ix, acc30):
+    """One sentence naming the model with the best recent CSI at D+1..D+3, on the common period of all models when
+    every model has enough days there; otherwise among the models with enough days in the last 30 days."""
+    common = VS.accuracy(daily, ix, 'common')
+    span = f'{dm(common["common_start"])}–{dm(common["end"])}'
+    ndays = max((x['pooled']['days'] for x in common['models'].values()), default=0)
+    if common['models'] and all(x['pooled']['status'] != 'accumulating' for x in common['models'].values()):
+        b = VS.best_model(common)
+        if b:
+            x = common['models'][b]['pooled']
+            return T.tr(
+                f'No período comum aos cinco modelos ({span}, {ndays} dias), o maior acerto em eventos de D+1 a D+3 '
+                f'({ix}) foi do <b>{model_name(b)}</b>: {pct(x["CSI"])} ({x["days"]} dias, {x["events"]} eventos).',
+                f'Over the period common to all five models ({span}, {ndays} days), the best event hit rate at D+1 to '
+                f'D+3 ({ix}) was <b>{model_name(b)}</b>: {pct(x["CSI"])} ({x["days"]} days, {x["events"]} events).',
+            )
+    b = VS.best_model(acc30)
+    lead = T.tr(
+        f'O período comum aos cinco modelos ({span}, {ndays} dias) ainda é curto demais para compará-los lado a lado '
+        f'(mínimo de {VS.MIN_DAYS} dias). ',
+        f'The period common to all five models ({span}, {ndays} days) is still too short to compare them side by '
+        f'side (minimum {VS.MIN_DAYS} days). ',
+    )
+    if not b:
+        return lead + T.tr('Nenhum modelo tem dias suficientes ainda.', 'No model has enough days yet.')
+    x = acc30['models'][b]['pooled']
+    return lead + T.tr(
+        f'Nos últimos 30 dias, entre os modelos com pelo menos {VS.MIN_DAYS} dias verificados, o maior acerto em '
+        f'eventos de D+1 a D+3 ({ix}) foi do <b>{model_name(b)}</b>: {pct(x["CSI"])} ({x["days"]} dias, '
+        f'{x["events"]} eventos).',
+        f'Over the last 30 days, among the models with at least {VS.MIN_DAYS} verified days, the best event hit rate '
+        f'at D+1 to D+3 ({ix}) was <b>{model_name(b)}</b>: {pct(x["CSI"])} ({x["days"]} days, {x["events"]} events).',
+    )
+
+
+def accuracy_table(acc):
+    """One row per model and lead: CSI, detection, false alarm ratio, rain bias, mean rain error, n days and events."""
+    tr = T.tr
+    head = tr(
+        '<tr><th>Modelo</th><th>Antec.</th><th>Acerto em eventos</th><th>Detecção</th><th>Alarmes falsos</th>'
+        '<th>Viés da chuva</th><th>Erro médio da chuva</th><th>Dias · eventos</th></tr>',
+        '<tr><th>Model</th><th>Lead</th><th>Event hit rate</th><th>Detection</th><th>False alarm ratio</th>'
+        '<th>Rain bias</th><th>Mean rain error</th><th>Days · events</th></tr>',
+    )
+    body, small = '', False
+    for m, x in acc['models'].items():
+        for k, n in enumerate(VS.LEADS):
+            s = x['leads'][n]
+            name = f'<td rowspan="{len(VS.LEADS)}"><b>{model_name(m)}</b></td>' if k == 0 else ''
+            mark = '*' if s['status'] == 'small' else ''
+            small |= bool(mark)
+            count = f'{s["days"]}{mark} · {s["events"]}'
+            if s['status'] == 'accumulating':
+                since = tr(f'acumulando desde {dm(x["first"])}', f'accumulating since {dm(x["first"])}')
+                cells = f'<td colspan="5" class="muted">{since}</td>'
+            else:
+                bias = '–' if s['bias'] is None else T.num((s['bias'] - 1) * 100, 0, True) + '%'
+                mae = '–' if s['MAE'] is None else T.num(s['MAE'], 1) + ' mm'
+                cells = (
+                    f'<td><b>{pct(s["CSI"])}</b></td><td>{pct(s["POD"])}</td><td>{pct(s["FAR"])}</td>'
+                    f'<td>{bias}</td><td>{mae}</td>'
+                )
+            body += f'<tr>{name}<td>D+{n}</td>{cells}<td>{count}</td></tr>'
+    return f'<div style="overflow-x:auto"><table class="t">{head}{body}</table></div>', small
+
+
+def trend_chart(daily, ix, window, provisional):
+    """Daily event hit rate per model (pooled D+1..D+3); provisional days shaded."""
+    t = VS.trend(daily, ix, window).dropna(subset=['CSI'])
+    if t.empty:
+        return None
+    t = t.assign(dia=pd.to_datetime(t.date), modelo=t.model.map(model_name), pct=(t.CSI * 100).round(0))
+    names = [model_name(m) for m in VS.MODELS]
+    line = (
+        alt.Chart(t)
+        .mark_line(point=True, strokeWidth=1.8)
+        .encode(
+            x=alt.X('dia:T', title=None, axis=alt.Axis(format='%d/%m', labelColor=T.C['muted'])),
+            y=alt.Y(
+                'pct:Q', title=T.tr('Acerto em eventos (%)', 'Event hit rate (%)'), scale=alt.Scale(domain=[0, 100])
+            ),
+            color=alt.Color(
+                'modelo:N',
+                scale=alt.Scale(domain=names, range=[MODEL_COLOR[m] for m in VS.MODELS]),
+                legend=alt.Legend(orient='bottom', title=None),
+            ),
+            tooltip=[
+                alt.Tooltip('modelo:N', title=T.tr('Modelo', 'Model')),
+                alt.Tooltip('dia:T', title=T.tr('Dia', 'Day'), format='%d/%m/%Y'),
+                alt.Tooltip('pct:Q', title=T.tr('Acerto em eventos (%)', 'Event hit rate (%)')),
+            ],
+        )
+    )
+    layers = [line]
+    if provisional:
+        band = pd.DataFrame(
+            {
+                'd0': [pd.Timestamp(min(provisional)) - pd.Timedelta(hours=12)],
+                'd1': [pd.Timestamp(max(provisional)) + pd.Timedelta(hours=12)],
+            }
+        )
+        layers.insert(0, alt.Chart(band).mark_rect(color=T.C['panel2'], opacity=0.9).encode(x='d0:T', x2='d1:T'))
+    return alt.layer(*layers).properties(height=190).configure_view(stroke=None).configure(background=T.C['panel'])
+
+
+def accuracy_section(daily, ix):
+    """Top section: how each model is verifying now (continuous monitoring, the same verification for all five models).
+    Returns the 30-day accuracy (for the model selector labels), or None."""
+    tr = T.tr
+    st.markdown(
+        '<div class="section">'
+        + tr(f'Como os modelos estão acertando agora · índice {ix}', f'How the models are verifying now · {ix} index')
+        + '</div>',
+        unsafe_allow_html=True,
+    )
+    if daily is None:
+        st.info(
+            tr(
+                'A verificação diária por modelo ainda não foi publicada; ela aparece a partir da próxima rodada.',
+                'The daily verification by model has not been published yet; it appears from the next run.',
+            )
+        )
+        return None
+    p = VS.periods(daily)
+    labels = {
+        '30d': tr('Últimos 30 dias', 'Last 30 days'),
+        'common': tr(
+            f'Período comum ({dm(p["common_start"])}–{dm(p["end"])})',
+            f'Common period ({dm(p["common_start"])}–{dm(p["end"])})',
+        ),
+        'all': tr('Desde o início de cada modelo', 'Since each model began'),
+    }
+    window = st.radio(
+        tr('Janela', 'Window'),
+        list(labels),
+        format_func=labels.get,
+        horizontal=True,
+        key='_accwin',
+        label_visibility='collapsed',
+    )
+    key = daily_key()
+    acc = accuracy_cached(key, ix, window)
+    acc30 = acc if window == '30d' else accuracy_cached(key, ix, '30d')
+    st.markdown(f'<p>{best_sentence(daily, ix, acc30)}</p>', unsafe_allow_html=True)
+    table, small = accuracy_table(acc)
+    prov = sorted(daily.loc[daily.provisional.astype(bool), 'date'].unique())
+    span = (
+        tr(f'de {dm(acc["start"])} a {dm(acc["end"])}', f'{dm(acc["start"])} to {dm(acc["end"])}')
+        if acc['start']
+        else tr(f'até {dm(acc["end"])}', f'to {dm(acc["end"])}')
+    )
+    covers = ' · '.join(f'{model_name(m)} {tr("desde", "since")} {dm(x["first"])}' for m, x in acc['models'].items())
+    a, b = st.columns([1.6, 1])
+    with a:
+        st.markdown(f'<div class="card">{table}</div>', unsafe_allow_html=True)
+    with b:
+        st.markdown(
+            '<div class="section" style="margin-top:0">'
+            + tr('Acerto em eventos por dia (D+1 a D+3)', 'Event hit rate by day (D+1 to D+3)')
+            + '</div>',
+            unsafe_allow_html=True,
+        )
+        chart = trend_chart(daily, ix, window, prov)
+        if chart is not None:
+            st.altair_chart(chart, width='stretch')
+        else:
+            st.caption(tr('Sem dias com eventos ainda.', 'No days with events yet.'))
+    notes = [
+        tr(
+            f'<b>Acompanhamento contínuo</b>, {span}; arquivo de cada modelo: {covers}. Índice <b>{ix}</b> (o '
+            f'selecionado). Todos os modelos são verificados do mesmo jeito: nível previsto × o mesmo nível calculado '
+            f'depois com a chuva observada MERGE, nos mesmos dias, com a previsão mais recente emitida antes de cada dia.',
+            f'<b>Continuous monitoring</b>, {span}; archive of each model: {covers}. <b>{ix}</b> index (the selected '
+            f'one). Every model is verified the same way: forecast level vs the same level computed later with observed '
+            f'MERGE rainfall, on the same days, with the latest forecast issued before each day.',
+        ),
+        tr(
+            'Evento = município-dia em atenção ou alerta com a chuva observada. <b>Acerto em eventos</b> (CSI) = '
+            'acertos ÷ (acertos + alarmes falsos + perdidos); <b>detecção</b> = eventos previstos ÷ eventos; '
+            '<b>alarmes falsos</b> = alarmes sem evento ÷ alarmes; <b>viés da chuva</b> = chuva prevista ÷ observada − 1; '
+            '<b>erro médio da chuva</b> = diferença absoluta média por município-dia.',
+            'Event = municipality-day at Watch or Warning with observed rainfall. <b>Event hit rate</b> (CSI) = hits ÷ '
+            '(hits + false alarms + misses); <b>detection</b> = forecast events ÷ events; <b>false alarm ratio</b> = '
+            'alarms without an event ÷ alarms; <b>rain bias</b> = forecast ÷ observed rain − 1; <b>mean rain error</b> '
+            '= mean absolute difference per municipality-day.',
+        ),
+        tr(
+            f'Ensembles (ECMWF ENS, 51 membros; GEFS, 31): nível = o mais alto atingido por pelo menos metade dos '
+            f'membros (P ≥ {T.num(VS.ENSEMBLE_P, 1)}, regra fixa, não ajustada); chuva = média dos membros. Rodam na '
+            f'grade de 0,5°; ECMWF e GFS, na de 0,25°. Consenso = menor nível entre ECMWF e GFS; chuva = média dos dois. '
+            f'Isto é acompanhamento, não a avaliação registrada dos ensembles '
+            f'(<a href="{PROTOCOL_97}" target="_blank">protocolo §9.7</a>, após um ano de arquivo).',
+            f'Ensembles (ECMWF ENS, 51 members; GEFS, 31): level = the highest level reached by at least half of the '
+            f'members (P ≥ {T.num(VS.ENSEMBLE_P, 1)}, a fixed rule, not tuned); rain = member mean. They run on the '
+            f'0.5° grid; ECMWF and GFS on 0.25°. Consensus = the lower level of ECMWF and GFS; rain = their mean. This '
+            f'is monitoring, not the registered ensemble evaluation '
+            f'(<a href="{PROTOCOL_97}" target="_blank">protocol §9.7</a>, after one year of archive).',
+        ),
+    ]
+    if small:
+        notes.append(
+            tr(
+                f'* Amostra pequena (menos de {VS.SMALL_DAYS} dias): os números ainda oscilam. Com menos de '
+                f'{VS.MIN_DAYS} dias, o modelo aparece como "acumulando".',
+                f'* Small sample (fewer than {VS.SMALL_DAYS} days): the numbers still move. With fewer than '
+                f'{VS.MIN_DAYS} days, a model shows as "accumulating".',
+            )
+        )
+    if prov:
+        days = ', '.join(dm(d) for d in prov)
+        notes.append(
+            tr(
+                f'Dias provisórios ({days}, faixa cinza no gráfico): chuva observada MERGE preliminar, refinada nos '
+                f'dias seguintes; os números desses dias ainda podem mudar.',
+                f'Provisional days ({days}, grey band in the chart): preliminary MERGE observed rainfall, refined over '
+                f'the following days; these days may still change.',
+            )
+        )
+    st.markdown(''.join(f'<p class="note">{n}</p>' for n in notes), unsafe_allow_html=True)
+    return acc30
+
+
 def verification_section(ix):
-    """Forecast vs observed, day by day since the archive started (data/processed/forecast/verification.json).
+    """Details of the continuous verification (data/processed/forecast/verification.json), for all five models: the
+    last verified day, reported floods, totals by lead time and, for the ensembles, Brier scores.
 
     'Observed' = the same index and rule computed later with MERGE rainfall; it verifies the forecast level,
     not the occurrence of a flood (official records are loaded when published)."""
@@ -197,72 +485,44 @@ def verification_section(ix):
     if not lt:
         return
     tr = T.tr
-    pct = lambda x: '–' if x is None else T.num(x * 100, 0) + '%'
     days = s['verified_days']
-    st.markdown(
-        '<div class="section">'
-        + tr(
-            f'Previsto × observado · verificação contínua desde {dm(days[0])}',
-            f'Forecast vs observed · continuous verification since {dm(days[0])}',
-        )
-        + '</div>',
-        unsafe_allow_html=True,
-    )
+    order = lambda d: sorted(d, key=lambda m: VS.MODELS.index(m) if m in VS.MODELS else 99)
     runs = ' · '.join(
         f'{m} {pd.Timestamp(r).strftime(tr("%d/%m %H UTC", "%d %b %H UTC"))}' for m, r in lt['model_runs'].items() if r
     )
-    cum = s.get('since_start')
-    if cum:
-        st.markdown(
-            tr(
-                f'<p><b>Desde {dm(cum["first"])}: {cum["days"]} dias verificados</b> (até {dm(cum["last"])}). Cada dia entra '
-                f'uma vez, com a previsão mais recente emitida antes dele (em geral D+1), comparada com a chuva MERGE observada. '
-                f'Último dia: {dm(lt["date"])}, rodadas {runs} (D+{lt["lead_days"]}).</p>',
-                f'<p><b>Since {dm(cum["first"])}: {cum["days"]} verified days</b> (to {dm(cum["last"])}). Each day counts '
-                f'once, with the latest forecast issued before it (usually D+1), compared with observed MERGE rainfall. '
-                f'Last day: {dm(lt["date"])}, {runs} runs (D+{lt["lead_days"]}).</p>',
-            ),
-            unsafe_allow_html=True,
-        )
-    else:  # verification.json written before the accumulated block existed
-        st.markdown(
-            tr(
-                f'<p><b>Último dia verificado: {dm(lt["date"])}</b> (24 h até 09h), previsto com as rodadas {runs} '
-                f'(D+{lt["lead_days"]}) e comparado com a chuva MERGE observada.</p>',
-                f'<p><b>Last verified day: {dm(lt["date"])}</b> (24 h to 09:00), forecast with the {runs} runs '
-                f'(D+{lt["lead_days"]}) and compared with observed MERGE rainfall.</p>',
-            ),
-            unsafe_allow_html=True,
-        )
-    cols = st.columns(len(lt['models']))
-    for col, (model, last) in zip(cols, lt['models'].items()):
-        r = cum['models'].get(model, last) if cum else last
-        c, rain = r.get(ix), r.get('rain')
-        when = (lambda d: f' · {dm(d)}') if cum else (lambda d: '')
+    st.markdown(
+        '<div class="section">'
+        + tr(f'Último dia verificado · {dm(lt["date"])}', f'Last verified day · {dm(lt["date"])}')
+        + '</div>'
+        + tr(
+            f'<p class="note">Previsão das rodadas {runs} (D+{lt["lead_days"]}) comparada com a chuva MERGE observada; '
+            f'acompanhamento contínuo desde {dm(days[0])}.</p>',
+            f'<p class="note">Forecast of the {runs} runs (D+{lt["lead_days"]}) compared with observed MERGE rainfall; '
+            f'continuous monitoring since {dm(days[0])}.</p>',
+        ),
+        unsafe_allow_html=True,
+    )
+    models = order(lt['models'])
+    cols = st.columns(len(models))
+    for col, model in zip(cols, models):
+        last = lt['models'][model]
+        c, rain = last.get(ix), last.get('rain')
         rows = []
         if rain:
             rows += [
                 (
                     tr('Chuva média prevista × observada', 'Mean rain forecast vs observed'),
-                    f'{T.num(rain["fc_mean"], 1)} × {T.num(rain["obs_mean"], 1)} mm ({T.num((rain["bias_ratio"] - 1) * 100, 0, True)}%)',
-                ),
-                (
-                    tr('Maior chuva prevista', 'Highest forecast rain'),
-                    f'{T.num(rain["fc_max"], 0)} mm · {T.esc(rain["fc_max_nome"])}{when(rain.get("fc_max_date"))}',
-                ),
-                (
-                    tr('Maior chuva observada', 'Highest observed rain'),
-                    f'{T.num(rain["obs_max"], 0)} mm · {T.esc(rain["obs_max_nome"])}{when(rain.get("obs_max_date"))}',
+                    f'{T.num(rain["fc_mean"], 1)} × {T.num(rain["obs_mean"], 1)} mm',
                 ),
                 (
                     tr('Chuva forte (≥ 20 mm) detectada', 'Heavy rain (≥ 20 mm) detected'),
-                    f'{rain["heavy_hits"]}/{rain["heavy_observed"]} {tr("municípios-dia", "municipality-days") if cum else tr("municípios", "municipalities")}',
+                    f'{rain["heavy_hits"]}/{rain["heavy_observed"]}',
                 ),
             ]
         if c:
             rows += [
                 (
-                    tr('Em atenção ou alerta: previstos × observados', 'At Watch or Warning: forecast vs observed'),
+                    tr('Atenção ou alerta: previstos × observados', 'Watch or Warning: forecast vs observed'),
                     f'{c["forecast_watch"]} × {c["observed_watch"]}',
                 ),
                 (
@@ -270,39 +530,18 @@ def verification_section(ix):
                     f'{c["hits"]} · {c["false_alarms"]} · {c["misses"]}',
                 ),
             ]
-            if cum:
-                rows.append(
-                    (
-                        tr('Detecção · alarmes que não se confirmaram', 'Detection · alarms not confirmed'),
-                        f'{pct(c["POD"])} · {pct(c["FAR"])}',
-                    )
-                )
-        lc = last.get(ix)
-        if cum and lc:
-            rows.append(
-                (
-                    tr(
-                        f'Último dia ({dm(lt["date"])}): acertos · alarmes falsos · perdidos',
-                        f'Last day ({dm(lt["date"])}): hits · false alarms · misses',
-                    ),
-                    f'{lc["hits"]} · {lc["false_alarms"]} · {lc["misses"]}',
-                )
-            )
-        names = ''  # names refer to the last day only
-        day = tr(f' em {dm(lt["date"])}', f' on {dm(lt["date"])}') if cum else ''
-        if lc and lc['false_alarm_names']:
-            names += f'<p class="note"><b>{tr("Alarme falso", "False alarm")}{day}:</b> {T.esc(", ".join(lc["false_alarm_names"]))}</p>'
-        if lc and lc.get('false_alarm_reported'):
+        names = ''
+        if c and c.get('false_alarm_names'):
+            names += f'<p class="note"><b>{tr("Alarme falso", "False alarm")}:</b> {T.esc(", ".join(c["false_alarm_names"]))}</p>'
+        if c and c.get('false_alarm_reported'):
             names += (
                 f'<p class="note"><b>{tr("…mas com inundação relatada", "…but with a reported flood")}:</b> '
-                f'{T.esc(", ".join(lc["false_alarm_reported"]))}</p>'
+                f'{T.esc(", ".join(c["false_alarm_reported"]))}</p>'
             )
-        if lc and lc['missed']:
-            names += f'<p class="note"><b>{tr("Perdidos", "Missed")}{day}:</b> {T.esc(", ".join(lc["missed"]))}</p>'
+        if c and c.get('missed'):
+            names += f'<p class="note"><b>{tr("Perdidos", "Missed")}:</b> {T.esc(", ".join(c["missed"]))}</p>'
         col.markdown(
-            f'<div class="card"><div class="section">{model} · {ix}'
-            + (tr(' · acumulado', ' · accumulated') if cum else '')
-            + '</div>'
+            f'<div class="card"><div class="section">{model_name(model)} · {ix}</div>'
             + T.detail_rows(rows)
             + names
             + '</div>',
@@ -311,46 +550,77 @@ def verification_section(ix):
     occurrence_card(s, ix)
     # accumulated, by lead
     body = ''
-    for model, leads in s['by_lead'].items():
-        for lead, x in sorted(leads.items()):
+    for model in order(s['by_lead']):
+        for lead, x in sorted(s['by_lead'][model].items()):
             c, rain = x.get(ix), x.get('rain')
             if not c:
                 continue
+            bias = T.num((rain['bias_ratio'] - 1) * 100, 0, True) + '%' if rain and rain.get('bias_ratio') else '–'
             body += (
-                f'<tr><td>{model}</td><td>D+{lead}{"+" if lead == "4" else ""}</td><td>{x["days"]}</td>'
-                f'<td>{pct(c["POD"])}</td><td>{pct(c["FAR"])}</td>'
-                f'<td>{T.num((rain["bias_ratio"] - 1) * 100, 0, True) + "%" if rain and rain["bias_ratio"] else "–"}</td>'
+                f'<tr><td>{model_name(model)}</td><td>D+{lead}{"+" if lead == "4" else ""}</td><td>{x["days"]}</td>'
+                f'<td>{pct(c["POD"])}</td><td>{pct(c["FAR"])}</td><td>{bias}</td>'
                 f'<td>{T.num(rain["mae"], 1) + " mm" if rain else "–"}</td></tr>'
             )
     head = tr(
-        '<tr><th>Modelo</th><th>Antecedência</th><th>Dias</th><th>Detecção</th><th>Alarmes que não se confirmaram</th>'
+        '<tr><th>Modelo</th><th>Antecedência</th><th>Dias</th><th>Detecção</th><th>Alarmes falsos</th>'
         '<th>Viés da chuva</th><th>Erro médio da chuva</th></tr>',
-        '<tr><th>Model</th><th>Lead</th><th>Days</th><th>Detection</th><th>Alarms not confirmed</th>'
+        '<tr><th>Model</th><th>Lead</th><th>Days</th><th>Detection</th><th>False alarm ratio</th>'
         '<th>Rain bias</th><th>Mean rain error</th></tr>',
     )
     st.markdown(
         '<div class="card" style="margin-top:10px"><div class="section">'
         + tr(
-            f'Acumulado por antecedência · {ix} · {len(days)} dias verificados',
-            f'Accumulated by lead time · {ix} · {len(days)} verified days',
+            f'Acumulado por antecedência · {ix} · desde {dm(days[0])}',
+            f'Accumulated by lead time · {ix} · since {dm(days[0])}',
         )
-        + f'</div><table class="t">{head}{body}</table>'
+        + f'</div><div style="overflow-x:auto"><table class="t">{head}{body}</table></div>'
         + '<p class="note">'
         + tr(
-            f'Observado = o mesmo índice e a mesma regra calculados depois com a chuva MERGE: verifica o nível previsto, não a ocorrência de '
-            f'inundação; os registros oficiais do S2iD entram quando forem publicados. Municípios-dia somados nos {len(days)} dias verificados; '
-            f'a chuva observada mais recente é a versão preliminar do MERGE, refinada nos dias seguintes. Amostra ainda pequena: os números só '
-            f'ficam estáveis depois de meses. Detecção = municípios em atenção observada que a previsão também pôs em atenção; '
-            f'alarmes que não se confirmaram = atenção prevista sem atenção observada.',
-            f'Observed = the same index and rule computed later with MERGE rainfall: this verifies the forecast level, not whether a flood '
-            f'occurred; official S2iD records are added when published. Municipality-days pooled over the {len(days)} verified days; the most '
-            f'recent observed rainfall is the preliminary MERGE version, refined over the following days. The sample is still small: the '
-            f'numbers only settle after months. Detection = municipalities at observed Watch that the forecast also put at Watch; '
-            f'alarms not confirmed = forecast Watch without observed Watch.',
+            'Cada dia entra com a previsão mais recente emitida antes dele para cada antecedência. Observado = o mesmo '
+            'índice e a mesma regra calculados depois com a chuva MERGE: verifica o nível previsto, não a ocorrência de '
+            'inundação. A chuva observada mais recente é a versão preliminar do MERGE, refinada nos dias seguintes. '
+            'Ensembles a partir de 25/11/2026, com nível = P ≥ 0,5 e chuva = média dos membros.',
+            'Each day counts with the latest forecast issued before it for each lead. Observed = the same index and rule '
+            'computed later with MERGE rainfall: this verifies the forecast level, not whether a flood occurred. The '
+            'most recent observed rainfall is the preliminary MERGE version, refined over the following days. Ensembles '
+            'from 25 Nov 2026, with level = P ≥ 0.5 and rain = member mean.',
         )
         + '</p></div>',
         unsafe_allow_html=True,
     )
+    brier = ''
+    for model in order(s['by_lead']):
+        for lead, x in sorted(s['by_lead'][model].items()):
+            b = (x.get('brier') or {}).get(ix)
+            if b:
+                brier += (
+                    f'<tr><td>{model_name(model)}</td><td>D+{lead}{"+" if lead == "4" else ""}</td><td>{x["days"]}</td>'
+                    f'<td>{b["n"]}</td><td>{T.num(b["watch"], 3)}</td><td>{T.num(b["warning"], 3)}</td></tr>'
+                )
+    if brier:
+        st.markdown(
+            '<div class="card" style="margin-top:10px"><div class="section">'
+            + tr(f'Ensembles · escore de Brier · {ix}', f'Ensembles · Brier score · {ix}')
+            + '</div><div style="overflow-x:auto"><table class="t">'
+            + tr(
+                '<tr><th>Modelo</th><th>Antecedência</th><th>Dias</th><th>Municípios-dia</th>'
+                '<th>P(atenção ou alerta)</th><th>P(alerta)</th></tr>',
+                '<tr><th>Model</th><th>Lead</th><th>Days</th><th>Municipality-days</th>'
+                '<th>P(Watch or Warning)</th><th>P(Warning)</th></tr>',
+            )
+            + brier
+            + '</table></div><p class="note">'
+            + tr(
+                f'Brier = erro quadrático médio da probabilidade (0 = perfeito; quanto menor, melhor), contra o nível '
+                f'observado. Acompanhamento contínuo; a avaliação registrada (escore de habilidade de Brier e '
+                f'confiabilidade, após um ano) está no <a href="{PROTOCOL_97}" target="_blank">protocolo §9.7</a>.',
+                f'Brier = mean squared error of the probability (0 = perfect; lower is better), against the observed level. '
+                f'Continuous monitoring; the registered evaluation (Brier skill score and reliability, after one year) is '
+                f'in <a href="{PROTOCOL_97}" target="_blank">protocol §9.7</a>.',
+            )
+            + '</p></div>',
+            unsafe_allow_html=True,
+        )
 
 
 def occurrence_card(s, ix):
@@ -412,12 +682,14 @@ def occurrence_card(s, ix):
             else:
                 fcell = '–'
             rows += (
-                f'<tr><td>{dm(it["date"])}</td><td>{T.esc(it["nome"])}</td><td>{it["model"]} D+{it["lead_days"]}</td>'
+                f'<tr><td>{dm(it["date"])}</td><td>{T.esc(it["nome"])}</td><td>{model_name(it["model"])} D+{it["lead_days"]}</td>'
                 f'<td>{fcell}</td>'
                 f'<td>{lv.get(int(o), "–") if o == o and o is not None else "–"}</td>'
                 f'<td>{src}{tr(" (preliminar)", " (preliminary)") if it["source"] == "preliminar" else ""}</td></tr>'
             )
-        tot = ' · '.join(f'{m}: {x[ix]["at_watch"]}/{x[ix]["n"]}' for m, x in occ['by_model'].items() if ix in x)
+        tot = ' · '.join(
+            f'{model_name(m)}: {x[ix]["at_watch"]}/{x[ix]["n"]}' for m, x in occ['by_model'].items() if ix in x
+        )
         body = (
             f'<p>{tr("Inundações relatadas que a previsão pôs em atenção ou alerta", "Reported floods the forecast put at Watch or Warning")}: '
             f'<b>{tot}</b></p><table class="t">{head}{rows}</table>'
@@ -463,18 +735,45 @@ def load(run_key):
     return meta, df, units, roads, results
 
 
-def combine(df, view):
-    # forecast days plus the last observed day (usually today: MERGE day D ends 12 UTC = 09h Brasília of D)
+def combine(df, view, ens=None, ix='EDI'):
+    """Levels of the chosen scenario: forecast days plus the last observed day (usually today: MERGE day D ends
+    12 UTC = 09h Brasília of D). Ensembles: highest level reached with P >= VS.ENSEMBLE_P, with that probability
+    ('prob') and the member mean and 90th percentile of the rain; P3 and the index value are not defined for them."""
     last_obs = df.loc[df.source == 'observado', 'date'].max()
     f = df[(df.source == 'previsão') | (df.date == last_obs)]
+    cols = ['date', 'codarea', 'nome', 'corridors', 'level', 'P3', 'VAL']
     if view in ('ECMWF', 'GFS'):
-        return f[f.model == view][['date', 'codarea', 'nome', 'corridors', 'level', 'P3', 'VAL']]
+        return f[f.model == view][cols].assign(score=lambda x: x.VAL)
+    if view in VS.ENSEMBLES:
+        obs = f[(f.date == last_obs) & (f.model == 'ECMWF')][cols]
+        e = ens[ens.model == view].copy()
+        pw, pa = ('p_watch_api', 'p_warning_api') if ix == 'API' else ('p_watch', 'p_warning')
+        e['level'] = VS.ensemble_level(e[pw], e[pa]).fillna(-1).astype(int)
+        e['prob'] = e[pa].where(e.level == 2, e[pw])  # Normal: probability of Watch or above
+        names = df[['codarea', 'nome', 'corridors']].drop_duplicates('codarea')
+        e = e[e.date > last_obs].merge(names, on='codarea').assign(P3=float('nan'), VAL=float('nan'))
+        out = pd.concat([obs, e[cols + ['prob', 'rain_mean', 'rain_p90']]], ignore_index=True)
+        return out.assign(score=out.prob)
     piv = f.pivot_table(index=['date', 'codarea', 'nome', 'corridors'], columns='model', values='level').reset_index()
     agg = piv[['ECMWF', 'GFS']].min(axis=1) if view == 'consensus' else piv[['ECMWF', 'GFS']].max(axis=1)
     piv['level'] = agg.fillna(-1).astype(int)
     # values shown next to the level follow the same scenario (min for consensus, max for worst case)
     extra = f.groupby(['date', 'codarea'])[['P3', 'VAL']].agg('min' if view == 'consensus' else 'max').reset_index()
-    return piv.merge(extra, on=['date', 'codarea'])
+    return piv.merge(extra, on=['date', 'codarea']).assign(score=lambda x: x.VAL)
+
+
+def prob_text(level, p):
+    """'Atenção 70%' (level reached and its probability); Normal: 'P(atenção) 20%'."""
+    if p is None or p != p:
+        return ''
+    if level >= 1:
+        return f'{T.level_name(int(level))} {T.num(p * 100, 0)}%'
+    return T.tr('P(atenção) ', 'P(Watch) ') + f'{T.num(p * 100, 0)}%'
+
+
+def ens_rain_text(r):
+    """'chuva média 12 mm (p90 30 mm)' for an ensemble municipality-day."""
+    return T.tr('chuva média ', 'mean rain ') + f'{T.num(r.rain_mean, 0)} mm (p90 {T.num(r.rain_p90, 0)} mm)'
 
 
 def corridor_table(levels):
@@ -498,19 +797,30 @@ def corridor_table(levels):
                     'n_att': int((g.level >= 1).sum()),
                     'n_alert': int((g.level == 2).sum()),
                     'n': len(g),
+                    # ensembles: highest probability of the corridor's level among its municipalities
+                    'pmax': float(g.loc[g.level == level, 'prob'].max())
+                    if 'prob' in g and level >= 1
+                    else float('nan'),
                 }
             )
     return pd.DataFrame(rows)
 
 
 def deck(units, roads, levels_day, nodes, ix='EDI', refs=None):
-    u = units.merge(levels_day[['codarea', 'level', 'P3', 'VAL']], on='codarea', how='left')
+    extra = [c for c in ('prob', 'rain_mean', 'rain_p90') if c in levels_day]
+    u = units.merge(levels_day[['codarea', 'level', 'P3', 'VAL'] + extra], on='codarea', how='left')
     u['level'] = u.level.fillna(-1).astype(int)
     u['fill'] = u.level.map(lambda l: T.LEVEL_RGB[l] + [165] if l >= 0 else [184, 194, 206, 90])
     u['nivel'] = u.level.map(lambda l: T.level_names()[l] if l >= 0 else T.nodata_name().lower())
-    u['P3t'] = u.P3.map(lambda v: f'{T.num(v, 0)} mm' if pd.notna(v) else '–')
-    u['EDIt'] = u.VAL.map(lambda v: fmt_index(v, ix, refs))
-    geo = json.loads(u[['nome', 'corridors', 'nivel', 'P3t', 'EDIt', 'fill', 'geometry']].to_json())
+
+    def info(r):
+        if hasattr(r, 'prob') and r.prob == r.prob:  # ensemble: level probability and member rain
+            return f'{prob_text(r.level, r.prob)} · {ens_rain_text(r)}'
+        p3 = f'{T.num(r.P3, 0)} mm' if pd.notna(r.P3) else '–'
+        return f'P3: {p3} · {ix}: {fmt_index(r.VAL, ix, refs)}'
+
+    u['info'] = [info(r) for r in u.itertuples()] if len(u) else []
+    geo = json.loads(u[['nome', 'corridors', 'nivel', 'info', 'fill', 'geometry']].to_json())
     paths = [
         {
             'path': [
@@ -548,9 +858,7 @@ def deck(units, roads, levels_day, nodes, ix='EDI', refs=None):
         ),
     ]
     tooltip = {
-        'html': '<b>{nome}</b> {municipio}<br/>{nivel} {tipo}<br/>P3: {P3t} · '
-        + ix
-        + ': {EDIt}<br/>{corridors} {rota}',
+        'html': '<b>{nome}</b> {municipio}<br/>{nivel} {tipo}<br/>{info}<br/>{corridors} {rota}',
         'style': {'backgroundColor': T.C['panel'], 'color': T.C['text'], 'fontSize': '12px'},
     }
     view = pdk.ViewState(latitude=-30.0, longitude=-52.6, zoom=5.9, pitch=0)
@@ -566,7 +874,11 @@ def timeline(ctab_by_model):
     data = pd.concat([t.assign(model=m) for m, t in ctab_by_model.items()])
     data['nivel'] = data.level.map(T.level_name)
     data['dia'] = data.date.map(dm)
-    data['linha'] = data.BR + ' · ' + data.model
+    data['linha'] = data.BR + ' · ' + data.model.map(model_name)
+    data['prob'] = [
+        f'{T.level_name(int(lv))} {T.num(p * 100, 0)}%' if p == p and lv >= 1 else '–'
+        for lv, p in zip(data.level, data.pmax if 'pmax' in data else [float('nan')] * len(data))
+    ]
     day_order = list(dict.fromkeys(data.sort_values('date').dia))
     chart = (
         alt.Chart(data)
@@ -585,6 +897,7 @@ def timeline(ctab_by_model):
                 alt.Tooltip('nivel:N', title=T.tr('Nível', 'Level')),
                 alt.Tooltip('n_att:Q', title=T.tr('Municípios ≥ atenção', 'Municipalities ≥ Watch')),
                 alt.Tooltip('n_alert:Q', title=T.tr('Municípios em alerta', 'Municipalities at Warning')),
+                alt.Tooltip('prob:N', title=T.tr('Ensemble: maior probabilidade', 'Ensemble: highest probability')),
             ],
         )
     )
@@ -601,6 +914,48 @@ def timeline(ctab_by_model):
     )
 
 
+def briefing_accuracy(daily, ix, acc30):
+    """Top block of the PDF briefing: the 30-day event hit rate of every model and the best-model sentence."""
+    if daily is None or not acc30:
+        return None
+    line = '   ·   '.join(csi_label(m, acc30).replace(' (30 d)', '') for m in acc30['models'])
+    common = VS.accuracy(daily, ix, 'common')
+    ndays = max((x['pooled']['days'] for x in common['models'].values()), default=0)
+    span = f'{dm(common["common_start"])}–{dm(common["end"])}, {ndays} ' + T.tr('dias', 'days')
+    ready = common['models'] and all(x['pooled']['status'] != 'accumulating' for x in common['models'].values())
+    b = VS.best_model(common if ready else acc30)
+    x = (common if ready else acc30)['models'][b]['pooled'] if b else None
+    best = (
+        T.tr(
+            f'Maior acerto em eventos: {model_name(b)}, {pct(x["CSI"])} ({x["days"]} dias, {x["events"]} eventos). ',
+            f'Best event hit rate: {model_name(b)}, {pct(x["CSI"])} ({x["days"]} days, {x["events"]} events). ',
+        )
+        if b
+        else ''
+    )
+    note = best + (
+        T.tr(
+            f'Comparação no período comum aos cinco modelos ({span}).',
+            f'Compared over the period common to all five models ({span}).',
+        )
+        if ready
+        else T.tr(
+            f'Período comum aos cinco modelos ({span}) ainda curto demais para compará-los lado a lado; '
+            f'acima, os modelos com pelo menos {VS.MIN_DAYS} dias nos últimos 30 dias.',
+            f'The period common to all five models ({span}) is still too short to compare them side by side; '
+            f'above, the models with at least {VS.MIN_DAYS} days in the last 30 days.',
+        )
+    )
+    return {
+        'title': T.tr(
+            f'Como os modelos estão acertando agora · acerto em eventos, D+1 a D+3, 30 dias (acompanhamento) · {ix}',
+            f'How the models are verifying now · event hit rate, D+1 to D+3, 30 days (monitoring) · {ix}',
+        ),
+        'line': line,
+        'note': note,
+    }
+
+
 def render():
     T.apply()
     if not (FC / 'latest.json').exists():
@@ -615,8 +970,8 @@ def render():
     # index: EDI or API; runs made before the API was added only have the EDI
     rules = run_rules(meta)
     has_api = 'level_api' in df and 'API' in rules
-    if '_ix' not in st.session_state:
-        st.session_state['_ix'] = 'API' if str(st.query_params.get('ix', '')) == 'API' and has_api else 'EDI'
+    if '_ix' not in st.session_state:  # API is the default; ?ix=EDI opens the EDI
+        st.session_state['_ix'] = 'EDI' if str(st.query_params.get('ix', '')) == 'EDI' or not has_api else 'API'
     ix = st.session_state['_ix'] if has_api else 'EDI'
     if ix == 'API':
         df = df.assign(level=df.level_api, VAL=df.API)
@@ -673,50 +1028,76 @@ def render():
         unsafe_allow_html=True,
     )
 
-    VIEW = view_options()
+    # 1. how the models are verifying now (the selector labels use its 30-day numbers)
+    daily = load_daily(daily_key())
+    acc30 = accuracy_section(daily, ix)
+    ens = load_ensemble(str((FC / 'latest.json').stat().st_mtime))
+    VIEW = view_options(acc30, ens is not None)
     c1, c2 = st.columns([1.2, 1])
-    vals = list(VIEW.values())
-    asked_view = str(st.query_params.get('cen', ''))
+    if '_view' not in st.session_state or st.session_state['_view'] not in VIEW:
+        asked_view = str(st.query_params.get('cen', ''))
+        st.session_state['_view'] = asked_view if asked_view in VIEW else 'ECMWF'
     if has_api:
         c1.radio(
             T.tr('Índice de potencial de inundação', 'Flood-potential index'),
-            ['EDI', 'API'],
+            ['API', 'EDI'],
             key='_ix',
             format_func=index_labels().get,
             horizontal=True,
             help=T.tr(
-                'EDI: Effective Drought Index (Byun & Wilhite, 1999), baseado na precipitação efetiva, memória de 365 dias. '
                 'API: índice de precipitação antecedente (Kohler & Linsley, 1951), memória de cerca de um mês. '
+                'EDI: Effective Drought Index (Byun & Wilhite, 1999), baseado na precipitação efetiva, memória de 365 dias. '
                 'Os dois são calculados com a chuva observada até o último dia MERGE e, depois, com a chuva prevista pelo modelo escolhido.',
-                'EDI: Effective Drought Index (Byun & Wilhite, 1999), based on effective precipitation, 365-day memory. '
                 'API: antecedent precipitation index (Kohler & Linsley, 1951), memory of about one month. '
+                'EDI: Effective Drought Index (Byun & Wilhite, 1999), based on effective precipitation, 365-day memory. '
                 'Both use observed rainfall up to the last MERGE day and then the rainfall forecast by the chosen model.',
             ),
         )
-    view_label = c1.radio(
+    hit = model_hit_rate()
+    hist = (
+        T.tr(
+            ' Acerto histórico em dias de chuva forte (≥ 20 mm), D+1 a D+3, rodadas de 2024–2026: ',
+            ' Historical hit rate on heavy-rain days (≥ 20 mm), D+1 to D+3, 2024–2026 runs: ',
+        )
+        + ', '.join(f'{m} {T.num(v * 100, 0)}%' for m, v in hit.items())
+        + '.'
+        if hit
+        else ''
+    )
+    view = c1.radio(
         T.tr('Modelo de previsão meteorológica (chuva prevista)', 'Weather forecast model (forecast rainfall)'),
         list(VIEW),
+        key='_view',
+        format_func=VIEW.get,
         horizontal=True,
-        index=vals.index(asked_view) if asked_view in vals else 0,
         help=T.tr(
-            'ECMWF IFS (centro europeu) e NOAA GFS (EUA): modelos globais determinísticos, rodada das 12 UTC, via Open-Meteo. '
-            'Fornecem a chuva prevista para os próximos dias, somada na janela de 12 a 12 UTC e agregada na bacia a '
-            'montante de cada município. Consenso = menor nível entre os dois modelos (só alerta se ambos indicarem). '
-            'O % é o acerto histórico de cada modelo nos dias de chuva forte; o ECMWF acertou mais na verificação de 2024–2026.',
-            'ECMWF IFS (European centre) and NOAA GFS (USA): deterministic global models, 12 UTC run, via Open-Meteo. '
-            'They provide the forecast rainfall for the coming days, summed over the 12-12 UTC window and aggregated over '
-            'each municipality’s upstream basin. Consensus = the lower level of the two models (warns only if both agree). '
-            'The % is each model’s historical hit rate on heavy-rain days; ECMWF scored better in the 2024–2026 verification.',
+            'ECMWF IFS (centro europeu) e NOAA GFS (EUA): modelos globais determinísticos, rodada das 12 UTC, via Open-Meteo, '
+            'grade de 0,25°. Consenso = menor nível entre os dois (só alerta se ambos indicarem). ECMWF ENS (51 membros) e '
+            f'GEFS (31): ensembles na grade de 0,5°; nível = o mais alto atingido com probabilidade ≥ {T.num(VS.ENSEMBLE_P, 1)}. '
+            'A chuva é somada na janela de 12 a 12 UTC e agregada na bacia a montante de cada município. '
+            'O % é o acerto em eventos dos últimos 30 dias, D+1 a D+3 (seção acima).' + hist,
+            'ECMWF IFS (European centre) and NOAA GFS (USA): deterministic global models, 12 UTC run, via Open-Meteo, '
+            '0.25° grid. Consensus = the lower level of the two (warns only if both agree). ECMWF ENS (51 members) and '
+            f'GEFS (31): ensembles on the 0.5° grid; level = the highest level reached with probability ≥ {T.num(VS.ENSEMBLE_P, 1)}. '
+            'Rainfall is summed over the 12-12 UTC window and aggregated over each municipality’s upstream basin. '
+            'The % is the event hit rate over the last 30 days, D+1 to D+3 (section above).' + hist,
         ),
     )
-    if model_hit_rate():
-        c1.caption(
-            T.tr(
-                '% = acerto histórico dos dias de chuva forte (≥ 20 mm), D+1 a D+3, rodadas de 2024–2026 × chuva observada.',
-                '% = historical hit rate on heavy-rain days (≥ 20 mm), D+1 to D+3, 2024–2026 runs vs observed rainfall.',
+    view_label = model_name(VIEWS[view])
+    is_ens = view in VS.ENSEMBLES
+    levels = combine(df, view, ens, ix)
+    if is_ens:
+        det_end = df.loc[df.source == 'previsão', 'date'].max()
+        ens_end = levels.date.max()
+        if ens_end < det_end:
+            c1.caption(
+                T.tr(
+                    f'Horizonte do {view}: até {dm(ens_end)} (D+{int(ens[ens.model == view].lead_days.max())}); '
+                    f'os modelos determinísticos vão até {dm(det_end)}.',
+                    f'{view} horizon: to {dm(ens_end)} (D+{int(ens[ens.model == view].lead_days.max())}); '
+                    f'the deterministic models reach {dm(det_end)}.',
+                )
             )
-        )
-    levels = combine(df, VIEW[view_label])
     days = sorted(levels.date.unique())
     ctab = corridor_table(levels)
 
@@ -834,66 +1215,69 @@ def render():
         + T.s2id_vs_rivers(oos, river, n_river)
         + T.tr(
             '<p class="note" style="margin-top:6px">Entre parênteses, IC95%. Medido com chuva <b>observada</b> (MERGE), deixando um ano '
-            'de fora por vez. Com chuva <b>prevista</b>, o acerto dos níveis tende a ser menor e não foi medido; a chuva prevista foi verificada abaixo (ECMWF × GFS).</p>',
+            'de fora por vez. Com chuva <b>prevista</b>, o acerto dos níveis é menor (hindcast 2024–2025, protocolo §9.5); veja no topo da página como cada modelo está acertando agora.</p>',
             '<p class="note" style="margin-top:6px">In brackets, 95% CI. Measured with <b>observed</b> rainfall (MERGE), leaving one year '
-            'out at a time. With <b>forecast</b> rainfall, the skill of the levels is likely lower and has not been measured; forecast rainfall is verified below (ECMWF vs GFS).</p>',
+            'out at a time. With <b>forecast</b> rainfall, the skill of the levels is lower (2024–2025 hindcast, protocol §9.5); the top of the page shows how each model is verifying now.</p>',
         )
     )
     has_crit = worst_day is not None and worst_day.level > 0
-    T.kpis(
-        [
-            (
-                T.tr('Corredores em alerta', 'Corridors at Warning'),
-                f'{int((peak == 2).sum())}/3',
-                T.tr('algum dia do horizonte', 'on any day in the horizon'),
-                corridor_detail(2),
-            ),
-            (
-                T.tr('Corredores em atenção', 'Corridors at Watch'),
-                f'{int((peak >= 1).sum())}/3',
-                T.tr('atenção ou alerta', 'Watch or Warning'),
-                corridor_detail(1),
-            ),
-            (
-                T.tr('Municípios afetados', 'Affected municipalities'),
-                f'{int((mun_peak >= 1).sum())}',
-                T.tr(f'de {len(mun_peak)} no horizonte', f'of {len(mun_peak)} within the horizon'),
-                mun_detail,
-            ),
-            (
-                T.tr('Dia crítico', 'Critical day'),
-                dm(worst_day.date) if has_crit else '—',
-                worst_day.BR if has_crit else T.tr('sem atenção prevista', 'no Watch forecast'),
-                crit_detail,
-            ),
-            (
-                T.tr('Acerto histórico (chuva observada)', 'Historical hit rate (observed rainfall)'),
-                f'{T.num(oos["POD"] * 100, 0)}%',
-                T.tr('S2iD 2013–2024, fora da amostra', 'S2iD 2013–2024, out-of-sample')
-                + (
-                    T.tr(
-                        f' · cheia dos rios (ANA): {T.num(river["POD"] * 100, 0)}%',
-                        f' · river floods (ANA): {T.num(river["POD"] * 100, 0)}%',
-                    )
-                    if river
-                    else ''
-                )
-                + (
-                    T.tr(
-                        f' · teste 2025: {T.num(v25["POD"] * 100, 0)}%', f' · 2025 test: {T.num(v25["POD"] * 100, 0)}%'
-                    )
-                    if v25
-                    else ''
-                )
-                if (v25 or river)
-                else T.tr(
-                    f'eventos detectados fora da amostra · atenção em {T.num(oos["POFD"] * 100, 1)}% dos dias sem evento',
-                    f'events detected out-of-sample · Watch on {T.num(oos["POFD"] * 100, 1)}% of non-event days',
+
+    def status_cards():
+        T.kpis(
+            [
+                (
+                    T.tr('Corredores em alerta', 'Corridors at Warning'),
+                    f'{int((peak == 2).sum())}/3',
+                    T.tr('algum dia do horizonte', 'on any day in the horizon'),
+                    corridor_detail(2),
                 ),
-                skill_detail,
-            ),
-        ]
-    )
+                (
+                    T.tr('Corredores em atenção', 'Corridors at Watch'),
+                    f'{int((peak >= 1).sum())}/3',
+                    T.tr('atenção ou alerta', 'Watch or Warning'),
+                    corridor_detail(1),
+                ),
+                (
+                    T.tr('Municípios afetados', 'Affected municipalities'),
+                    f'{int((mun_peak >= 1).sum())}',
+                    T.tr(f'de {len(mun_peak)} no horizonte', f'of {len(mun_peak)} within the horizon'),
+                    mun_detail,
+                ),
+                (
+                    T.tr('Dia crítico', 'Critical day'),
+                    dm(worst_day.date) if has_crit else '—',
+                    worst_day.BR if has_crit else T.tr('sem atenção prevista', 'no Watch forecast'),
+                    crit_detail,
+                ),
+                (
+                    T.tr('Acerto histórico (chuva observada)', 'Historical hit rate (observed rainfall)'),
+                    f'{T.num(oos["POD"] * 100, 0)}%',
+                    T.tr('S2iD 2013–2024, fora da amostra', 'S2iD 2013–2024, out-of-sample')
+                    + (
+                        T.tr(
+                            f' · cheia dos rios (ANA): {T.num(river["POD"] * 100, 0)}%',
+                            f' · river floods (ANA): {T.num(river["POD"] * 100, 0)}%',
+                        )
+                        if river
+                        else ''
+                    )
+                    + (
+                        T.tr(
+                            f' · teste 2025: {T.num(v25["POD"] * 100, 0)}%',
+                            f' · 2025 test: {T.num(v25["POD"] * 100, 0)}%',
+                        )
+                        if v25
+                        else ''
+                    )
+                    if (v25 or river)
+                    else T.tr(
+                        f'eventos detectados fora da amostra · atenção em {T.num(oos["POFD"] * 100, 1)}% dos dias sem evento',
+                        f'events detected out-of-sample · Watch on {T.num(oos["POFD"] * 100, 1)}% of non-event days',
+                    ),
+                    skill_detail,
+                ),
+            ]
+        )
 
     # Day D = 24 h rainfall ending 09h Brasília (12 UTC) of D. The window in progress now is the one ending at the next 09h.
     now_br = pd.Timestamp.now(tz='America/Sao_Paulo').tz_localize(None)
@@ -965,11 +1349,16 @@ def render():
             ]
             on_br = levels[levels.corridors.str.split('/').apply(lambda x: br in x)]
             # day strip: each day is a link that selects that day for the whole page (map, cards and lists)
-            active = on_br[(on_br.date == day) & (on_br.level >= 1)].sort_values(['level', 'VAL'], ascending=False)
+            active = on_br[(on_br.date == day) & (on_br.level >= 1)].sort_values(['level', 'score'], ascending=False)
             lst = (
                 T.detail_rows(
                     [
-                        (a.nome, f'{T.chip(int(a.level))} {ix} {fv(a.VAL)} · P3 {T.num(a.P3, 0)} mm')
+                        (
+                            a.nome,
+                            f'{T.chip(int(a.level))} {prob_text(a.level, a.prob)} · {ens_rain_text(a)}'
+                            if is_ens and a.prob == a.prob
+                            else f'{T.chip(int(a.level))} {ix} {fv(a.VAL)} · P3 {T.num(a.P3, 0)} mm',
+                        )
                         for a in active.itertuples()
                     ]
                 )
@@ -982,7 +1371,7 @@ def render():
             labels = ''
             for x in t.sort_values('date').itertuples():
                 fg = T.LEVEL_TEXT[int(x.level)] if x.level >= 0 else T.C['text']
-                href = f'?dia={pd.Timestamp(x.date):%Y-%m-%d}&lang={T.lang()}&abrir={br}&cen={VIEW[view_label]}&ix={ix}'
+                href = f'?dia={pd.Timestamp(x.date):%Y-%m-%d}&lang={T.lang()}&abrir={br}&cen={quote(view)}&ix={ix}'
                 labels += (
                     f'<a class="daychip{" sel" if x.date == day else ""}" href="{href}" target="_self" '
                     f'title="{T.day_label(x.date)}: {T.level_name(int(x.level))} · {x.n_att}/{x.n}" '
@@ -1022,6 +1411,34 @@ def render():
             )
 
     st.markdown(
+        '<div class="section">' + T.tr('Situação atual e histórico', 'Current status and historical record') + '</div>',
+        unsafe_allow_html=True,
+    )
+    status_cards()
+    st.markdown(
+        '<p class="note">'
+        + T.tr(
+            f'Histórico com chuva <b>observada</b> (regra {ix}): registros S2iD 2013–2024, fora da amostra, detecção '
+            f'{T.num(oos["POD"] * 100, 0)}% e TSS {T.num(oos["TSS"], 2)}'
+            + (
+                f'; teste independente de 2025, detecção {T.num(v25["POD"] * 100, 0)}% e TSS {T.num(v25["TSS"], 2)}'
+                if v25
+                else ''
+            )
+            + '. Detalhes no cartão de acerto histórico e na página Estudo do limiar.',
+            f'Record with <b>observed</b> rainfall ({ix} rule): S2iD records 2013–2024, out of sample, detection '
+            f'{T.num(oos["POD"] * 100, 0)}% and TSS {T.num(oos["TSS"], 2)}'
+            + (
+                f'; independent 2025 test, detection {T.num(v25["POD"] * 100, 0)}% and TSS {T.num(v25["TSS"], 2)}'
+                if v25
+                else ''
+            )
+            + '. Details in the historical hit rate card and on the Threshold study page.',
+        )
+        + '</p>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
         '<div class="section">'
         + T.tr(
             'Linha do tempo · corredor × dia · número = municípios em atenção ou alerta',
@@ -1031,9 +1448,9 @@ def render():
         unsafe_allow_html=True,
     )
     by_model = {m: corridor_table(combine(df, m)) for m in ('ECMWF', 'GFS')}
+    if is_ens:
+        by_model[view] = ctab
     st.altair_chart(timeline(by_model), width='stretch')
-    verification_section(ix)
-    model_skill_section()
 
     a, b = st.columns([1.3, 1])
     with a:
@@ -1045,7 +1462,7 @@ def render():
             unsafe_allow_html=True,
         )
         feed = levels[(levels.date == day) & (levels.level >= 1)].sort_values(
-            ['level', 'VAL'], ascending=[False, False]
+            ['level', 'score'], ascending=[False, False]
         )
         if feed.empty:
             st.markdown(
@@ -1072,6 +1489,12 @@ def render():
                 return start
 
             first_day = min(levels.date)
+
+            def feed_info(r):
+                if is_ens and r.prob == r.prob:
+                    return f'{prob_text(r.level, r.prob)} · {ens_rain_text(r)}'
+                return f'P3 {T.num(r.P3, 0)} mm · {ix} {fv(r.VAL)}'
+
             rows = []
             for r in feed.head(20).itertuples():
                 st0 = since(r.codarea)
@@ -1088,7 +1511,7 @@ def render():
                     tag = T.tr(f'{n_days}º dia', f'day {n_days}')
                 rows.append(
                     f'<div class="feed-item"><span><b>{dm(day)}</b><br><span class="muted" style="font-size:.76rem">{tag}</span></span>'
-                    f'<span><b>{T.esc(r.nome)}</b> · BR-{T.esc(r.corridors)}<br><span class="muted">P3 {T.num(r.P3, 0)} mm · {ix} {fv(r.VAL)}</span></span>'
+                    f'<span><b>{T.esc(r.nome)}</b> · BR-{T.esc(r.corridors)}<br><span class="muted">{feed_info(r)}</span></span>'
                     f'{T.chip(int(r.level))}</div>'
                 )
             more = (
@@ -1155,6 +1578,7 @@ def render():
             lang=T.lang(),
             ctab_by_model=by_model,
             rain=daily_rain(df, days),
+            accuracy=briefing_accuracy(daily, ix, acc30),
         )
         st.download_button(
             T.tr('Baixar briefing executivo (PDF)', 'Download executive briefing (PDF)'),
@@ -1165,6 +1589,14 @@ def render():
             mime='application/pdf',
             width='stretch',
         )
+    with st.expander(
+        T.tr(
+            'Detalhes da verificação: último dia, inundações relatadas, por antecedência, escore de Brier e 2024–2026',
+            'Verification details: last day, reported floods, by lead time, Brier score and 2024–2026',
+        )
+    ):
+        verification_section(ix)
+        model_skill_section()
     st.markdown(
         T.tr(
             '<p class="note" style="margin-top:14px">Previsão: ECMWF IFS (ECMWF open data, CC BY 4.0) e NOAA GFS via '

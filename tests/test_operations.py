@@ -295,3 +295,34 @@ def test_dashboard_page_renders_without_errors(page, lang):
     at.run()
     assert not at.exception, [e.value for e in at.exception]
     assert len(at.markdown) > 10  # the page drew its content, not just an early return
+
+
+@pytest.mark.parametrize('lang', ['pt', 'en'])
+def test_forecast_page_models_indices_and_windows(lang):
+    """API is the default index; every offered model and both indices render; selector labels carry the 30-day
+    event hit rate or 'accumulating'; the accuracy section and the details section are drawn."""
+    from streamlit.testing.v1 import AppTest
+
+    at = AppTest.from_string('from floodwatch import page_forecast\npage_forecast.render()\n', default_timeout=300)
+    at.session_state['lang'] = lang
+    at.run()
+    assert not at.exception, [e.value for e in at.exception]
+    assert at.radio(key='_ix').value == 'API' and at.radio(key='_ix').options[0] == 'API'
+    views = at.radio(key='_view')
+    assert views.value == 'ECMWF' and views.options[:3][0].startswith('ECMWF')
+    word = 'acumulando' if lang == 'pt' else 'accumulating'
+    assert all('(30 d)' in o or word in o for o in views.options)
+    text = ' '.join(m.value for m in at.markdown)
+    assert ('Como os modelos estão acertando agora' if lang == 'pt' else 'How the models are verifying now') in text
+    assert ('Situação atual e histórico' if lang == 'pt' else 'Current status and historical record') in text
+    prefix = {'GFS': 'GFS ·', 'consensus': 'Consens', 'ECMWF ENS': 'ECMWF ENS ·', 'GEFS': 'GEFS ·'}
+    offered = [v for v, p in prefix.items() if any(o.startswith(p) for o in views.options)]
+    assert offered[:2] == ['GFS', 'consensus']  # the ensembles are offered when the run published their probabilities
+    for v in offered:
+        at.radio(key='_view').set_value(v).run()
+        assert not at.exception, (v, [e.value for e in at.exception])
+    at.radio(key='_ix').set_value('EDI').run()
+    assert not at.exception, [e.value for e in at.exception]
+    for w in ('common', 'all'):
+        at.radio(key='_accwin').set_value(w).run()
+        assert not at.exception, (w, [e.value for e in at.exception])

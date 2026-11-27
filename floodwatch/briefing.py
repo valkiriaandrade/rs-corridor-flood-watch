@@ -63,7 +63,7 @@ L = {
         'dry': ' Floods after a dry spell are underestimated.',
         'exp': ' API: climate-indices 3.0.0 antecedent_precipitation_index, library defaults, k = 0.90.',
         'rel_end': (
-            ' The skill of the levels with forecast rainfall has not been measured. A level means conditions under which '
+            ' With forecast rainfall the levels are less skilful (2024–2025 hindcast); see the top of page 1. A level means conditions under which '
             'flood records have historically occurred in the municipality, not a certainty of road closure.'
         ),
         'p2': 'Coming days · {s}',
@@ -100,7 +100,7 @@ L = {
             'Each day is the 24 h rainfall ending at 09:00 Brasília time (12 UTC), the MERGE/CPTEC convention used in '
             'calibration. Observed rainfall up to {o}; forecast from then on. Corridor level: highest level present in at '
             'least 20% of its municipalities (display rule, not validated); the number is municipalities at Watch or above / total. '
-            'Levels after the observed day depend on forecast rainfall, whose effect on the levels has not been measured.'
+            'Levels after the observed day depend on forecast rainfall (current accuracy: top of page 1).'
         ),
         'foot': (
             'Independent study, not an official warning: follow Defesa Civil, CEMADEN and SGB. Forecast: ECMWF IFS and NOAA GFS '
@@ -145,7 +145,7 @@ L = {
         'dry': ' Inundações após estiagem são subestimadas.',
         'exp': ' API: antecedent_precipitation_index do climate-indices 3.0.0, padrões da biblioteca, k = 0,90.',
         'rel_end': (
-            ' O acerto dos níveis com chuva prevista não foi medido. O nível indica condição em que historicamente houve '
+            ' Com chuva prevista o acerto dos níveis é menor (hindcast 2024–2025); veja o topo da página 1. O nível indica condição em que historicamente houve '
             'registro de inundação no município, e não a certeza de interdição.'
         ),
         'p2': 'Próximos dias · {s}',
@@ -182,7 +182,7 @@ L = {
             'Cada dia é a chuva de 24 h que termina às 09h de Brasília (12 UTC), convenção MERGE/CPTEC usada na calibração. '
             'Chuva observada até {o}; daí em diante, previsão. Nível do corredor: o maior nível presente em pelo menos 20% '
             'dos seus municípios (regra de exibição, não validada); o número é municípios em atenção ou alerta / total. Os níveis '
-            'depois do dia observado dependem da chuva prevista, cujo efeito sobre os níveis não foi medido.'
+            'depois do dia observado dependem da chuva prevista (acerto atual: topo da página 1).'
         ),
         'foot': (
             'Estudo independente, não é alerta oficial: siga a Defesa Civil, o CEMADEN e o SGB. Previsão: ECMWF IFS e NOAA GFS '
@@ -219,7 +219,7 @@ def _color(level):
     return LEVEL_COLOR[level] if level >= 0 else NODATA
 
 
-def build_figure(meta, levels, ctab, results, scenario, units=None, roads=None, lang='en', peaks=None):
+def build_figure(meta, levels, ctab, results, scenario, units=None, roads=None, lang='en', peaks=None, accuracy=None):
     lang = 'pt' if lang == 'pt' else 'en'
     t = L[lang]
     thr = meta['thresholds']
@@ -268,8 +268,15 @@ def build_figure(meta, levels, ctab, results, scenario, units=None, roads=None, 
         color='#C9D5E3',
     )
 
+    # first: how the models are verifying now (accuracy = {'title', 'line', 'note'}, already in the page language)
+    y = 0.885
+    if accuracy:
+        y = heading(y, accuracy['title'])
+        text(0.05, y, accuracy['line'], 8.2, 'bold', color=NAVY)
+        y = para(0.05, y - 0.016, accuracy['note'], 132, 6.9, color=MUTED, step=0.0112) - 0.006
+
     # bottom line: one card per corridor
-    y = heading(0.885, t['bottom'])
+    y = heading(y, t['bottom'])
     w, gap = 0.29, 0.02
     for i, br in enumerate(CORR):
         x0 = 0.05 + i * (w + gap)
@@ -400,7 +407,7 @@ def build_figure(meta, levels, ctab, results, scenario, units=None, roads=None, 
         if len(lv):
             exposed.append((int(lv.max()), n))
     exposed.sort(key=lambda z: -z[0])
-    for lvl, n in exposed[:6]:
+    for lvl, n in exposed[: 4 if accuracy else 6]:
         ax.add_patch(Rectangle((0.05, hub_y - 0.0095), 0.008, 0.008, color=_color(lvl)))
         tipo = n.get('tipo_en', n['tipo']) if lang == 'en' else n['tipo']
         text(0.063, hub_y, f'{n["municipio"]} · {t["levels"][lvl]}', 7.3, 'bold')
@@ -708,8 +715,10 @@ def briefing_pdf(
     fmt='pdf',
     rain=None,
     page=1,
+    accuracy=None,
 ):
-    """PDF: page 1 (bottom line, map, reliability) + page 2 (coming days). PNG: only the requested page.
+    """PDF: page 1 (current model accuracy, bottom line, map, reliability) + page 2 (coming days). PNG: only the
+    requested page. accuracy: {'title', 'line', 'note'} for the top of page 1 (None leaves it out).
 
     rain: output of daily_rain (one row per date and model); page 2 leaves the rainfall out if it is None."""
     from matplotlib.backends.backend_pdf import PdfPages
@@ -727,7 +736,7 @@ def briefing_pdf(
     if fmt == 'pdf':
         with PdfPages(buf) as pdf:
             for make in (
-                lambda: build_figure(meta, levels, ctab, results, scenario, units, roads, lang, peaks),
+                lambda: build_figure(meta, levels, ctab, results, scenario, units, roads, lang, peaks, accuracy),
                 lambda: build_days_figure(meta, levels, ctab, scenario, rain, lang),
             ):
                 fig = make()
@@ -735,7 +744,7 @@ def briefing_pdf(
                 plt.close(fig)
     else:
         fig = (
-            build_figure(meta, levels, ctab, results, scenario, units, roads, lang, peaks)
+            build_figure(meta, levels, ctab, results, scenario, units, roads, lang, peaks, accuracy)
             if page == 1
             else build_days_figure(meta, levels, ctab, scenario, rain, lang)
         )
