@@ -31,7 +31,7 @@ export FLOODWATCH_MERGE_ARCHIVE=data/raw/merge        # folder holding the 1998-
 | 16 | `python -m floodwatch.forecast_skill download` then `evaluate` | ECMWF × GFS verification (paced; can take hours) | hours |
 | 17 | `python -m floodwatch.forecast` | `data/processed/forecast/runs/<utc>/` + SQLite archive | ~3 min |
 | 18 | `streamlit run app.py` | http://localhost:8501 | – |
-| – | `pytest -q` | 35 tests (no network) | < 1 min |
+| – | `pytest -q` | 46 tests (no network) | ~1 min |
 
 ### Supplementary analyses (protocol §§9.5–9.11)
 
@@ -58,7 +58,10 @@ from 2025 onwards, fetches the latest 12 UTC ECMWF and GFS runs on the 632-point
 honoured; if a 12 UTC run is not available yet, the 06 and then the 00 UTC run is used) and applies the frozen rules.
 If CPTEC is unreachable the local MERGE files are kept; Open-Meteo is required. It then archives the ensemble
 probabilities (ECMWF ENS and GEFS on the 180-point 0.5° grid, table `ensemble`, protocol §9.7; about 20 min, and a
-failure is printed but never blocks the forecast). A cloud run takes about 20 min in total.
+failure is printed but never blocks the forecast); this run's probabilities also go to
+`runs/<utc>/ensemble_levels.csv` for the dashboard. Last, `forecast_db.write_summary` writes `verification.json`
+and `verification_daily.csv` (the same verification for ECMWF, GFS, Consensus, ECMWF ENS and GEFS, per day, model,
+lead and index), both published with the run. A cloud run takes about 20 min in total.
 
 - **Where it runs (since 2026-11-07).** `.github/workflows/daily-forecast.yml` (windows-latest, cron 20:00 UTC = 17:00
   Brasília, also `workflow_dispatch`) runs `scripts/daily_update.ps1` in the cloud. State between runs: MERGE files in
