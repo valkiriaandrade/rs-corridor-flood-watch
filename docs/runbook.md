@@ -31,7 +31,7 @@ export FLOODWATCH_MERGE_ARCHIVE=data/raw/merge        # folder holding the 1998-
 | 16 | `python -m floodwatch.forecast_skill download` then `evaluate` | ECMWF × GFS verification (paced; can take hours) | hours |
 | 17 | `python -m floodwatch.forecast` | `data/processed/forecast/runs/<utc>/` + SQLite archive | ~3 min |
 | 18 | `streamlit run app.py` | http://localhost:8501 | – |
-| – | `pytest -q` | 46 tests (no network) | ~1 min |
+| – | `pytest -q` | 53 tests (no network) | ~1 min |
 
 ### Supplementary analyses (protocol §§9.5–9.11)
 
@@ -61,7 +61,10 @@ probabilities (ECMWF ENS and GEFS on the 180-point 0.5° grid, table `ensemble`,
 failure is printed but never blocks the forecast); this run's probabilities also go to
 `runs/<utc>/ensemble_levels.csv` for the dashboard. Last, `forecast_db.write_summary` writes `verification.json`
 and `verification_daily.csv` (the same verification for ECMWF, GFS, Consensus, ECMWF ENS and GEFS, per day, model,
-lead and index), both published with the run. A cloud run takes about 20 min in total.
+lead and index), and `official_records.json` (the S2iD export vs the rule on observed rainfall and the archived
+forecasts, `floodwatch.s2id_records`), all published with the run. Today's run also writes
+`data/processed/forecast/observed_levels.csv` (the frozen rule on observed MERGE rainfall for the last 75 days; not
+published, used for that summary). A cloud run takes about 20 min in total.
 
 - **Where it runs (since 2026-11-07).** `.github/workflows/daily-forecast.yml` (windows-latest, cron 20:00 UTC = 17:00
   Brasília, also `workflow_dispatch`) runs `scripts/daily_update.ps1` in the cloud. State between runs: MERGE files in

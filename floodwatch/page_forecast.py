@@ -391,6 +391,7 @@ def accuracy_cards(daily, ix, acc30, selected):
         p = x['pooled']
         sel = VIEWS.get(selected) == m
         border = f'border:2px solid {MODEL_COLOR[m]};' if sel else ''
+        pod_far = ''  # same window and n as the CSI; nothing while accumulating
         if p['status'] == 'accumulating' or p['CSI'] is None:
             big = '⏳'
             sub = tr(f'acumulando desde {dm(x["first"])}', f'accumulating since {dm(x["first"])}')
@@ -403,6 +404,10 @@ def accuracy_cards(daily, ix, acc30, selected):
                 else ''
             )
             sub = tr('acerto em eventos', 'event hit rate')
+            pod_far = tr(
+                f'detecção {pct(p["POD"])} · alarmes falsos {pct(p["FAR"])}',
+                f'detection {pct(p["POD"])} · false alarms {pct(p["FAR"])}',
+            )
             s = trend[trend.model == m].sort_values('date')
             spark = sparkline((s.CSI.fillna(float('nan'))).tolist(), MODEL_COLOR[m])
         count = tr(f'{p["days"]} dias · {p["events"]} eventos', f'{p["days"]} days · {p["events"]} events')
@@ -411,7 +416,12 @@ def accuracy_cards(daily, ix, acc30, selected):
             f'<div style="display:flex;justify-content:space-between;align-items:baseline">'
             f'<span style="font-weight:600;color:{T.C["accent"]};font-size:.82rem">{model_name(m)}</span>'
             f'<span style="font-size:1.25rem;font-weight:700;color:{T.C["text"]}">{big}</span></div>'
-            f'<div class="note" style="font-size:.72rem;line-height:1.25">{sub} · D+1–D+3 · 30 d<br>{count}</div>'
+            + (
+                f'<div style="font-size:.72rem;line-height:1.25;color:{T.C["text"]};text-align:right">{pod_far}</div>'
+                if pod_far
+                else ''
+            )
+            + f'<div class="note" style="font-size:.72rem;line-height:1.25">{sub} · D+1–D+3 · 30 d<br>{count}</div>'
             f'{spark}</div>',
             unsafe_allow_html=True,
         )
@@ -547,13 +557,15 @@ def accuracy_detail(daily, ix, selected):
         model_skill_section()
     with st.expander(tr('Como calculamos', 'How we calculate')):
         st.markdown(accuracy_notes(acc, daily), unsafe_allow_html=True)
+    with st.expander(tr('Último dia verificado', 'Last verified day')):
+        last_day_section(ix)
     with st.expander(tr('Registros oficiais', 'Official records')):
-        verification_section(ix)
+        official_records_section(ix)
 
 
-def verification_section(ix):
-    """Official records and the last verified day (data/processed/forecast/verification.json), for all five models:
-    reported floods vs the forecast level, then the last day's hits, false alarms and misses by name.
+def last_day_section(ix):
+    """The last verified day (data/processed/forecast/verification.json), for all five models: forecast vs observed
+    rain, hits, false alarms and misses by name.
 
     'Observed' = the same index and rule computed later with MERGE rainfall; it verifies the forecast level,
     not the occurrence of a flood (official records are loaded when published)."""
@@ -566,7 +578,6 @@ def verification_section(ix):
         return
     tr = T.tr
     days = s['verified_days']
-    occurrence_card(s, ix)
     order = lambda d: sorted(d, key=lambda m: VS.MODELS.index(m) if m in VS.MODELS else 99)
     runs = ' · '.join(
         f'{m} {pd.Timestamp(r).strftime(tr("%d/%m %H UTC", "%d %b %H UTC"))}' for m, r in lt['model_runs'].items() if r
@@ -630,93 +641,235 @@ def verification_section(ix):
         )
 
 
-def occurrence_card(s, ix):
-    """Reported floods (official S2iD records, or preliminary reports until they are published) vs the forecast level."""
-    tr = T.tr
-    occ = s.get('occurrences') or {'items': [], 'by_model': {}}
-    rel = s.get('official_release') or {}
-    days = s['verified_days']
-    cover = rel.get('coverage_end')
-    released = pd.Timestamp(rel['released']).strftime(tr('%d/%m/%Y', '%d %b %Y')) if rel.get('released') else '–'
-    s2 = rel.get('s2id_checked_utc')
-    s2_when = pd.Timestamp(s2).strftime(tr('%d/%m/%Y', '%d %b %Y')) if s2 else '–'
-    s2_n = rel.get('s2id_corridor_records')
-    source_note = tr(
-        f'Registros oficiais do S2iD: o Atlas Digital (versão de {released}) cobre até {cover[:4] if cover else "–"}, e os '
-        f'registros mais recentes vêm do relatório público do S2iD (últimos 60 dias de cadastro, reconhecidos ou ainda em '
-        f'análise), exportado no Brasil cerca de uma vez por semana; última exportação carregada: {s2_when}'
-        + (f', {s2_n} registros nos municípios dos corredores' if s2_n is not None else '')
-        + '. '
-        f'Só entram aqui os registros dos dias já verificados (desde {dm(days[0])}); os anteriores não têm previsão '
-        f'arquivada. Relatos preliminares (boletins da Defesa Civil e imprensa) contam quando não há '
-        f'registro oficial no mesmo município até um dia antes ou depois. Só contam alagamento, enxurrada e inundação; '
-        f'granizo e vendaval não.',
-        f'Official S2iD records: the Atlas Digital (release of {released}) covers up to {cover[:4] if cover else "–"}, and '
-        f'recent records come from the public S2iD report (last 60 days of registrations, recognised or still under '
-        f'review), exported from Brazil about once a week; last export loaded: {s2_when}'
-        + (f', {s2_n} records in the corridor municipalities' if s2_n is not None else '')
-        + '. '
-        f'Only records on verified days (since {dm(days[0])}) appear here; earlier ones have no archived forecast. '
-        f'Preliminary reports (Civil Defence bulletins and press) count when there is no official '
-        f'record in the same municipality within one day. Only urban flooding, flash floods and riverine floods count; '
-        f'hail and wind do not.',
+@st.cache_data(show_spinner=False)
+def load_records(key):
+    """official_records.json (S2iD records vs the rule and the forecasts), written with each run; None if absent."""
+    path = FC / 'official_records.json'
+    return json.loads(path.read_text(encoding='utf-8')) if path.exists() else None
+
+
+def records_key():
+    path = FC / 'official_records.json'
+    return str(path.stat().st_mtime) if path.exists() else ''
+
+
+def level_box(level, mark=''):
+    """Small coloured square for a level (title = the level name); mark = e.g. 'EDI' under an API column."""
+    if level is None:
+        return '<span class="muted">–</span>'
+    color = T.level_color(int(level))
+    extra = f'<sup class="muted" style="font-size:.6rem">{mark}</sup>' if mark else ''
+    return (
+        f'<span title="{T.level_name(int(level))}" style="display:inline-block;width:11px;height:11px;'
+        f'border-radius:2px;background:{color};vertical-align:middle;margin-right:2px"></span>{extra}'
     )
-    lv = {-1: tr('sem dado', 'no data'), 0: 'Normal', 1: tr('Atenção', 'Watch'), 2: tr('Alerta', 'Warning')}
-    if not occ['items']:
-        body = (
+
+
+def official_records_section(ix):
+    """Official S2iD records: what was registered, how late, the rule with observed rain, and what each model forecast."""
+    tr = T.tr
+    r = load_records(records_key())
+    if not r:
+        st.caption(
+            tr(
+                'O resumo dos registros oficiais ainda não foi publicado; ele aparece a partir da próxima rodada.',
+                'The official-records summary has not been published yet; it appears from the next run.',
+            )
+        )
+        return
+    start, lag = r['archive_start'], r.get('lag_days_median')
+    since = r['since_archive']
+    head = [
+        tr(
+            f'<b>Desde {dm(start)} (início do arquivo de previsões): {since["rs"]} registros oficiais no RS, '
+            f'{since["corridor"]} nos 86 municípios dos corredores.</b> Só os tipos de inundação usados no estudo '
+            f'(COBRADE 12100, 12200, 12300, 13214); data do evento = a data no número do protocolo, não a do cadastro.',
+            f'<b>Since {dm(start)} (start of the forecast archive): {since["rs"]} official records in RS, '
+            f'{since["corridor"]} in the 86 corridor municipalities.</b> Only the flood types used in the study '
+            f'(COBRADE 12100, 12200, 12300, 13214); event date = the date in the protocol number, not the registration '
+            f'date.',
+        )
+    ]
+    if lag is not None:
+        head.append(
+            tr(
+                f'Os registros chegam em média (mediana) <b>{T.num(lag, 0)} dias depois do evento</b> neste export '
+                f'(exportado em {dmy(r["export_date"])}): eventos a partir de {dm(r["recent_from"])} '
+                f'<b>ainda podem ganhar registros</b>.',
+                f'Records arrive a median of <b>{T.num(lag, 0)} days after the event</b> in this export (exported on '
+                f'{dmy(r["export_date"])}): events from {dm(r["recent_from"])} on <b>may still receive records</b>.',
+            )
+        )
+    obs = r['observed_rule'][ix]
+    head.append(
+        tr(
+            f'Com a chuva observada, a regra {ix} marcou atenção ou alerta em <b>{obs["at_watch"]} de {obs["records"]}</b> '
+            f'registros oficiais dos corredores (últimos 60 dias de cadastro).',
+            f'With observed rainfall, the {ix} rule was at Watch or Warning for <b>{obs["at_watch"]} of '
+            f'{obs["records"]}</b> official corridor records (last 60 days of registrations).',
+        )
+    )
+    outcome = ' · '.join(
+        f'{model_name(m)} {x[ix]["hits"]}/{x[ix]["records"]}'
+        for m, x in r['forecast_outcome'].items()
+        if x[ix]['records']
+    )
+    if outcome:
+        head.append(
+            tr(
+                f'Registros com previsão arquivada que a previsão pôs em atenção ou alerta ({ix}, previsão mais recente '
+                f'antes do dia): {outcome}.',
+                f'Records with an archived forecast that the forecast put at Watch or Warning ({ix}, latest forecast '
+                f'before the day): {outcome}.',
+            )
+        )
+    st.markdown(''.join(f'<p>{h}</p>' for h in head), unsafe_allow_html=True)
+
+    # corridor records table
+    models = [m for m in VS.MODELS if any(m in i['forecast'] for i in r['corridor'])]
+    hdr = ''.join(f'<th>{model_name(m)}</th>' for m in models)
+    body, used_edi = '', False
+    for i in r['corridor']:
+        o = i['observed']
+        rain = f'{T.num(o["rain_mm"], 0)} · {T.num(o["P3"], 0)} mm' if o['rain_mm'] is not None else '–'
+        cells = ''
+        for m in models:
+            f = i['forecast'].get(m)
+            if not i['archived'] or not f:
+                cells += f'<td class="muted">{tr("sem previsão arquivada", "no archived forecast")}</td>'
+                continue
+            boxes = ''
+            for n in ('1', '2', '3'):
+                c = f.get(n)
+                if c is None:
+                    boxes += level_box(None)
+                elif c.get(ix) is None and ix == 'API' and c.get('EDI') is not None:
+                    boxes += level_box(c['EDI'], 'EDI')  # issued before the API existed: EDI shown, not counted
+                    used_edi = True
+                else:
+                    boxes += level_box(c.get(ix))
+            res = i['outcome'].get(m, {}).get(ix)
+            res_txt = {
+                'hit': f'<b style="color:{T.C["normal"]}">{tr("acerto", "hit")}</b>',
+                'missed': f'<b style="color:{T.C["alerta"]}">{tr("perdido", "missed")}</b>',
+            }.get(res, '<span class="muted">–</span>')
+            prob = ''
+            p = f[min(f, key=int)].get('p', {}).get(ix) if m in VS.ENSEMBLES else None
+            if p and p[0] is not None:
+                prob = f'<br><span class="muted" style="font-size:.72rem">P {T.num(p[0] * 100, 0)}% / {T.num(p[1] * 100, 0)}%</span>'
+            cells += f'<td style="white-space:nowrap">{boxes} {res_txt}{prob}</td>'
+        tag = (
+            f' <span class="muted" style="font-size:.72rem">({tr("registros ainda podem chegar", "records may still arrive")})</span>'
+            if i['recent']
+            else ''
+        )
+        body += (
+            f'<tr><td style="white-space:nowrap">{dm(i["date"])}{tag}</td><td>{T.esc(i["nome"])} · BR-{T.esc(i["corridors"])}</td>'
+            f'<td>{dm(i["registered"]) if i["registered"] else "–"}</td><td>{i["cobrade"]}</td><td>{rain}</td>'
+            f'<td>{level_box(o["API"])} API · {level_box(o["EDI"])} EDI</td>{cells}</tr>'
+        )
+    if body:
+        thead = tr(
+            f'<tr><th>Evento</th><th>Município</th><th>Cadastro</th><th>COBRADE</th><th>Chuva do dia · 3 dias</th>'
+            f'<th>Regra com chuva observada</th>{hdr}</tr>',
+            f'<tr><th>Event</th><th>Municipality</th><th>Registered</th><th>COBRADE</th><th>Rain day · 3 days</th>'
+            f'<th>Rule with observed rain</th>{hdr}</tr>',
+        )
+        st.markdown(
+            f'<div class="section">{tr("Registros oficiais nos corredores", "Official records in the corridors")} · '
+            f'{len(r["corridor"])}</div><div style="overflow-x:auto"><table class="t">{thead}{body}</table></div>',
+            unsafe_allow_html=True,
+        )
+    notes = [
+        tr(
+            f'Quadrados = nível em D+1, D+2 e D+3 (verde Normal, amarelo atenção, vermelho alerta; passe o mouse para '
+            f'ver o nome); <b>acerto</b>/<b>perdido</b> = a previsão mais recente antes do dia ({ix}) pôs ou não o '
+            f'município em atenção ou alerta. Ensembles: P = probabilidade de atenção ou alerta / de alerta. Registros '
+            f'anteriores a {dm(start)} não têm previsão arquivada, mas mostram o nível da regra com a chuva observada.',
+            f'Squares = level at D+1, D+2 and D+3 (green Normal, amber Watch, red Warning; hover for the name); '
+            f'<b>hit</b>/<b>missed</b> = whether the latest forecast before the day ({ix}) put the municipality at '
+            f'Watch or Warning. Ensembles: P = probability of Watch or Warning / of Warning. Records before {dm(start)} '
+            f'have no archived forecast, but show the level of the rule with observed rainfall.',
+        )
+    ]
+    if used_edi:
+        notes.append(
+            tr(
+                f'<sup>EDI</sup> Previsões emitidas antes de o API entrar em operação ({dmy(API_SINCE)}, 12 UTC) têm só '
+                f'o EDI: o quadrado mostra o EDI e o caso fica fora das contagens do API.',
+                f'<sup>EDI</sup> Forecasts issued before the API went into operation ({dmy(API_SINCE)}, 12 UTC) carry '
+                f'only the EDI: the square shows the EDI and the case is left out of the API counts.',
+            )
+        )
+    st.markdown(''.join(f'<p class="note">{n}</p>' for n in notes), unsafe_allow_html=True)
+
+    # alarms without an official or preliminary record
+    al = ' · '.join(
+        f'{model_name(m)} {T.num(x[ix]["share"] * 100, 1)}% ({x[ix]["without_record"]}/{x[ix]["alarms"]})'
+        for m, x in sorted(
+            r['alarms_without_record'].items(), key=lambda kv: VS.MODELS.index(kv[0]) if kv[0] in VS.MODELS else 99
+        )
+        if ix in x
+    )
+    if al:
+        st.markdown(
             '<p>'
             + tr(
-                'Nenhuma inundação relatada nos municípios dos corredores nos dias verificados.',
-                'No flood reported in the corridor municipalities on the verified days.',
+                f'<b>Alarmes sem registro oficial</b> ({ix}, municípios-dia em atenção ou alerta desde {dm(start)} sem '
+                f'registro oficial nem relato preliminar no mesmo município até um dia antes ou depois): {al}.',
+                f'<b>Alarms without an official record</b> ({ix}, municipality-days at Watch or Warning since '
+                f'{dm(start)} with no official record or preliminary report in the same municipality within one day): '
+                f'{al}.',
             )
-            + '</p>'
-        )
-    else:
-        head = tr(
-            '<tr><th>Dia</th><th>Município</th><th>Modelo</th><th>Nível previsto</th><th>Nível com a chuva observada</th><th>Fonte</th></tr>',
-            '<tr><th>Day</th><th>Municipality</th><th>Model</th><th>Forecast level</th><th>Level with observed rain</th><th>Source</th></tr>',
-        )
-        rows, no_api = '', False
-        for it in sorted(occ['items'], key=lambda x: (x['date'], x['nome'], x['model']), reverse=True)[:30]:
-            f, o = it[ix]['forecast'], it[ix]['observed']
-            src = T.esc(it['fonte'] or it['source'])
-            if it['url']:
-                src = f'<a href="{T.esc(it["url"])}" target="_blank">{src}</a>'
-            if f == f and f is not None:
-                fcell = lv.get(int(f), '–')
-            elif ix == 'API':  # issuances made before the API went into operation carry only the EDI
-                fcell, no_api = tr('sem previsão API¹', 'no API forecast¹'), True
-            else:
-                fcell = '–'
-            rows += (
-                f'<tr><td>{dm(it["date"])}</td><td>{T.esc(it["nome"])}</td><td>{model_name(it["model"])} D+{it["lead_days"]}</td>'
-                f'<td>{fcell}</td>'
-                f'<td>{lv.get(int(o), "–") if o == o and o is not None else "–"}</td>'
-                f'<td>{src}{tr(" (preliminar)", " (preliminary)") if it["source"] == "preliminar" else ""}</td></tr>'
+            + '</p><p class="note">'
+            + tr(
+                'A maioria dos alertas não deve virar um desastre registrado: o nível indica condição propícia, e só uma '
+                'parte dos eventos vira registro no S2iD. Por isso este número é naturalmente alto e <b>não</b> é o '
+                'mesmo que os alarmes falsos dos cartões, que comparam o nível previsto com o nível calculado com a '
+                'chuva observada.',
+                'Most alerts are not expected to produce a registered disaster: the level marks favourable conditions, '
+                'and only some events become S2iD records. This number is therefore naturally high and is <b>not</b> '
+                'the same as the false alarms in the cards, which compare the forecast level with the level computed '
+                'from observed rainfall.',
             )
-        tot = ' · '.join(
-            f'{model_name(m)}: {x[ix]["at_watch"]}/{x[ix]["n"]}' for m, x in occ['by_model'].items() if ix in x
+            + '</p>',
+            unsafe_allow_html=True,
         )
-        body = (
-            f'<p>{tr("Inundações relatadas que a previsão pôs em atenção ou alerta", "Reported floods the forecast put at Watch or Warning")}: '
-            f'<b>{tot}</b></p><table class="t">{head}{rows}</table>'
-        )
-        if no_api:
-            body += (
-                '<p class="note">'
-                + tr(
-                    f'¹ O API entrou em operação em {dmy(API_SINCE)}; as previsões emitidas antes disso têm só o EDI. Esses casos não '
-                    f'entram na contagem do API e não são reconstruídos depois, porque a verificação conta apenas o que foi de fato previsto.',
-                    f'¹ The API went into operation on {dmy(API_SINCE)}; forecasts issued before that carry only the EDI. These cases are '
-                    f'left out of the API count and are not reconstructed afterwards: the verification counts only what was actually forecast.',
-                )
-                + '</p>'
-            )
+
+    # statewide list (HTML details: Streamlit does not allow an expander inside an expander)
+    rows = ''.join(
+        f'<tr><td>{T.esc(x["municipio"])}</td><td>{dm(x["date"])}</td>'
+        f'<td>{dm(x["registered"]) if x["registered"] else "–"}</td><td>{T.esc(x["cobrade_label"])}</td>'
+        f'<td>{tr("sim", "yes") if x["in_corridor"] else tr("não", "no")}</td></tr>'
+        for x in r['statewide']
+    )
+    period = r.get('registration_period') or ['', '']
     st.markdown(
-        '<div class="card" style="margin-top:10px"><div class="section">'
-        + tr('Inundações relatadas × previsão', 'Reported floods vs forecast')
-        + f'</div>{body}'
-        + f'<p class="note">{source_note}</p></div>',
+        '<details class="card more"><summary>'
+        + tr(
+            f'Todos os registros do RS neste export ({len(r["statewide"])}, cadastro de {dm(period[0])} a {dm(period[1])})',
+            f'All RS records in this export ({len(r["statewide"])}, registered {dm(period[0])} to {dm(period[1])})',
+        )
+        + '</summary><div style="overflow-x:auto"><table class="t">'
+        + tr(
+            '<tr><th>Município</th><th>Evento</th><th>Cadastro</th><th>COBRADE</th><th>Corredor</th></tr>',
+            '<tr><th>Municipality</th><th>Event</th><th>Registered</th><th>COBRADE</th><th>Corridor</th></tr>',
+        )
+        + rows
+        + '</table></div></details>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        '<p class="note">'
+        + tr(
+            f'Fonte: relatório público "Danos informados" do S2iD (RS, últimos 60 dias de cadastro, reconhecidos ou em '
+            f'análise), exportado no Brasil cerca de uma vez por semana; última exportação: {dmy(r["export_date"])}. '
+            f'Nenhum nível, limiar ou regra é alterado por esta seção.',
+            f'Source: the public S2iD "Danos informados" report (RS, last 60 days of registrations, recognised or under '
+            f'review), exported from Brazil about once a week; last export: {dmy(r["export_date"])}. No level, '
+            f'threshold or rule is changed by this section.',
+        )
+        + '</p>',
         unsafe_allow_html=True,
     )
 
