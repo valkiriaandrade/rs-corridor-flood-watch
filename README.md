@@ -170,38 +170,35 @@ From top to bottom:
 
 - **Header badges:** model run times, last observed day and the rule in force (Watch / Warning thresholds and 3-day
   trigger).
-- **How the models are verifying now** (continuous monitoring): for ECMWF, GFS, Consensus, ECMWF ENS and GEFS, at D+1,
-  D+2 and D+3, the event hit rate (CSI), detection, false alarm ratio, rain bias and mean rain error, each with the
-  number of verified days and events. Windows: last 30 days (default), the period common to all five models, and each
-  model's whole archive. A daily trend chart, one sentence naming the model with the best recent hit rate (on the common
-  period once every model has 10 days there), notes for small samples (< 30 days), "accumulating since <date>" below
-  10 days, and the provisional days (preliminary MERGE). All five models are verified the same way: the forecast level
-  vs the same rule on observed MERGE rainfall, on the same days, with the latest forecast issued before each day. The
-  ensemble level is the highest level reached with probability ≥ 0.5 (fixed rule, [protocol §9.7](docs/protocol.md));
-  ensemble rain = member mean. The numbers follow the selected index.
-- **Selectors:** flood-potential index (API first and default; EDI) and weather model: ECMWF, GFS, Consensus (the
-  lower level of the two), ECMWF ENS and GEFS. Each model label shows its current 30-day hit rate at D+1–D+3
-  (e.g. "ECMWF · 81% (30 d)"); the 2024–2026 heavy-rain hit rate is in the help tooltip. With an ensemble selected,
-  the map, timeline and alert feed show the level reached with P ≥ 0.5 and its probability ("Watch 70%"), the
-  municipality details show the member mean and 90th percentile of the rain, and a note says where the ensemble horizon
-  (D+7) is shorter than the deterministic one.
-- **Day slider:** each day is the 24 h window ending at 09:00 Brasília time (12 UTC), labelled *observed*,
-  *forecast (in progress)* or *forecast*.
-- **Map** (pydeck): municipality levels for the selected day, the three highways and public logistics references,
-  with tooltips; **per-corridor cards** with the municipalities at Watch or Warning and a recommended action per level.
+- **One filter bar:** flood-potential index (API first and default; EDI), weather model and day. The models are ECMWF,
+  GFS, Consensus (the lower level of the two), ECMWF ENS and GEFS, each labelled with its event hit rate (CSI) at
+  D+1–D+3 over the last 30 days, e.g. "ECMWF 81%", or ⏳ while it has fewer than 10 verified days; the 2024–2026
+  heavy-rain hit rate is in the help tooltip. Each day is the 24 h window ending at 09:00 Brasília time (12 UTC).
+- **Five accuracy cards** (the focus): event hit rate at D+1–D+3 over the last 30 days for each model, with verified
+  days, events and a daily sparkline; * marks a small sample (< 30 days), ⏳ "accumulating since <date>".
+- **Map** (pydeck) with the municipality levels for the selected day, the three highways and public logistics
+  references, next to the **status by corridor** cards (municipalities at Watch or Warning, recommended action). With
+  an ensemble selected, the map, timeline and alert feed show the level reached with P ≥ 0.5 and its probability
+  ("Watch 70%"), the municipality details show the member mean and 90th percentile of the rain, and a note says where
+  the ensemble horizon (D+7) is shorter than the deterministic one.
 - **Current status and historical record:** KPI cards that open on click (corridors at Warning and at Watch, affected
   municipalities, critical day, historical hit rate) and the record with observed rainfall (S2iD 2013–2024 out of
-  sample, 2025 test, river floods).
-- **Timeline** (corridor × day, ECMWF, GFS and the selected ensemble) and **alert feed**, with *How to read* and the
-  executive briefing.
-- **Details** (expandable): the last verified day per model (false alarms and misses by name), reported floods vs
-  forecast, totals by lead time for all five models, the ensemble Brier scores for P(Watch) and P(Warning), and the
-  2024–2026 model verification.
-  - *Reported floods vs forecast:* every flood reported in a corridor municipality on a verified day, with the
-    forecast level and the level with observed rain. Sources, in order: official S2iD records where an Atlas Digital
-    release covers the date; the S2iD "Danos informados" report (last 60 days of registrations, exported from a PC in
-    Brazil about once a week; the card shows the date of the last export); preliminary reports (Civil Defence
-    bulletins, press) from `data/raw/reports/preliminary_reports.csv`. Only verified days are listed.
+  sample, 2025 test, river floods); then the **timeline** (corridor × day, ECMWF, GFS and the selected ensemble) and
+  the **alert feed**, with *How to read* and the executive briefing.
+- **Model accuracy in detail** (continuous monitoring): the daily event hit rate of the five models with the selected
+  model highlighted, a window selector (last 30 days, the period common to all five models, each model's whole
+  archive) and one sentence naming the best recent model (on the common period once every model has 10 days there).
+  Collapsed below:
+  - *Full table:* CSI, detection, false alarm ratio, rain bias and mean rain error at D+1, D+2 and D+3 with verified
+    days and events; the ensemble Brier scores for P(Watch) and P(Warning); the 2024–2026 heavy-rain verification.
+  - *How we calculate:* all five models are verified the same way (the forecast level vs the same rule on observed
+    MERGE rainfall, on the same days, with the latest forecast issued before each day); the ensemble level is the
+    highest level reached with probability ≥ 0.5 (fixed rule, [protocol §9.7](docs/protocol.md)) and ensemble rain is
+    the member mean; grids; sample notes; provisional days (preliminary MERGE).
+  - *Official records:* every flood reported in a corridor municipality on a verified day, with the forecast level and
+    the level with observed rain (official S2iD records where an Atlas Digital release covers the date; the S2iD
+    "Danos informados" report, exported from a PC in Brazil about once a week; preliminary reports from
+    `data/raw/reports/preliminary_reports.csv`), and the last verified day's false alarms and misses by name.
 - **Executive briefing (PDF, A4, two pages):**
   - *page 1:* how the models are verifying now (30-day hit rate of the five models), bottom line per corridor, map,
     municipalities to watch, logistics references, model agreement and reliability;

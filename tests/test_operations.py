@@ -300,7 +300,7 @@ def test_dashboard_page_renders_without_errors(page, lang):
 @pytest.mark.parametrize('lang', ['pt', 'en'])
 def test_forecast_page_models_indices_and_windows(lang):
     """API is the default index; every offered model and both indices render; selector labels carry the 30-day
-    event hit rate or 'accumulating'; the accuracy section and the details section are drawn."""
+    event hit rate or the 'accumulating' mark; the accuracy cards and the detail section are drawn."""
     from streamlit.testing.v1 import AppTest
 
     at = AppTest.from_string('from floodwatch import page_forecast\npage_forecast.render()\n', default_timeout=300)
@@ -310,12 +310,12 @@ def test_forecast_page_models_indices_and_windows(lang):
     assert at.radio(key='_ix').value == 'API' and at.radio(key='_ix').options[0] == 'API'
     views = at.radio(key='_view')
     assert views.value == 'ECMWF' and views.options[:3][0].startswith('ECMWF')
-    word = 'acumulando' if lang == 'pt' else 'accumulating'
-    assert all('(30 d)' in o or word in o for o in views.options)
+    assert all(o.endswith('%') or o.endswith('⏳') for o in views.options)  # 30-day event hit rate, or accumulating
     text = ' '.join(m.value for m in at.markdown)
-    assert ('Como os modelos estão acertando agora' if lang == 'pt' else 'How the models are verifying now') in text
+    assert ('acerto em eventos · D+1–D+3 · 30 d' if lang == 'pt' else 'event hit rate · D+1–D+3 · 30 d') in text
+    assert ('Acerto dos modelos em detalhe' if lang == 'pt' else 'Model accuracy in detail') in text
     assert ('Situação atual e histórico' if lang == 'pt' else 'Current status and historical record') in text
-    prefix = {'GFS': 'GFS ·', 'consensus': 'Consens', 'ECMWF ENS': 'ECMWF ENS ·', 'GEFS': 'GEFS ·'}
+    prefix = {'GFS': 'GFS ', 'consensus': 'Consens', 'ECMWF ENS': 'ECMWF ENS ', 'GEFS': 'GEFS '}
     offered = [v for v, p in prefix.items() if any(o.startswith(p) for o in views.options)]
     assert offered[:2] == ['GFS', 'consensus']  # the ensembles are offered when the run published their probabilities
     for v in offered:
