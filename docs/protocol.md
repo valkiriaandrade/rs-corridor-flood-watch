@@ -163,6 +163,22 @@ back-filled once. Verification: Brier score and Brier skill score against the de
 (as 0/1), reliability diagram (10 bins), outcome = the rule on observed rainfall and, separately, official records.
 First evaluation after one full year of archive; nothing is fitted before it.
 
+> **Correction, 2026-11-27 (the registered text above is kept as written).** No back-fill took place: Open-Meteo
+> serves no past ensemble runs at all, only the latest one (decision log 2026-11-24), so "the available past months are
+> back-filled once" could not be done. The archive starts with the daily run of 25 November 2026 (ensemble
+> initialisation 24 November 18 UTC). The run archived is the latest available at workflow time, not necessarily
+> 12 UTC (its initialisation is stored). The one-year evaluation therefore starts from 25 November 2026.
+
+> **Dashboard display and continuous-monitoring rule, 2026-11-27 (not part of the evaluation above).** The ensemble
+> forecast level of a municipality-day is the highest level reached with probability ≥ 0.5, i.e. by at least half of
+> the members (`ENSEMBLE_P` in `floodwatch/verification_summary.py`): P(Watch or above) = `p_watch` and P(Warning) =
+> `p_warning` for the EDI rule, `p_watch_api` / `p_warning_api` for the API rule. 0.5 is fixed, not fitted, and will not
+> be tuned on results. With that level, the ensembles are verified exactly like the deterministic forecasts (the same
+> verified days, the same observed level = the frozen rule on MERGE rainfall, the same `lead_days`, each day scored with
+> the latest forecast issued before it); ensemble rain = member mean (`rain_mean`). The dashboard also shows the Brier
+> score of P(Watch) and P(Warning). All of this is continuous monitoring, like the deterministic verification; the
+> registered evaluation (Brier skill score, reliability, after one full year) is unchanged.
+
 ### 9.8 GloFAS benchmark
 GloFAS v4 reanalysis daily river discharge (Open-Meteo flood API). For each municipality, the GloFAS cell (0.05°)
 inside the municipality with the largest mean discharge 1999–2012 (its main river). Predictor: discharge ÷ the
@@ -248,6 +264,7 @@ For each index (`floodwatch/rules.py`):
 | 2026-11-24 | §9.11 soil moisture from the Copernicus Climate Data Store (`derived-era5-land-daily-statistics`, the same ERA5-Land, daily means of layers 1–3 combined as the 0–100 cm mean) instead of the Open-Meteo archive, whose free quota cannot serve 27 years over the upstream basins; nearest ERA5-Land point per MERGE cell (ties to the north/east); Feb 29 uses Feb 28's climatology. §9.8 GloFAS from the CEMS Early Warning Data Store (`cems-glofas-historical`, v4.0 consolidated) for the same reason. | before results |
 | 2026-11-26 | §9.11 source changed again, before any soil-moisture value was analysed: the daily-statistics dataset allows ~4 months per request and its global queue held each request ~6 h (3 months in 24 h, ~80 days for 1999–2025). Now `reanalysis-era5-land` (same ERA5-Land fields) at 00, 06, 12 and 18 UTC, one request per year, daily value = mean of the four hours instead of the 24-hour mean. The difference is reported on the months downloaded both ways (Jan–Mar 1999, `python -m floodwatch.soil_moisture check`). | before results |
 | 2026-11-26 | §9.11 4-hour vs 24-hour mean on Jan–Mar 1999: mean difference < 0.0001 m³/m³, 99th percentile of the absolute difference 0.002–0.004 m³/m³ (spatial SD 0.08). **After the first evaluation**, a defect was found: 15 basins have 0.01–20 % of their MERGE cells over lagoons or sea, where ERA5-Land has no soil value, and the rule "all cells valid" dropped them entirely (63,274 rows, 83 of 471 events missing). Fixed mechanically by averaging over land cells only; no threshold or grid changed. First run (incomplete sample): (i) SM − API −0.16 (−0.27 to −0.09), (ii) −0.0002 (−0.006 to +0.010); corrected run reported in README. Both negative. | after first run (defect fix) |
+| 2026-11-27 | §9.7: dated correction (no back-fill possible; the archive starts on 25 Nov 2026) and the dashboard display / continuous-monitoring rule for the ensembles (level = highest level with P ≥ 0.5, fixed, never tuned; same verification as the deterministic forecasts; Brier score as monitoring). The registered one-year evaluation is unchanged. | before the §9.7 evaluation |
 
 ## 12. Known limitations
 

@@ -155,7 +155,7 @@ runs were negative.)
 
 | § | Question | Status |
 |---|---|---|
-| 9.7 | **Ensemble probabilities:** are P(Watch) and P(Warning) from ECMWF ENS (51 members) and GEFS (31) reliable? | archived every day since 2026-11-25; verified after one year |
+| 9.7 | **Ensemble probabilities:** are P(Watch) and P(Warning) from ECMWF ENS (51 members) and GEFS (31) reliable? | archived every day since 2026-11-25 (no back-fill: Open-Meteo serves no past ensemble runs); monitored on the dashboard; evaluated after one year |
 | 9.8 | **GloFAS benchmark:** does a hydrological model's river discharge (GloFAS v4 reanalysis 1999–2025) beat the rainfall rule? | waiting in the Copernicus EWDS queue |
 
 ---
@@ -166,31 +166,45 @@ Streamlit, two pages, Portuguese and English (`?lang=en`), light corporate theme
 
 ### Page 1 — Corridor forecast
 
-- **Selectors:** flood-potential index (EDI or API) and weather model (ECMWF, GFS, or consensus = the lower level of
-  the two), each with an explanation.
+From top to bottom:
+
+- **Header badges:** model run times, last observed day and the rule in force (Watch / Warning thresholds and 3-day
+  trigger).
+- **How the models are verifying now** (continuous monitoring): for ECMWF, GFS, Consensus, ECMWF ENS and GEFS, at D+1,
+  D+2 and D+3, the event hit rate (CSI), detection, false alarm ratio, rain bias and mean rain error, each with the
+  number of verified days and events. Windows: last 30 days (default), the period common to all five models, and each
+  model's whole archive. A daily trend chart, one sentence naming the model with the best recent hit rate (on the common
+  period once every model has 10 days there), notes for small samples (< 30 days), "accumulating since <date>" below
+  10 days, and the provisional days (preliminary MERGE). All five models are verified the same way: the forecast level
+  vs the same rule on observed MERGE rainfall, on the same days, with the latest forecast issued before each day. The
+  ensemble level is the highest level reached with probability ≥ 0.5 (fixed rule, [protocol §9.7](docs/protocol.md));
+  ensemble rain = member mean. The numbers follow the selected index.
+- **Selectors:** flood-potential index (API first and default; EDI) and weather model: ECMWF, GFS, Consensus (the
+  lower level of the two), ECMWF ENS and GEFS. Each model label shows its current 30-day hit rate at D+1–D+3
+  (e.g. "ECMWF · 81% (30 d)"); the 2024–2026 heavy-rain hit rate is in the help tooltip. With an ensemble selected,
+  the map, timeline and alert feed show the level reached with P ≥ 0.5 and its probability ("Watch 70%"), the
+  municipality details show the member mean and 90th percentile of the rain, and a note says where the ensemble horizon
+  (D+7) is shorter than the deterministic one.
 - **Day slider:** each day is the 24 h window ending at 09:00 Brasília time (12 UTC), labelled *observed*,
   *forecast (in progress)* or *forecast*.
-- **Header badges:** model run times, last observed day and the rule in force (Watch / Warning thresholds and 3-day trigger).
-- **KPI cards** that open on click: corridors at Warning and at Watch, affected municipalities, critical day, and
-  historical skill. The skill card shows the same rule scored against S2iD records and against gauged river floods.
 - **Map** (pydeck): municipality levels for the selected day, the three highways and public logistics references,
-  with tooltips.
-- **Per-corridor cards** with the municipalities at Watch or Warning, a recommended action per level, an alert feed
-  and a corridor × day timeline for both models.
-- **Forecast vs observed**, updated every day: the latest verified day per model (forecast vs observed rainfall, municipalities
-  at Watch forecast vs observed, false alarms and misses by name), the totals since the first verified day, and the
-  accumulated detection, unconfirmed alarms and rainfall bias by lead time. *Observed* = the same rule computed later
-  with MERGE rainfall.
-- **Reported floods vs forecast:** every flood reported in a corridor municipality on a verified day, with the forecast
-  level and the level with observed rain. Sources, in order: official S2iD records where an Atlas Digital release covers
-  the date; the S2iD "Danos informados" report (last 60 days of registrations, exported from a PC in Brazil about once
-  a week; the card shows the date of the last export); preliminary reports (Civil Defence bulletins, press) from
-  `data/raw/reports/preliminary_reports.csv`. Only verified days are listed. A new official release is detected and
-  loaded automatically.
-- **Model verification** panel: which model forecast heavy rain better, by lead time (archived runs 2024–2026).
+  with tooltips; **per-corridor cards** with the municipalities at Watch or Warning and a recommended action per level.
+- **Current status and historical record:** KPI cards that open on click (corridors at Warning and at Watch, affected
+  municipalities, critical day, historical hit rate) and the record with observed rainfall (S2iD 2013–2024 out of
+  sample, 2025 test, river floods).
+- **Timeline** (corridor × day, ECMWF, GFS and the selected ensemble) and **alert feed**, with *How to read* and the
+  executive briefing.
+- **Details** (expandable): the last verified day per model (false alarms and misses by name), reported floods vs
+  forecast, totals by lead time for all five models, the ensemble Brier scores for P(Watch) and P(Warning), and the
+  2024–2026 model verification.
+  - *Reported floods vs forecast:* every flood reported in a corridor municipality on a verified day, with the
+    forecast level and the level with observed rain. Sources, in order: official S2iD records where an Atlas Digital
+    release covers the date; the S2iD "Danos informados" report (last 60 days of registrations, exported from a PC in
+    Brazil about once a week; the card shows the date of the last export); preliminary reports (Civil Defence
+    bulletins, press) from `data/raw/reports/preliminary_reports.csv`. Only verified days are listed.
 - **Executive briefing (PDF, A4, two pages):**
-  - *page 1:* bottom line per corridor, map, municipalities to watch, logistics references, model agreement and
-    reliability;
+  - *page 1:* how the models are verifying now (30-day hit rate of the five models), bottom line per corridor, map,
+    municipalities to watch, logistics references, model agreement and reliability;
   - *page 2:* the coming days, one row per 24 h window, with ECMWF/GFS rainfall, corridor levels, municipalities at
     Warning and a rainfall chart.
 
@@ -369,6 +383,7 @@ flowchart LR
 | `forecast` | Daily run: refresh MERGE, basin rainfall, ECMWF/GFS 12 UTC runs (06/00 UTC fallback, paced requests), apply the rules |
 | `ensemble` | ECMWF ENS and GEFS member rainfall → per-municipality P(Watch), P(Warning), archived daily (§9.7) |
 | `forecast_db` | SQLite archive of every run (schema in `sql/`), observed vs forecast verification views, `verification.json` |
+| `verification_summary` | The same continuous verification for ECMWF, GFS, Consensus and the ensembles; `verification_daily.csv`; accuracy windows for the dashboard |
 | `official_records` | Weekly check of the Atlas Digital download page for a new S2iD release (auto-loaded); S2iD "Danos informados" export; preliminary flood reports |
 | `hindcast` | Past ECMWF/GFS runs 2024–2025 → levels by lead time (§9.5) and quantile-mapping bias correction (§9.6) |
 | `stats_extra` | SEDI, relative economic value and minimum detectable differences (§9.10) |
@@ -386,7 +401,8 @@ data/processed/
                    river_validation.json, river_predictor.json, stats_extra.json, ground_truth.json,
                    figure tables, units.geojson, basin rainfall; later hindcast.json, bias_correction.json,
                    glofas.json, soil_moisture.json
-  forecast/        runs/<utc>/ (metadata.json + municipal_levels.csv), latest.json, verification.json,
+  forecast/        runs/<utc>/ (metadata.json, municipal_levels.csv, ensemble_levels.csv), latest.json,
+                   verification.json, verification_daily.csv (per day, model, lead and index),
                    forecasts.sqlite (authoritative copy on the branch archive)
 sql/               schema.sql (tables + verification views), validation.sql (ready-made queries)
 docs/              protocol.md, runbook.md, data-sources.md
@@ -407,13 +423,15 @@ the levels computed from forecast rainfall are verified prospectively, from Nove
 
 ### Quality
 
-- `pytest -q`: 35 tests, covering block bootstrap and scores, event chaining, the 12 UTC window, the rule and
+- `pytest -q`: 46 tests, covering block bootstrap and scores, event chaining, the 12 UTC window, the rule and
   trigger, rule compatibility with older runs, the Pfafstetter upstream rule, basin means, GRIB cropping, EDI
   calibration, API recursion and missing days, forecast-verification counts, preliminary-report filtering, module
   reachability, the ensemble's shortened API series (identical to the full one) and quantile mapping; plus the
   operational paths of the daily job: Open-Meteo run selection and its 06/00 UTC fallback (fake responses), the
-  catch-up dates, the SQLite archive writes, the verification pairing, the archive check, and both dashboard pages
-  (Streamlit `AppTest`, Portuguese and English). Tests never use the network.
+  catch-up dates, the SQLite archive writes, the verification pairing, the archive check, the continuous verification
+  of the five models (windows, counts, provisional days, best model, sample notes, ensemble levels with API and EDI
+  probabilities, Brier scores), and both dashboard pages with every model, index and window (Streamlit `AppTest`,
+  Portuguese and English). Tests never use the network.
 - `ruff` lint and format clean (settings in `ruff.toml`; version pinned in `requirements-dev.txt` and
   `.pre-commit-config.yaml`). Tests and ruff run on every push and pull request (`.github/workflows/tests.yml`). External requests are paced, honour `Retry-After` and never retry aggressively.
 
@@ -466,8 +484,9 @@ streamlit run app.py                                # uses the bundled processed
 - **Levels computed with forecast rainfall are less skilful than the study numbers.** The hindcast (2024–2025, 20
   episodes) puts the API rule at TSS ≈ 0.47 with ECMWF and ≈ 0.27–0.40 with GFS, against 0.60 with observed rain on the
   same days; both models miss the heaviest rain. Prefer ECMWF; GFS beyond D+1 is weak.
-- **The ensemble probabilities are archived, not shown.** They will only be shown once a year of data shows that they are
-  reliable (§9.7).
+- **The ensemble verification is still short.** ECMWF ENS and GEFS are archived from 25 November 2026 only (no
+  back-fill possible); the dashboard shows them as continuous monitoring, and their registered evaluation (§9.7) comes
+  after one full year.
 - **Recent S2iD reports depend on the PC in Brazil.** If it stays off, the "reported floods" card ages; the card shows
   the date of the last export.
 
