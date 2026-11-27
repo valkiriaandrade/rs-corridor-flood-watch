@@ -181,6 +181,7 @@ def archive(run_dir=None, observed=None):
     points, weights = upstream.forecast_grid(step=STEP)
     rule = rules.load_rules()
     con = connect()
+    published = []
     for model in ENSEMBLES:
         try:
             member_fc, init = member_rain(points, model, run_dir.name)
@@ -200,8 +201,11 @@ def archive(run_dir=None, observed=None):
             f'INSERT OR REPLACE INTO ensemble ({",".join(COLS)}) VALUES ({",".join("?" * len(COLS))})', rows
         )
         con.commit()
+        published.append(p[COLS[1:]])
         print(f'ensemble {model} (init {init:%Y-%m-%dT%HZ}, {int(p.members.max())} members): {len(p)} rows')
     con.close()
+    if published:  # this run's probabilities, published with the run folder for the dashboard
+        pd.concat(published).to_csv(run_dir / 'ensemble_levels.csv', index=False, float_format='%.4f')
 
 
 if __name__ == '__main__':

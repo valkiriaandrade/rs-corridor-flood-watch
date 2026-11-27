@@ -38,7 +38,8 @@ function Stage-Run {
     foreach ($old in (& git ls-files 'data/processed/forecast/runs' | Where-Object { $_ -notlike "$latest/*" })) {
         & git rm --cached --quiet -- $old 2>&1 | ForEach-Object { Log $_ }
     }
-    & git add -f -- 'data/processed/forecast/latest.json' 'data/processed/forecast/verification.json' $latest `
+    & git add -f -- 'data/processed/forecast/latest.json' 'data/processed/forecast/verification.json' `
+        'data/processed/forecast/verification_daily.csv' $latest `
         'data/raw/reports/preliminary_reports.csv' 'data/raw/atlas/official_release.json' 2>&1 | ForEach-Object { Log $_ }
     & git diff --cached --quiet
     if ($LASTEXITCODE -eq 0) { return $false }

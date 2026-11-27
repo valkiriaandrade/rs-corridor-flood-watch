@@ -291,9 +291,11 @@ def summary(con=None):
     """Forecast vs observed, from the archive: accumulated by model and lead, plus the most recent verified day.
 
     'Observed' is the same rule applied to MERGE rainfall once it is published (not an official flood record)."""
+    from .verification_summary import ENSEMBLES, verification_frame
+
     own = con is None
     con = con or connect()
-    v = pd.read_sql_query('SELECT * FROM verification', con)
+    v = verification_frame(con)  # ECMWF, GFS, Consensus, ECMWF ENS, GEFS: the same verification for all
     runs = pd.read_sql_query('SELECT run_id, ecmwf_run, gfs_run, observed_cutoff FROM runs', con).set_index('run_id')
     occ = occurrences(con)
     if own:
@@ -315,11 +317,15 @@ def summary(con=None):
     out['occurrences'] = _occurrence_block(v, occ)
     v['lead'] = v.lead_days.clip(upper=4)  # D+4 and beyond pooled
     for (model, lead), g in v.groupby(['model', 'lead']):
-        out['by_lead'].setdefault(model, {})[str(int(lead))] = {
+        g = g[g.run_id == g.groupby('date').run_id.transform('max')]  # latest forecast issued before each day
+        entry = {
             'days': int(g.date.nunique()),
             'rain': _rain(g),
             **{ix: _contingency(g[fc], g[ob]) for ix, (fc, ob) in LEVEL_COLS.items() if g[fc].notna().any()},
         }
+        if model in ENSEMBLES:
+            entry['brier'] = _brier(g)
+        out['by_lead'].setdefault(model, {})[str(int(lead))] = entry
     out['since_start'] = _since_start(v)
     day = v.date.max()
     first = v[(v.date == day)]
@@ -359,6 +365,23 @@ def summary(con=None):
     return out
 
 
+def _brier(g):
+    """Brier score of the ensemble probabilities P(Watch or above) and P(Warning), per index (ensembles only)."""
+    out = {}
+    for ix, (pw, pa, ob) in {
+        'EDI': ('p_watch', 'p_warning', 'obs_level'),
+        'API': ('p_watch_api', 'p_warning_api', 'obs_level_api'),
+    }.items():
+        h = g[g[pw].notna() & g[pa].notna() & (g[ob] >= 0)]
+        if len(h):
+            out[ix] = {
+                'n': int(len(h)),
+                'watch': float(((h[pw] - (h[ob] >= 1)) ** 2).mean()),
+                'warning': float(((h[pa] - (h[ob] == 2)) ** 2).mean()),
+            }
+    return out
+
+
 def _since_start(v):
     """Every verified day scored once per model, with the latest forecast issued before it (normally D+1, as in
     'latest'); summed since the archive started. Leads are not mixed within a day, so no municipality-day counts twice."""
@@ -392,9 +415,21 @@ def _since_start(v):
     return out
 
 
+DAILY = FORECAST / 'verification_daily.csv'
+
+
 def write_summary():
+    """verification.json (details) and verification_daily.csv (per day, model, lead and index: the dashboard computes
+    its accuracy windows from it), both published with the run."""
+    from .verification_summary import daily_table, provisional_days, verification_frame
+
     s = summary()
     SUMMARY.write_text(json.dumps(s, indent=1, ensure_ascii=False, default=float), encoding='utf-8')
+    con = connect()
+    try:
+        daily_table(verification_frame(con), provisional_days(con)).to_csv(DAILY, index=False, float_format='%.4f')
+    finally:
+        con.close()
     return s
 
 
