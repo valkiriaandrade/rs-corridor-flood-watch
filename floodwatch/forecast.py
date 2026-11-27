@@ -31,6 +31,7 @@ MODELS = {'ECMWF': ('ecmwf_ifs', 'ecmwf_ifs'), 'GFS': ('gfs_global', 'ncep_gfs01
 FORECAST_DAYS = 10
 BACKFILL_DAYS = 14  # how far back missing issuances are reconstructed
 OBSERVED_DAYS_KEPT = 3  # last observed days stored with each run (verification of earlier forecasts)
+OBSERVED_LEVELS_DAYS = 75  # today's run also writes the rule on observed rain for this many days (official records)
 
 
 def daily_12utc(hourly):
@@ -210,6 +211,13 @@ def run(issue=None, observed=None, states=None):
         table['rain_mm'] = (
             series.stack(future_stack=True).reindex(pd.MultiIndex.from_frame(table[['date', 'codarea']])).to_numpy()
         )
+        if issue is None and not tables:  # the rule on observed rain, for the official-records section (s2id_records)
+            o = table[(table.date <= cutoff) & (table.date > cutoff - pd.Timedelta(days=OBSERVED_LEVELS_DAYS))].copy()
+            o['level'] = rules.classify(o.EDI, o.P3, rule['EDI'])
+            o['level_api'] = rules.classify(o.API, o.P3, rule['API'])
+            o[['date', 'codarea', 'rain_mm', 'P3', 'EDI', 'API', 'level', 'level_api']].to_csv(
+                OUT / 'observed_levels.csv', index=False
+            )
         table = table[table.date > cutoff - pd.Timedelta(days=OBSERVED_DAYS_KEPT)].copy()
         table['model'] = model
         table['source'] = np.where(table.date > cutoff, 'previsão', 'observado')

@@ -419,8 +419,9 @@ DAILY = FORECAST / 'verification_daily.csv'
 
 
 def write_summary():
-    """verification.json (details) and verification_daily.csv (per day, model, lead and index: the dashboard computes
-    its accuracy windows from it), both published with the run."""
+    """verification.json (details), verification_daily.csv (per day, model, lead and index: the dashboard computes
+    its accuracy windows from it) and official_records.json (S2iD records vs the rule and the forecasts), all
+    published with the run."""
     from .verification_summary import daily_table, provisional_days, verification_frame
 
     s = summary()
@@ -428,6 +429,12 @@ def write_summary():
     con = connect()
     try:
         daily_table(verification_frame(con), provisional_days(con)).to_csv(DAILY, index=False, float_format='%.4f')
+        try:  # official S2iD records vs the rule and the forecasts -> official_records.json (dashboard)
+            from .s2id_records import export
+
+            export(con)
+        except Exception as error:
+            print('official records summary failed:', type(error).__name__, error)
     finally:
         con.close()
     return s

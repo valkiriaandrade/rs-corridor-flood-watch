@@ -193,7 +193,8 @@ def _export_s2id(pg, path, s, e):
 
 
 def read_s2id(path):
-    """Records of the exported report: protocol, codarea, event date (from the protocol), cobrade, status, registration."""
+    """Records of the exported report: protocol, codarea, event date (from the protocol), cobrade, status, registration
+    date (dd/mm/yyyy, as exported), municipality name and COBRADE label."""
     import io
 
     raw = path.read_bytes()
@@ -212,6 +213,8 @@ def read_s2id(path):
             'cobrade': d.cobrade,
             'status': d.Status,
             'registered': d.Registro,
+            'municipio': d.get('Município', pd.Series('', index=d.index)),
+            'cobrade_label': d.COBRADE,
         }
     )
 
