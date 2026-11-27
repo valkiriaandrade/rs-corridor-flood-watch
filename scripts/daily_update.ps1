@@ -39,7 +39,8 @@ function Stage-Run {
         & git rm --cached --quiet -- $old 2>&1 | ForEach-Object { Log $_ }
     }
     & git add -f -- 'data/processed/forecast/latest.json' 'data/processed/forecast/verification.json' `
-        'data/processed/forecast/verification_daily.csv' $latest `
+        'data/processed/forecast/verification_daily.csv' `
+        'data/processed/forecast/official_records.json' $latest `
         'data/raw/reports/preliminary_reports.csv' 'data/raw/atlas/official_release.json' 2>&1 | ForEach-Object { Log $_ }
     & git diff --cached --quiet
     if ($LASTEXITCODE -eq 0) { return $false }

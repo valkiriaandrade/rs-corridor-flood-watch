@@ -32,6 +32,7 @@ data/processed/study/municipal_rain_chirps.csv.gz
 data/raw/forecast_archive/
 logs/
 data/processed/forecast/forecasts.sqlite
+data/processed/forecast/observed_levels.csv
 
 # ANA raw downloads (large / third-party)
 data/raw/ana/bho/

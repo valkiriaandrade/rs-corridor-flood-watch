@@ -1,0 +1,1131 @@
+{
+ "export_date": "2026-11-26",
+ "archive_start": "2026-11-04",
+ "lag_days_median": 3.0,
+ "recent_from": "2026-11-23",
+ "since_archive": {
+  "rs": 15,
+  "corridor": 1
+ },
+ "statewide": [
+  {
+   "protocol": "RS-F-4305603-13214-20261124",
+   "municipio": "Colorado",
+   "codarea": "4305603",
+   "date": "2026-11-24",
+   "registered": "2026-11-25",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 1,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4307831-12300-20261124",
+   "municipio": "Eugênio de Castro",
+   "codarea": "4307831",
+   "date": "2026-11-24",
+   "registered": "2026-11-25",
+   "cobrade": "12300",
+   "cobrade_label": "12300 - Alagamentos",
+   "lag_days": 1,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4320602-13214-20261122",
+   "municipio": "Severiano de Almeida",
+   "codarea": "4320602",
+   "date": "2026-11-22",
+   "registered": "2026-11-24",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 2,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4323754-13214-20261117",
+   "municipio": "Vitória das Missões",
+   "codarea": "4323754",
+   "date": "2026-11-17",
+   "registered": "2026-11-23",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 6,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4310405-13214-20261112",
+   "municipio": "Independência",
+   "codarea": "4310405",
+   "date": "2026-11-12",
+   "registered": "2026-11-13",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 1,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4301800-13214-20261107",
+   "municipio": "Barracão",
+   "codarea": "4301800",
+   "date": "2026-11-07",
+   "registered": "2026-11-09",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 2,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4303202-13214-20261107",
+   "municipio": "Cacique Doble",
+   "codarea": "4303202",
+   "date": "2026-11-07",
+   "registered": "2026-11-07",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 0,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4305371-12200-20261107",
+   "municipio": "Charrua",
+   "codarea": "4305371",
+   "date": "2026-11-07",
+   "registered": "2026-11-07",
+   "cobrade": "12200",
+   "cobrade_label": "12200 - Enxurradas",
+   "lag_days": 0,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4320602-13214-20261107",
+   "municipio": "Severiano de Almeida",
+   "codarea": "4320602",
+   "date": "2026-11-07",
+   "registered": "2026-11-16",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 9,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4322186-13214-20261107",
+   "municipio": "Tupanci do Sul",
+   "codarea": "4322186",
+   "date": "2026-11-07",
+   "registered": "2026-11-09",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 2,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4305975-13214-20261104",
+   "municipio": "Coxilha",
+   "codarea": "4305975",
+   "date": "2026-11-04",
+   "registered": "2026-11-06",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 2,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4306973-13214-20261104",
+   "municipio": "Erebango",
+   "codarea": "4306973",
+   "date": "2026-11-04",
+   "registered": "2026-11-05",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 1,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4308904-13214-20261104",
+   "municipio": "Getúlio Vargas",
+   "codarea": "4308904",
+   "date": "2026-11-04",
+   "registered": "2026-11-05",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 1,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4309902-13214-20261104",
+   "municipio": "Ibiraiaras",
+   "codarea": "4309902",
+   "date": "2026-11-04",
+   "registered": "2026-11-09",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 5,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4317756-13214-20261104",
+   "municipio": "Santo Antônio do Planalto",
+   "codarea": "4317756",
+   "date": "2026-11-04",
+   "registered": "2026-11-05",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 1,
+   "in_corridor": true
+  },
+  {
+   "protocol": "RS-F-4303400-13214-20261024",
+   "municipio": "Caiçara",
+   "codarea": "4303400",
+   "date": "2026-10-24",
+   "registered": "2026-10-26",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 2,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4322400-12100-20261016",
+   "municipio": "Uruguaiana",
+   "codarea": "4322400",
+   "date": "2026-10-16",
+   "registered": "2026-10-16",
+   "cobrade": "12100",
+   "cobrade_label": "12100 - Inundações",
+   "lag_days": 0,
+   "in_corridor": true
+  },
+  {
+   "protocol": "RS-F-4309803-12200-20261015",
+   "municipio": "Ibiaçá",
+   "codarea": "4309803",
+   "date": "2026-10-15",
+   "registered": "2026-10-16",
+   "cobrade": "12200",
+   "cobrade_label": "12200 - Enxurradas",
+   "lag_days": 1,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4310603-12100-20261014",
+   "municipio": "Itaqui",
+   "codarea": "4310603",
+   "date": "2026-10-14",
+   "registered": "2026-10-14",
+   "cobrade": "12100",
+   "cobrade_label": "12100 - Inundações",
+   "lag_days": 0,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4316402-13214-20261014",
+   "municipio": "Rosário do Sul",
+   "codarea": "4316402",
+   "date": "2026-10-14",
+   "registered": "2026-10-16",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 2,
+   "in_corridor": true
+  },
+  {
+   "protocol": "RS-F-4300307-13214-20261012",
+   "municipio": "Alecrim",
+   "codarea": "4300307",
+   "date": "2026-10-12",
+   "registered": "2026-10-13",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 1,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4312104-13214-20261008",
+   "municipio": "Mata",
+   "codarea": "4312104",
+   "date": "2026-10-08",
+   "registered": "2026-10-14",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 6,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4316402-12100-20261005",
+   "municipio": "Rosário do Sul",
+   "codarea": "4316402",
+   "date": "2026-10-05",
+   "registered": "2026-10-07",
+   "cobrade": "12100",
+   "cobrade_label": "12100 - Inundações",
+   "lag_days": 2,
+   "in_corridor": true
+  },
+  {
+   "protocol": "RS-F-4316402-13214-20261005",
+   "municipio": "Rosário do Sul",
+   "codarea": "4316402",
+   "date": "2026-10-05",
+   "registered": "2026-10-06",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 1,
+   "in_corridor": true
+  },
+  {
+   "protocol": "RS-F-4300307-13214-20261003",
+   "municipio": "Alecrim",
+   "codarea": "4300307",
+   "date": "2026-10-03",
+   "registered": "2026-10-05",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 2,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4300406-12100-20261003",
+   "municipio": "Alegrete",
+   "codarea": "4300406",
+   "date": "2026-10-03",
+   "registered": "2026-10-06",
+   "cobrade": "12100",
+   "cobrade_label": "12100 - Inundações",
+   "lag_days": 3,
+   "in_corridor": true
+  },
+  {
+   "protocol": "RS-F-4303004-12100-20261002",
+   "municipio": "Cachoeira do Sul",
+   "codarea": "4303004",
+   "date": "2026-10-02",
+   "registered": "2026-10-07",
+   "cobrade": "12100",
+   "cobrade_label": "12100 - Inundações",
+   "lag_days": 5,
+   "in_corridor": true
+  },
+  {
+   "protocol": "RS-F-4305702-13214-20261001",
+   "municipio": "Condor",
+   "codarea": "4305702",
+   "date": "2026-10-01",
+   "registered": "2026-10-05",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 4,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4318432-13214-20261001",
+   "municipio": "São João do Polêsine",
+   "codarea": "4318432",
+   "date": "2026-10-01",
+   "registered": "2026-10-07",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 6,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4306767-12100-20260930",
+   "municipio": "Eldorado do Sul",
+   "codarea": "4306767",
+   "date": "2026-09-30",
+   "registered": "2026-10-07",
+   "cobrade": "12100",
+   "cobrade_label": "12100 - Inundações",
+   "lag_days": 7,
+   "in_corridor": true
+  },
+  {
+   "protocol": "RS-F-4312401-13214-20260930",
+   "municipio": "Montenegro",
+   "codarea": "4312401",
+   "date": "2026-09-30",
+   "registered": "2026-10-12",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 12,
+   "in_corridor": true
+  },
+  {
+   "protocol": "RS-F-4315305-12100-20260930",
+   "municipio": "Quaraí",
+   "codarea": "4315305",
+   "date": "2026-09-30",
+   "registered": "2026-10-05",
+   "cobrade": "12100",
+   "cobrade_label": "12100 - Inundações",
+   "lag_days": 5,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4300554-13214-20260929",
+   "municipio": "Alto Alegre",
+   "codarea": "4300554",
+   "date": "2026-09-29",
+   "registered": "2026-10-06",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 7,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4301206-13214-20260929",
+   "municipio": "Arroio do Tigre",
+   "codarea": "4301206",
+   "date": "2026-09-29",
+   "registered": "2026-10-06",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 7,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4302451-13214-20260929",
+   "municipio": "Boqueirão do Leão",
+   "codarea": "4302451",
+   "date": "2026-09-29",
+   "registered": "2026-09-29",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 0,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4303558-13214-20260929",
+   "municipio": "Camargo",
+   "codarea": "4303558",
+   "date": "2026-09-29",
+   "registered": "2026-10-02",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 3,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4304903-13214-20260929",
+   "municipio": "Casca",
+   "codarea": "4304903",
+   "date": "2026-09-29",
+   "registered": "2026-10-06",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 7,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4308300-13214-20260929",
+   "municipio": "Fontoura Xavier",
+   "codarea": "4308300",
+   "date": "2026-09-29",
+   "registered": "2026-09-30",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 1,
+   "in_corridor": true
+  },
+  {
+   "protocol": "RS-F-4312807-13214-20260929",
+   "municipio": "Nova Araçá",
+   "codarea": "4312807",
+   "date": "2026-09-29",
+   "registered": "2026-10-08",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 9,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4319406-13214-20260929",
+   "municipio": "São Pedro do Sul",
+   "codarea": "4319406",
+   "date": "2026-09-29",
+   "registered": "2026-10-02",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 3,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4323457-13214-20260929",
+   "municipio": "Vila Nova do Sul",
+   "codarea": "4323457",
+   "date": "2026-09-29",
+   "registered": "2026-10-06",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 7,
+   "in_corridor": true
+  },
+  {
+   "protocol": "RS-F-4300109-13214-20260928",
+   "municipio": "Agudo",
+   "codarea": "4300109",
+   "date": "2026-09-28",
+   "registered": "2026-10-01",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 3,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4302402-13214-20260928",
+   "municipio": "Bom Retiro do Sul",
+   "codarea": "4302402",
+   "date": "2026-09-28",
+   "registered": "2026-09-30",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 2,
+   "in_corridor": true
+  },
+  {
+   "protocol": "RS-F-4304200-13214-20260928",
+   "municipio": "Candelária",
+   "codarea": "4304200",
+   "date": "2026-09-28",
+   "registered": "2026-09-29",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 1,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4306106-13214-20260928",
+   "municipio": "Cruz Alta",
+   "codarea": "4306106",
+   "date": "2026-09-28",
+   "registered": "2026-10-02",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 4,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4308003-13214-20260928",
+   "municipio": "Faxinal do Soturno",
+   "codarea": "4308003",
+   "date": "2026-09-28",
+   "registered": "2026-10-01",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 3,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4308409-13214-20260928",
+   "municipio": "Formigueiro",
+   "codarea": "4308409",
+   "date": "2026-09-28",
+   "registered": "2026-10-06",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 8,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4311403-12100-20260928",
+   "municipio": "Lajeado",
+   "codarea": "4311403",
+   "date": "2026-09-28",
+   "registered": "2026-09-28",
+   "cobrade": "12100",
+   "cobrade_label": "12100 - Inundações",
+   "lag_days": 0,
+   "in_corridor": true
+  },
+  {
+   "protocol": "RS-F-4313102-13214-20260928",
+   "municipio": "Nova Palma",
+   "codarea": "4313102",
+   "date": "2026-09-28",
+   "registered": "2026-09-28",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 0,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4314779-13214-20260928",
+   "municipio": "Pontão",
+   "codarea": "4314779",
+   "date": "2026-09-28",
+   "registered": "2026-10-15",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 17,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4316972-13214-20260928",
+   "municipio": "Santa Margarida do Sul",
+   "codarea": "4316972",
+   "date": "2026-09-28",
+   "registered": "2026-09-30",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 2,
+   "in_corridor": true
+  },
+  {
+   "protocol": "RS-F-4318101-13214-20260928",
+   "municipio": "São Francisco de Assis",
+   "codarea": "4318101",
+   "date": "2026-09-28",
+   "registered": "2026-10-06",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 8,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4319604-13214-20260928",
+   "municipio": "São Sepé",
+   "codarea": "4319604",
+   "date": "2026-09-28",
+   "registered": "2026-10-07",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 9,
+   "in_corridor": true
+  },
+  {
+   "protocol": "RS-F-4305132-13214-20260927",
+   "municipio": "Cerro Branco",
+   "codarea": "4305132",
+   "date": "2026-09-27",
+   "registered": "2026-10-05",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 8,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4310306-13214-20260927",
+   "municipio": "Ilópolis",
+   "codarea": "4310306",
+   "date": "2026-09-27",
+   "registered": "2026-10-02",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 5,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4310538-12200-20260927",
+   "municipio": "Itaara",
+   "codarea": "4310538",
+   "date": "2026-09-27",
+   "registered": "2026-10-01",
+   "cobrade": "12200",
+   "cobrade_label": "12200 - Enxurradas",
+   "lag_days": 4,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4310538-13214-20260927",
+   "municipio": "Itaara",
+   "codarea": "4310538",
+   "date": "2026-09-27",
+   "registered": "2026-10-05",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 8,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4311130-13214-20260927",
+   "municipio": "Jari",
+   "codarea": "4311130",
+   "date": "2026-09-27",
+   "registered": "2026-09-29",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 2,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4312104-13214-20260927",
+   "municipio": "Mata",
+   "codarea": "4312104",
+   "date": "2026-09-27",
+   "registered": "2026-10-01",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 4,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4315321-13214-20260927",
+   "municipio": "Quevedos",
+   "codarea": "4315321",
+   "date": "2026-09-27",
+   "registered": "2026-09-30",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 3,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4316907-13214-20260927",
+   "municipio": "Santa Maria",
+   "codarea": "4316907",
+   "date": "2026-09-27",
+   "registered": "2026-10-02",
+   "cobrade": "13214",
+   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
+   "lag_days": 5,
+   "in_corridor": false
+  }
+ ],
+ "corridor": [
+  {
+   "protocol": "RS-F-4317756-13214-20261104",
+   "codarea": "4317756",
+   "nome": "Santo Antônio do Planalto",
+   "corridors": "386",
+   "date": "2026-11-04",
+   "registered": "2026-11-05",
+   "cobrade": "13214",
+   "archived": true,
+   "recent": false,
+   "observed": {
+    "rain_mm": 79.0,
+    "P3": 79.1,
+    "EDI": 1,
+    "API": 1
+   },
+   "forecast": {
+    "ECMWF": {
+     "1": {
+      "EDI": 1,
+      "API": null
+     }
+    },
+    "GFS": {
+     "1": {
+      "EDI": 1,
+      "API": null
+     }
+    },
+    "Consensus": {
+     "1": {
+      "EDI": 1,
+      "API": null
+     }
+    }
+   },
+   "outcome": {
+    "ECMWF": {
+     "EDI": "hit",
+     "API": null
+    },
+    "GFS": {
+     "EDI": "hit",
+     "API": null
+    },
+    "Consensus": {
+     "EDI": "hit",
+     "API": null
+    }
+   }
+  },
+  {
+   "protocol": "RS-F-4322400-12100-20261016",
+   "codarea": "4322400",
+   "nome": "Uruguaiana",
+   "corridors": "290",
+   "date": "2026-10-16",
+   "registered": "2026-10-16",
+   "cobrade": "12100",
+   "archived": false,
+   "recent": false,
+   "observed": {
+    "rain_mm": 2.1,
+    "P3": 19.2,
+    "EDI": 0,
+    "API": 1
+   },
+   "forecast": {},
+   "outcome": {}
+  },
+  {
+   "protocol": "RS-F-4316402-13214-20261014",
+   "codarea": "4316402",
+   "nome": "Rosário do Sul",
+   "corridors": "290",
+   "date": "2026-10-14",
+   "registered": "2026-10-16",
+   "cobrade": "13214",
+   "archived": false,
+   "recent": false,
+   "observed": {
+    "rain_mm": 0.2,
+    "P3": 1.3,
+    "EDI": 1,
+    "API": 1
+   },
+   "forecast": {},
+   "outcome": {}
+  },
+  {
+   "protocol": "RS-F-4316402-12100-20261005",
+   "codarea": "4316402",
+   "nome": "Rosário do Sul",
+   "corridors": "290",
+   "date": "2026-10-05",
+   "registered": "2026-10-07",
+   "cobrade": "12100",
+   "archived": false,
+   "recent": false,
+   "observed": {
+    "rain_mm": 0.4,
+    "P3": 25.5,
+    "EDI": 1,
+    "API": 2
+   },
+   "forecast": {},
+   "outcome": {}
+  },
+  {
+   "protocol": "RS-F-4316402-13214-20261005",
+   "codarea": "4316402",
+   "nome": "Rosário do Sul",
+   "corridors": "290",
+   "date": "2026-10-05",
+   "registered": "2026-10-06",
+   "cobrade": "13214",
+   "archived": false,
+   "recent": false,
+   "observed": {
+    "rain_mm": 0.4,
+    "P3": 25.5,
+    "EDI": 1,
+    "API": 2
+   },
+   "forecast": {},
+   "outcome": {}
+  },
+  {
+   "protocol": "RS-F-4300406-12100-20261003",
+   "codarea": "4300406",
+   "nome": "Alegrete",
+   "corridors": "290",
+   "date": "2026-10-03",
+   "registered": "2026-10-06",
+   "cobrade": "12100",
+   "archived": false,
+   "recent": false,
+   "observed": {
+    "rain_mm": 0.1,
+    "P3": 0.6,
+    "EDI": 1,
+    "API": 1
+   },
+   "forecast": {},
+   "outcome": {}
+  },
+  {
+   "protocol": "RS-F-4303004-12100-20261002",
+   "codarea": "4303004",
+   "nome": "Cachoeira do Sul",
+   "corridors": "290",
+   "date": "2026-10-02",
+   "registered": "2026-10-07",
+   "cobrade": "12100",
+   "archived": false,
+   "recent": false,
+   "observed": {
+    "rain_mm": 0.0,
+    "P3": 60.4,
+    "EDI": 0,
+    "API": 1
+   },
+   "forecast": {},
+   "outcome": {}
+  },
+  {
+   "protocol": "RS-F-4306767-12100-20260930",
+   "codarea": "4306767",
+   "nome": "Eldorado do Sul",
+   "corridors": "116/290",
+   "date": "2026-09-30",
+   "registered": "2026-10-07",
+   "cobrade": "12100",
+   "archived": false,
+   "recent": false,
+   "observed": {
+    "rain_mm": 6.6,
+    "P3": 102.1,
+    "EDI": 1,
+    "API": 2
+   },
+   "forecast": {},
+   "outcome": {}
+  },
+  {
+   "protocol": "RS-F-4312401-13214-20260930",
+   "codarea": "4312401",
+   "nome": "Montenegro",
+   "corridors": "386",
+   "date": "2026-09-30",
+   "registered": "2026-10-12",
+   "cobrade": "13214",
+   "archived": false,
+   "recent": false,
+   "observed": {
+    "rain_mm": 11.8,
+    "P3": 69.1,
+    "EDI": 1,
+    "API": 1
+   },
+   "forecast": {},
+   "outcome": {}
+  },
+  {
+   "protocol": "RS-F-4308300-13214-20260929",
+   "codarea": "4308300",
+   "nome": "Fontoura Xavier",
+   "corridors": "386",
+   "date": "2026-09-29",
+   "registered": "2026-09-30",
+   "cobrade": "13214",
+   "archived": false,
+   "recent": false,
+   "observed": {
+    "rain_mm": 49.4,
+    "P3": 98.0,
+    "EDI": 1,
+    "API": 2
+   },
+   "forecast": {},
+   "outcome": {}
+  },
+  {
+   "protocol": "RS-F-4323457-13214-20260929",
+   "codarea": "4323457",
+   "nome": "Vila Nova do Sul",
+   "corridors": "290",
+   "date": "2026-09-29",
+   "registered": "2026-10-06",
+   "cobrade": "13214",
+   "archived": false,
+   "recent": false,
+   "observed": {
+    "rain_mm": 39.3,
+    "P3": 110.0,
+    "EDI": 1,
+    "API": 2
+   },
+   "forecast": {},
+   "outcome": {}
+  },
+  {
+   "protocol": "RS-F-4311403-12100-20260928",
+   "codarea": "4311403",
+   "nome": "Lajeado",
+   "corridors": "386",
+   "date": "2026-09-28",
+   "registered": "2026-09-28",
+   "cobrade": "12100",
+   "archived": false,
+   "recent": false,
+   "observed": {
+    "rain_mm": 47.5,
+    "P3": 49.1,
+    "EDI": 1,
+    "API": 1
+   },
+   "forecast": {},
+   "outcome": {}
+  },
+  {
+   "protocol": "RS-F-4319604-13214-20260928",
+   "codarea": "4319604",
+   "nome": "São Sepé",
+   "corridors": "290",
+   "date": "2026-09-28",
+   "registered": "2026-10-07",
+   "cobrade": "13214",
+   "archived": false,
+   "recent": false,
+   "observed": {
+    "rain_mm": 37.7,
+    "P3": 51.7,
+    "EDI": 0,
+    "API": 1
+   },
+   "forecast": {},
+   "outcome": {}
+  },
+  {
+   "protocol": "RS-F-4302402-13214-20260928",
+   "codarea": "4302402",
+   "nome": "Bom Retiro do Sul",
+   "corridors": "386",
+   "date": "2026-09-28",
+   "registered": "2026-09-30",
+   "cobrade": "13214",
+   "archived": false,
+   "recent": false,
+   "observed": {
+    "rain_mm": 47.0,
+    "P3": 48.8,
+    "EDI": 1,
+    "API": 1
+   },
+   "forecast": {},
+   "outcome": {}
+  },
+  {
+   "protocol": "RS-F-4316972-13214-20260928",
+   "codarea": "4316972",
+   "nome": "Santa Margarida do Sul",
+   "corridors": "290",
+   "date": "2026-09-28",
+   "registered": "2026-09-30",
+   "cobrade": "13214",
+   "archived": false,
+   "recent": false,
+   "observed": {
+    "rain_mm": 59.6,
+    "P3": 78.4,
+    "EDI": 1,
+    "API": 1
+   },
+   "forecast": {},
+   "outcome": {}
+  }
+ ],
+ "observed_rule": {
+  "EDI": {
+   "records": 15,
+   "at_watch": 12
+  },
+  "API": {
+   "records": 15,
+   "at_watch": 15
+  }
+ },
+ "forecast_outcome": {
+  "ECMWF": {
+   "EDI": {
+    "records": 1,
+    "hits": 1
+   },
+   "API": {
+    "records": 0,
+    "hits": 0
+   }
+  },
+  "GFS": {
+   "EDI": {
+    "records": 1,
+    "hits": 1
+   },
+   "API": {
+    "records": 0,
+    "hits": 0
+   }
+  },
+  "Consensus": {
+   "EDI": {
+    "records": 1,
+    "hits": 1
+   },
+   "API": {
+    "records": 0,
+    "hits": 0
+   }
+  },
+  "ECMWF ENS": {
+   "EDI": {
+    "records": 0,
+    "hits": 0
+   },
+   "API": {
+    "records": 0,
+    "hits": 0
+   }
+  },
+  "GEFS": {
+   "EDI": {
+    "records": 0,
+    "hits": 0
+   },
+   "API": {
+    "records": 0,
+    "hits": 0
+   }
+  }
+ },
+ "alarms_without_record": {
+  "Consensus": {
+   "EDI": {
+    "alarms": 450,
+    "without_record": 448,
+    "share": 0.9955555555555555
+   },
+   "API": {
+    "alarms": 385,
+    "without_record": 384,
+    "share": 0.9974025974025974
+   }
+  },
+  "ECMWF": {
+   "EDI": {
+    "alarms": 484,
+    "without_record": 482,
+    "share": 0.9958677685950413
+   },
+   "API": {
+    "alarms": 426,
+    "without_record": 425,
+    "share": 0.9976525821596244
+   }
+  },
+  "ECMWF ENS": {
+   "EDI": {
+    "alarms": 74,
+    "without_record": 74,
+    "share": 1.0
+   },
+   "API": {
+    "alarms": 85,
+    "without_record": 85,
+    "share": 1.0
+   }
+  },
+  "GEFS": {
+   "EDI": {
+    "alarms": 60,
+    "without_record": 60,
+    "share": 1.0
+   },
+   "API": {
+    "alarms": 71,
+    "without_record": 71,
+    "share": 1.0
+   }
+  },
+  "GFS": {
+   "EDI": {
+    "alarms": 470,
+    "without_record": 468,
+    "share": 0.9957446808510638
+   },
+   "API": {
+    "alarms": 396,
+    "without_record": 395,
+    "share": 0.9974747474747475
+   }
+  }
+ },
+ "registration_period": [
+  "2026-09-27",
+  "2026-11-26"
+ ],
+ "downloaded_utc": "2026-11-26T15:20:10.238664+00:00"
+}

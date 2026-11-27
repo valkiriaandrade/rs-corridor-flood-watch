@@ -314,6 +314,17 @@ def test_forecast_page_models_indices_and_windows(lang):
     text = ' '.join(m.value for m in at.markdown)
     assert ('acerto em eventos · D+1–D+3 · 30 d' if lang == 'pt' else 'event hit rate · D+1–D+3 · 30 d') in text
     assert ('Acerto dos modelos em detalhe' if lang == 'pt' else 'Model accuracy in detail') in text
+    # cards: detection and false alarms under the CSI (same 30-day window)
+    assert ('detecção ' if lang == 'pt' else 'detection ') in text
+    assert ('alarmes falsos ' if lang == 'pt' else 'false alarms ') in text
+    # official records: context line, registration lag, the rule with observed rain, the alarm caveat
+    assert ('(início do arquivo de previsões)' if lang == 'pt' else '(start of the forecast archive)') in text
+    assert ('dias depois do evento' if lang == 'pt' else 'days after the event') in text
+    assert ('Com a chuva observada, a regra' if lang == 'pt' else 'With observed rainfall, the') in text
+    assert ('Alarmes sem registro oficial' if lang == 'pt' else 'Alarms without an official record') in text
+    assert [e.label for e in at.expander][-2:] == (
+        ['Último dia verificado', 'Registros oficiais'] if lang == 'pt' else ['Last verified day', 'Official records']
+    )
     assert ('Situação atual e histórico' if lang == 'pt' else 'Current status and historical record') in text
     prefix = {'GFS': 'GFS ', 'consensus': 'Consens', 'ECMWF ENS': 'ECMWF ENS ', 'GEFS': 'GEFS '}
     offered = [v for v, p in prefix.items() if any(o.startswith(p) for o in views.options)]

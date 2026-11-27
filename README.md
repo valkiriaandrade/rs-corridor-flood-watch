@@ -174,8 +174,9 @@ From top to bottom:
   GFS, Consensus (the lower level of the two), ECMWF ENS and GEFS, each labelled with its event hit rate (CSI) at
   D+1–D+3 over the last 30 days, e.g. "ECMWF 81%", or ⏳ while it has fewer than 10 verified days; the 2024–2026
   heavy-rain hit rate is in the help tooltip. Each day is the 24 h window ending at 09:00 Brasília time (12 UTC).
-- **Five accuracy cards** (the focus): event hit rate at D+1–D+3 over the last 30 days for each model, with verified
-  days, events and a daily sparkline; * marks a small sample (< 30 days), ⏳ "accumulating since <date>".
+- **Five accuracy cards** (the focus): event hit rate at D+1–D+3 over the last 30 days for each model, with detection
+  and false alarms on one line (same window and n), verified days, events and a daily sparkline; * marks a small
+  sample (< 30 days), ⏳ "accumulating since <date>".
 - **Map** (pydeck) with the municipality levels for the selected day, the three highways and public logistics
   references, next to the **status by corridor** cards (municipalities at Watch or Warning, recommended action). With
   an ensemble selected, the map, timeline and alert feed show the level reached with P ≥ 0.5 and its probability
@@ -195,10 +196,18 @@ From top to bottom:
     MERGE rainfall, on the same days, with the latest forecast issued before each day); the ensemble level is the
     highest level reached with probability ≥ 0.5 (fixed rule, [protocol §9.7](docs/protocol.md)) and ensemble rain is
     the member mean; grids; sample notes; provisional days (preliminary MERGE).
-  - *Official records:* every flood reported in a corridor municipality on a verified day, with the forecast level and
-    the level with observed rain (official S2iD records where an Atlas Digital release covers the date; the S2iD
-    "Danos informados" report, exported from a PC in Brazil about once a week; preliminary reports from
-    `data/raw/reports/preliminary_reports.csv`), and the last verified day's false alarms and misses by name.
+  - *Last verified day:* forecast vs observed rain per model, hits, and false alarms and misses by name.
+  - *Official records* (S2iD "Danos informados" export, last 60 days of registrations, exported from a PC in Brazil
+    about once a week; flood COBRADEs 12100, 12200, 12300, 13214; event date = the date in the protocol number):
+    - records since the start of the forecast archive in RS and in the 86 corridor municipalities;
+    - the median registration lag, with the latest days marked "records may still arrive";
+    - every corridor record with the level of the rule on observed MERGE rainfall (API and EDI), the observed rain
+      of the day and of 3 days and, when a forecast was archived, each model's level at D+1–D+3 (ensembles with
+      P(Watch) / P(Warning)) and hit or missed; records before the archive show "no archived forecast". API cells
+      issued before the API existed show the EDI, marked, and stay out of the API counts;
+    - alarms without an official record or preliminary report within one day, per model, with a note that this
+      share is naturally high and is not the false-alarm rate of the cards;
+    - a collapsed list of all RS records (event and registration dates, COBRADE, in or out of a corridor).
 - **Executive briefing (PDF, A4, two pages):**
   - *page 1:* how the models are verifying now (30-day hit rate of the five models), bottom line per corridor, map,
     municipalities to watch, logistics references, model agreement and reliability;
@@ -381,6 +390,7 @@ flowchart LR
 | `ensemble` | ECMWF ENS and GEFS member rainfall → per-municipality P(Watch), P(Warning), archived daily (§9.7) |
 | `forecast_db` | SQLite archive of every run (schema in `sql/`), observed vs forecast verification views, `verification.json` |
 | `verification_summary` | The same continuous verification for ECMWF, GFS, Consensus and the ensembles; `verification_daily.csv`; accuracy windows for the dashboard |
+| `s2id_records` | S2iD export parsing (event date from the protocol, registration lag, corridor membership) and the official-records summary for the dashboard |
 | `official_records` | Weekly check of the Atlas Digital download page for a new S2iD release (auto-loaded); S2iD "Danos informados" export; preliminary flood reports |
 | `hindcast` | Past ECMWF/GFS runs 2024–2025 → levels by lead time (§9.5) and quantile-mapping bias correction (§9.6) |
 | `stats_extra` | SEDI, relative economic value and minimum detectable differences (§9.10) |
@@ -400,6 +410,7 @@ data/processed/
                    glofas.json, soil_moisture.json
   forecast/        runs/<utc>/ (metadata.json, municipal_levels.csv, ensemble_levels.csv), latest.json,
                    verification.json, verification_daily.csv (per day, model, lead and index),
+                   official_records.json (S2iD records vs the rule and the forecasts),
                    forecasts.sqlite (authoritative copy on the branch archive)
 sql/               schema.sql (tables + verification views), validation.sql (ready-made queries)
 docs/              protocol.md, runbook.md, data-sources.md
@@ -420,14 +431,15 @@ the levels computed from forecast rainfall are verified prospectively, from Nove
 
 ### Quality
 
-- `pytest -q`: 46 tests, covering block bootstrap and scores, event chaining, the 12 UTC window, the rule and
+- `pytest -q`: 53 tests, covering block bootstrap and scores, event chaining, the 12 UTC window, the rule and
   trigger, rule compatibility with older runs, the Pfafstetter upstream rule, basin means, GRIB cropping, EDI
   calibration, API recursion and missing days, forecast-verification counts, preliminary-report filtering, module
   reachability, the ensemble's shortened API series (identical to the full one) and quantile mapping; plus the
   operational paths of the daily job: Open-Meteo run selection and its 06/00 UTC fallback (fake responses), the
   catch-up dates, the SQLite archive writes, the verification pairing, the archive check, the continuous verification
   of the five models (windows, counts, provisional days, best model, sample notes, ensemble levels with API and EDI
-  probabilities, Brier scores), and both dashboard pages with every model, index and window (Streamlit `AppTest`,
+  probabilities, Brier scores), the S2iD records (protocol date, registration lag, corridor membership,
+  pre-archive records, alarms without a record), and both dashboard pages with every model, index and window (Streamlit `AppTest`,
   Portuguese and English). Tests never use the network.
 - `ruff` lint and format clean (settings in `ruff.toml`; version pinned in `requirements-dev.txt` and
   `.pre-commit-config.yaml`). Tests and ruff run on every push and pull request (`.github/workflows/tests.yml`). External requests are paced, honour `Retry-After` and never retry aggressively.
