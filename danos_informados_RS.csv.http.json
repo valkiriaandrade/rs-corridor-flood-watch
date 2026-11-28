@@ -1,0 +1,18 @@
+{
+ "url": "https://s2id.mi.gov.br/paginas/relatorios/",
+ "report": "Relat\u00f3rio Gerencial - Danos informados",
+ "uf": "RS",
+ "cobrade": [
+  "12100",
+  "12200",
+  "12300",
+  "13214"
+ ],
+ "registration_period": [
+  "2026-09-29",
+  "2026-11-28"
+ ],
+ "downloaded_at_utc": "2026-11-28T15:00:33.926172+00:00",
+ "bytes": 13275,
+ "sha256": "79229fd13f8aea015410fb2c75297c0f863871b307cd686e3fa72ec2ff3429eb"
+}
