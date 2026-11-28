@@ -106,6 +106,13 @@ published, used for that summary). A cloud run takes about 20 min in total.
   `Daily forecast <run id>` and pushes. Streamlit Community Cloud redeploys from the push, so the hosted app shows the
   new run a few minutes later. Pass `-NoPublish` to skip this step. The hosted app only changes on days a run
   succeeds; after 36 h without a new run the page shows a warning.
+- **When the hosted app looks out of date.** The app follows `main`: a merged PR redeploys it the same way as the daily
+  commit. Check three things before suspecting the deploy:
+  - Did the merge change the dashboard at all? PRs that touch only the study, docs or tests change nothing visible.
+  - Is the browser tab older than the deploy? An open tab keeps its old session until it is reloaded.
+  - When did the daily run start? GitHub queues scheduled workflows. The runs scheduled for 20:00 UTC on 24–27 Nov
+    2026 started between 02:26 and 03:17 UTC the next day, so the new forecast appeared around midnight in Brasília,
+    not at 17:30 (`gh run list --workflow daily-forecast.yml`).
 - Every run is ingested into `data/processed/forecast/forecasts.sqlite` (schema `sql/schema.sql`), with the rule it
   used. Each run also stores the last observed days, so later runs verify earlier forecasts (view `verification`).
   Queries: `python -m floodwatch.forecast_db report` or `sqlite3 data/processed/forecast/forecasts.sqlite < sql/validation.sql`.

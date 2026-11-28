@@ -299,7 +299,7 @@ def test_dashboard_page_renders_without_errors(page, lang):
 
 @pytest.mark.parametrize('lang', ['pt', 'en'])
 def test_forecast_page_models_indices_and_windows(lang):
-    """API is the default index; every offered model and both indices render; selector labels carry the 30-day
+    """API is the default index, under its full label; every offered model and both indices render; selector labels carry the 30-day
     event hit rate or the 'accumulating' mark; the accuracy cards and the detail section are drawn."""
     from streamlit.testing.v1 import AppTest
 
@@ -308,6 +308,9 @@ def test_forecast_page_models_indices_and_windows(lang):
     at.run()
     assert not at.exception, [e.value for e in at.exception]
     assert at.radio(key='_ix').value == 'API' and at.radio(key='_ix').options[0] == 'API'
+    assert at.radio(key='_ix').label == (
+        'Índice de potencial de inundação' if lang == 'pt' else 'Flood-potential index'
+    )
     views = at.radio(key='_view')
     assert views.value == 'ECMWF' and views.options[:3][0].startswith('ECMWF')
     assert all(o.endswith('%') or o.endswith('⏳') for o in views.options)  # 30-day event hit rate, or accumulating

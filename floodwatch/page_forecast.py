@@ -1194,14 +1194,14 @@ def render():
     acc30 = accuracy_cached(daily_key(), ix, '30d') if daily is not None else None
     ens = load_ensemble(str((FC / 'latest.json').stat().st_mtime))
     VIEW = view_options(acc30, ens is not None)
-    c0, c1, c2 = st.columns([0.75, 3.3, 1.9])
+    c0, c1, c2 = st.columns([1.2, 3.05, 1.7])
     cards = st.container()
     if '_view' not in st.session_state or st.session_state['_view'] not in VIEW:
         asked_view = str(st.query_params.get('cen', ''))
         st.session_state['_view'] = asked_view if asked_view in VIEW else 'ECMWF'
     if has_api:
         c0.radio(
-            T.tr('Índice', 'Index'),
+            T.tr('Índice de potencial de inundação', 'Flood-potential index'),
             ['API', 'EDI'],
             key='_ix',
             format_func=index_labels().get,
