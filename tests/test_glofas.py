@@ -8,6 +8,7 @@ import pytest
 from floodwatch import glofas as G
 
 xr = pytest.importorskip('xarray')
+pytest.importorskip('scipy')
 
 
 def _year_file(path, first_valid, days, value):
@@ -18,7 +19,7 @@ def _year_file(path, first_valid, days, value):
         coords={'valid_time': t, 'latitude': [-29.0, -30.0], 'longitude': [309.95, 302.55, 306.0]},
         name='dis24',
     )
-    da.to_dataset().to_netcdf(path)
+    da.to_dataset().to_netcdf(path, engine='scipy')  # NetCDF3: CI has no HDF5 writer
 
 
 def test_days_and_longitudes(tmp_path, monkeypatch):
