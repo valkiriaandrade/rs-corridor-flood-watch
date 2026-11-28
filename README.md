@@ -242,6 +242,9 @@ From top to bottom:
       of the day and of 3 days and, when a forecast was archived, each model's level at D+1–D+3 (ensembles with
       P(Watch) / P(Warning)) and hit or missed; records before the archive show "no archived forecast". API cells
       issued before the API existed show the EDI, marked, and stay out of the API counts;
+    - next to "X of Y records at Watch or Warning" with observed rain, the base rate: the share of all corridor
+      municipality-days of the same period at Watch or Warning (a rule that told nothing apart would catch about
+      that share of the records);
     - alarms without an official record or preliminary report within one day, per model, with a note that this
       share is naturally high and is not the false-alarm rate of the cards;
     - a collapsed list of all RS records (event and registration dates, COBRADE, in or out of a corridor).
@@ -469,7 +472,7 @@ the levels computed from forecast rainfall are verified prospectively, from Nove
 
 ### Quality
 
-- `pytest -q`: 58 tests, covering block bootstrap and scores, event chaining, the 12 UTC window, the rule and trigger,
+- `pytest -q`: 60 tests, covering block bootstrap and scores, event chaining, the 12 UTC window, the rule and trigger,
   rule compatibility with older runs, the Pfafstetter upstream rule, basin means, GRIB cropping, EDI calibration, API
   recursion and missing days, forecast-verification counts, preliminary-report filtering, module reachability, the
   ensemble's shortened API series (identical to the full one), quantile mapping, the GloFAS day and longitude alignment,

@@ -9,7 +9,8 @@ official_records) lists every record in Rio Grande do Sul. For each record:
 
 For the corridor records, the level the frozen rule gives with OBSERVED MERGE rainfall (EDI and API), the observed
 rain of the day and of 3 days, and, when a forecast was archived, the level forecast by each model at D+1..D+3 (and
-the ensemble probabilities). Presentation only: no rule, threshold or archive is changed.
+the ensemble probabilities). Next to 'X of Y records at Watch or Warning', the base rate: the share of all corridor
+municipality-days of the same period at Watch or Warning. Presentation only: no rule, threshold or archive is changed.
 
     parse_export(path)  -> records (pure parsing, tested)
     build(...)          -> the dictionary written to data/processed/forecast/official_records.json (pure, tested)
@@ -74,13 +75,30 @@ def _near(alarms, records):
     return m.groupby('index').hit.any().reindex(alarms.index, fill_value=False)
 
 
-def build(records, units, observed, vframe, archive_start, export_date, preliminary=None):
+def base_rate(observed, codes, start=None):
+    """How often the rule on observed rainfall was at Watch or Warning on ANY corridor municipality-day, from `start`
+    (default: the first observed day) to the last observed day: the base rate to read 'X of Y records' against.
+
+    observed: date (ISO), codarea, level, level_api; codes: the corridor municipalities."""
+    o = observed[observed.codarea.astype(str).isin(set(codes))]
+    if start is not None:
+        o = o[o.date >= start]
+    out = {'from': o.date.min() if len(o) else None, 'to': o.date.max() if len(o) else None}
+    for ix, col in (('EDI', 'level'), ('API', 'level_api')):
+        lv = o[col].dropna()
+        n, k = int(len(lv)), int((lv >= 1).sum())
+        out[ix] = {'municipality_days': n, 'at_watch': k, 'share': k / n if n else None}
+    return out
+
+
+def build(records, units, observed, vframe, archive_start, export_date, preliminary=None, period_start=None):
     """Everything the dashboard shows about the official records (JSON-serialisable).
 
     records: parse_export output; units: codarea, nome, corridors (the 86 corridor municipalities);
     observed: date, codarea, rain_mm, P3, level, level_api (the rule on observed MERGE rainfall);
     vframe: verification_summary.verification_frame (archived forecasts of the five models);
-    preliminary: date, codarea of preliminary reports (count as records for the alarm match)."""
+    preliminary: date, codarea of preliminary reports (count as records for the alarm match);
+    period_start: first day of the export's registration period (start of the base-rate period)."""
     units = units.assign(codarea=units.codarea.astype(str))
     corridor = set(units.codarea)
     rec = records.assign(codarea=records.codarea.astype(str), in_corridor=records.codarea.astype(str).isin(corridor))
@@ -170,6 +188,7 @@ def build(records, units, observed, vframe, archive_start, export_date, prelimin
         }
         for ix in LEVEL_COLS
     }
+    out['observed_base_rate'] = base_rate(obs.reset_index(), corridor, period_start)
     out['forecast_outcome'] = {
         m: {
             ix: {
@@ -223,6 +242,7 @@ def export(con):
         archive_start,
         pd.Timestamp(meta['downloaded_at_utc']).strftime('%Y-%m-%d'),
         preliminary_reports(),
+        (meta.get('registration_period') or [None])[0],
     )
     out['registration_period'] = meta.get('registration_period')
     out['downloaded_utc'] = meta['downloaded_at_utc']

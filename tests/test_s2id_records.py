@@ -154,3 +154,23 @@ def test_preliminary_reports_count_as_records(records, vframe):
     pre = pd.DataFrame({'date': ['2026-11-21'], 'codarea': ['4300002']})
     out = R.build(records, UNITS, OBSERVED, vframe, '2026-11-04', '2026-11-26', pre)
     assert out['alarms_without_record']['ECMWF']['EDI']['without_record'] == 0
+
+
+def test_base_rate_over_all_corridor_municipality_days(built):
+    # every observed corridor municipality-day (6), not only the record days: 2 at Watch or above for each index
+    b = built['observed_base_rate']
+    assert (b['from'], b['to']) == ('2026-10-10', '2026-11-24')
+    assert b['EDI'] == {'municipality_days': 6, 'at_watch': 2, 'share': pytest.approx(1 / 3)}
+    assert b['API'] == {'municipality_days': 6, 'at_watch': 2, 'share': pytest.approx(1 / 3)}
+
+
+def test_base_rate_period_and_corridor_only():
+    outside = pd.DataFrame({'date': ['2026-11-24'], 'codarea': ['4399999'], 'level': [2], 'level_api': [2]})
+    obs = pd.concat([OBSERVED, outside], ignore_index=True).assign(
+        level_api=lambda x: x.level_api.where(x.date != '2026-11-20')  # API missing on 20 Nov: left out of the API
+    )
+    b = R.base_rate(obs, UNITS.codarea, start='2026-11-01')
+    assert (b['from'], b['to']) == ('2026-11-20', '2026-11-24')
+    assert b['EDI'] == {'municipality_days': 4, 'at_watch': 1, 'share': 0.25}
+    assert b['API'] == {'municipality_days': 2, 'at_watch': 1, 'share': 0.5}
+    assert R.base_rate(obs.iloc[:0], UNITS.codarea)['API'] == {'municipality_days': 0, 'at_watch': 0, 'share': None}
