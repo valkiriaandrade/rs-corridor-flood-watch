@@ -18,6 +18,11 @@ The rules, thresholds and samples of v1.0 are unchanged. The analyses below were
 
   Skill loss over D+1–D+3: ECMWF −0.13 (95 % CI −0.21 to −0.05), GFS −0.28.
 - **§9.6 Bias correction.** Quantile mapping does not help (TSS change −0.006 to −0.025). Not adopted.
+- **§9.7 Forecast grid check, 0.5° vs 0.25°.** Basin rainfall on the 0.5° forecast points (ensembles and hindcast)
+  against the 0.25° points (deterministic forecasts), same ECMWF and GFS runs, November 2026. The criterion was stated
+  in the decision log before computing (level agreement ≥ 90 % and |relative bias| ≤ 10 %) and is met for both
+  models and both indices: bias +3 %, levels agree on 98–99 % of municipality-days. The 0.5° grid is acceptable for
+  the ensemble display.
 - **§9.8 GloFAS benchmark.** River discharge does not beat the rainfall rule. Leave-one-year-out TSS is 0.51 for
   GloFAS and 0.56 for the API rule; the API − GloFAS difference is +0.05 (−0.01 to +0.10). On 2025: 0.33 vs 0.56.
 - **§9.11 Soil moisture.** ERA5-Land soil moisture is worse than the API alone (−0.18, −0.29 to −0.10). Adding it to
@@ -76,9 +81,9 @@ The rules, thresholds and samples of v1.0 are unchanged. The analyses below were
 - Tests workflow on every push and pull request, with least-privilege permissions.
   - The tests block the network.
   - They cover the daily job (run fallback, catch-up dates, archive writes and check, verification pairing), both
-    dashboard pages in Portuguese and English, the continuous verification, the S2iD records and the GloFAS file
-    alignment.
-  - 54 tests in total.
+    dashboard pages in Portuguese and English, the continuous verification, the S2iD records, the GloFAS file
+    alignment and the grid check.
+  - 58 tests in total.
 - Lint and format with ruff 0.17.6, also in pre-commit. Formatting-only commit listed in `.git-blame-ignore-revs`.
   Error and log messages in English; the dashboard stays bilingual.
 - Dependabot for GitHub Actions. Bumps:

@@ -19,8 +19,8 @@ abstract: >-
   thresholds based on the Effective Drought Index (EDI) and the Antecedent Precipitation Index (API) computed on upstream-basin
   MERGE rainfall, and applies the frozen rules to ECMWF and GFS deterministic forecasts and to the ECMWF ENS and GEFS
   ensembles, with continuous verification of the forecast levels. Pre-registered protocol in docs/protocol.md, including
-  the supplementary analyses (forecast-level hindcast, bias correction, GloFAS benchmark, soil moisture); negative results
-  are reported. Not an official warning.
+  the supplementary analyses (forecast-level hindcast, bias correction, forecast grid check, GloFAS benchmark, soil
+  moisture); negative results are reported. Not an official warning.
 keywords:
   - flood
   - effective drought index
