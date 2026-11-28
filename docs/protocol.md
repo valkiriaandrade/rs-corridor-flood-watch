@@ -179,6 +179,19 @@ First evaluation after one full year of archive; nothing is fitted before it.
 > score of P(Watch) and P(Warning). All of this is continuous monitoring, like the deterministic verification; the
 > registered evaluation (Brier skill score, reliability, after one full year) is unchanged.
 
+> **Grid check, 2026-11-28 (decision log 2026-11-28; criterion stated before computing).** The ensembles use the 0.5°
+> forecast points (180), the deterministic forecasts the 0.25° points (632). Same ECMWF IFS and GFS runs (Open-Meteo
+> previous-runs API) on both grids, 4–27 Nov 2026, 86 municipalities, D+1–D+3 (6,192 municipality-day-leads per model;
+> levels for the 22 issuances 4–25 Nov, the last with all three days in the period: 5,676). 0.5° minus 0.25° basin rain:
+> ECMWF +0.27 mm (+3.3 %), mean absolute difference 1.1 mm, 95th percentile 5.0 mm, r = 0.98; GFS +0.17 mm (+2.7 %),
+> 0.9 mm, 3.7 mm, r = 0.98. Same level on both grids: API 97.9 % (ECMWF) and 98.4 % (GFS), EDI 98.4 % and 98.8 %.
+> **The criterion is met for all four (agreement ≥ 90 %, |relative bias| ≤ 10 %): the 0.5° grid is acceptable for the
+> ensemble display.** Descriptive: on days at Watch or above on either grid the agreement is 91–95 %; every
+> disagreement is one level apart (never Normal vs Warning); the smallest basins (275–3,063 km²) have the largest
+> rain differences (95th percentile 7.3 mm ECMWF, 5.7 mm GFS, against 2.1–2.2 mm for the largest), but their level
+> agreement (97.7–98.4 %) is close to the others. One month of data; the grid is not the only difference between
+> ensemble and deterministic levels (member spread, the P ≥ 0.5 rule). `data/processed/study/grid_check.json`.
+
 ### 9.8 GloFAS benchmark
 GloFAS v4 reanalysis daily river discharge (Open-Meteo flood API). For each municipality, the GloFAS cell (0.05°)
 inside the municipality with the largest mean discharge 1999–2012 (its main river). Predictor: discharge ÷ the

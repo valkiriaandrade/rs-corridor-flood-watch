@@ -31,7 +31,7 @@ export FLOODWATCH_MERGE_ARCHIVE=data/raw/merge        # folder holding the 1998-
 | 16 | `python -m floodwatch.forecast_skill download` then `evaluate` | ECMWF × GFS verification (paced; can take hours) | hours |
 | 17 | `python -m floodwatch.forecast` | `data/processed/forecast/runs/<utc>/` + SQLite archive | ~3 min |
 | 18 | `streamlit run app.py` | http://localhost:8501 | – |
-| – | `pytest -q` | 54 tests (no network) | ~1 min |
+| – | `pytest -q` | 58 tests (no network) | ~1 min |
 
 ### Supplementary analyses (protocol §§9.5–9.11)
 
@@ -47,6 +47,7 @@ Copernicus downloads need a free ECMWF account token in `~/.cdsapirc` (`url: htt
 | `python -m floodwatch.hindcast evaluate`, then `bias-correction` | `hindcast.json`, `bias_correction.json` (§9.5, §9.6) | ~1 h |
 | `python -m floodwatch.glofas download` then `evaluate` | `glofas.json` (§9.8) | hours (queue) |
 | `python -m floodwatch.soil_moisture download` then `evaluate` | `soil_moisture.json` (§9.11) | hours (queue) |
+| `python -m floodwatch.grid_check download` then `evaluate` | `grid_check.json` (0.5° vs 0.25°, §9.7 note) | ~1 h + ~15 min |
 
 Order matters: step 12 must follow step 10 (it needs the final thresholds), and steps 13 and 17 read the rule built from
 both (`floodwatch/rules.py`).

@@ -164,6 +164,13 @@ def size_classes():
     return pd.qcut(area, 3, labels=['small', 'medium', 'large']).astype(str).rename(index=str)
 
 
+def size_ranges_km2():
+    """Smallest and largest upstream-basin area (km²) of each size tercile."""
+    area = upstream.weights().groupby('codarea').area.sum() / 1e6  # weights are in m²
+    g = area.groupby(size_classes().reindex(area.index.astype(str)).values).agg(['min', 'max'])
+    return {c: [round(float(g.at[c, 'min'])), round(float(g.at[c, 'max']))] for c in ['small', 'medium', 'large']}
+
+
 def evaluate():
     from . import forecast, hindcast, rules
 
@@ -179,18 +186,7 @@ def evaluate():
         'last_observed_day': str(last_obs.date()),
         'points': {g: int(len(upstream.forecast_grid(step=s)[0])) for g, s in GRIDS.items()},
         'criterion': {'agreement_min': AGREEMENT_MIN, 'abs_relative_bias_max': BIAS_MAX},
-        'size_terciles_km2': {
-            c: [
-                float(x)
-                for x in upstream.weights()
-                .groupby('codarea')
-                .area.sum()
-                .groupby(sizes.values)
-                .agg(['min', 'max'])
-                .loc[c]
-            ]
-            for c in ['small', 'medium', 'large']
-        },
+        'size_terciles_km2': size_ranges_km2(),
         'models': {},
     }
     verdict = True
