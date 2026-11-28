@@ -46,3 +46,4 @@ data/raw/prf/*.zip
 data/raw/hindcast/
 data/raw/era5land/
 data/raw/glofas/
+data/raw/grid_check/
