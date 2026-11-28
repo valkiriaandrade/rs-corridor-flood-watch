@@ -179,6 +179,19 @@ First evaluation after one full year of archive; nothing is fitted before it.
 > score of P(Watch) and P(Warning). All of this is continuous monitoring, like the deterministic verification; the
 > registered evaluation (Brier skill score, reliability, after one full year) is unchanged.
 
+> **Grid check, 2026-11-28 (decision log 2026-11-28; criterion stated before computing).** The ensembles use the 0.5°
+> forecast points (180), the deterministic forecasts the 0.25° points (632). Same ECMWF IFS and GFS runs (Open-Meteo
+> previous-runs API) on both grids, 4–27 Nov 2026, 86 municipalities, D+1–D+3 (6,192 municipality-day-leads per model;
+> levels for the 22 issuances 4–25 Nov, the last with all three days in the period: 5,676). 0.5° minus 0.25° basin rain:
+> ECMWF +0.27 mm (+3.3 %), mean absolute difference 1.1 mm, 95th percentile 5.0 mm, r = 0.98; GFS +0.17 mm (+2.7 %),
+> 0.9 mm, 3.7 mm, r = 0.98. Same level on both grids: API 97.9 % (ECMWF) and 98.4 % (GFS), EDI 98.4 % and 98.8 %.
+> **The criterion is met for all four (agreement ≥ 90 %, |relative bias| ≤ 10 %): the 0.5° grid is acceptable for the
+> ensemble display.** Descriptive: on days at Watch or above on either grid the agreement is 91–95 %; every
+> disagreement is one level apart (never Normal vs Warning); the smallest basins (275–3,063 km²) have the largest
+> rain differences (95th percentile 7.3 mm ECMWF, 5.7 mm GFS, against 2.1–2.2 mm for the largest), but their level
+> agreement (97.7–98.4 %) is close to the others. One month of data; the grid is not the only difference between
+> ensemble and deterministic levels (member spread, the P ≥ 0.5 rule). `data/processed/study/grid_check.json`.
+
 ### 9.8 GloFAS benchmark
 GloFAS v4 reanalysis daily river discharge (Open-Meteo flood API). For each municipality, the GloFAS cell (0.05°)
 inside the municipality with the largest mean discharge 1999–2012 (its main river). Predictor: discharge ÷ the
@@ -266,6 +279,7 @@ For each index (`floodwatch/rules.py`):
 | 2026-11-26 | §9.11 4-hour vs 24-hour mean on Jan–Mar 1999: mean difference < 0.0001 m³/m³, 99th percentile of the absolute difference 0.002–0.004 m³/m³ (spatial SD 0.08). **After the first evaluation**, a defect was found: 15 basins have 0.01–20 % of their MERGE cells over lagoons or sea, where ERA5-Land has no soil value, and the rule "all cells valid" dropped them entirely (63,274 rows, 83 of 471 events missing). Fixed mechanically by averaging over land cells only; no threshold or grid changed. First run (incomplete sample): (i) SM − API −0.16 (−0.27 to −0.09), (ii) −0.0002 (−0.006 to +0.010); corrected run reported in README. Both negative. | after first run (defect fix) |
 | 2026-11-27 | §9.7: dated correction (no back-fill possible; the archive starts on 25 Nov 2026) and the dashboard display / continuous-monitoring rule for the ensembles (level = highest level with P ≥ 0.5, fixed, never tuned; same verification as the deterministic forecasts; Brier score as monitoring). The registered one-year evaluation is unchanged. | before the §9.7 evaluation |
 | 2026-11-28 | §9.8 implementation fixes, found when the first evaluation run stopped with no rows (no result was produced): (a) the EWDS serves longitudes 0–360, so no GloFAS cell matched a municipality; converted to −180–180; (b) the variable is the mean discharge of the 24 h before the valid time, so the value valid at d+1 00 UTC is assigned to day d (the requested days 1 Jan 1999 – 31 Dec 2025), making the window the registered max of d−1 and d. As registered, Esteio (27 km²), which contains no 0.05° cell centre, has no GloFAS value (4,147 rows, 8 events left out of both rules). 31 Dec 2024 is missing from the v4.0 consolidated dataset (the year file has 365 days; a request for that day is rejected as invalid): 84 rows without events left out. No threshold, window or sample rule changed. | before results |
+| 2026-11-28 | §9.7 / §9.5 grid check (promised in the 2026-11-24 row), criterion stated before any value is computed. Data: Open-Meteo previous-runs API, ECMWF IFS 0.25 and GFS, `precipitation_previous_day1..3`, at the union of the 0.25° (632) and 0.5° (180) forecast points, days 3 Nov 2026 → 27 Nov 2026 (the same runs on both grids; the operational archive holds only the 0.25° grid). Basin rain of every municipality-day computed with the operational weights on each grid (`upstream.forecast_grid`); levels with the frozen rules, observed MERGE rainfall through X−1 and forecast X … X+2 (issuances 4 Nov → last MERGE day + 1). Reported: bias, mean absolute difference, correlation, 95th percentile of the absolute difference, level agreement and confusion tables, also by upstream-basin size (terciles of area). **Criterion:** for each model (ECMWF, GFS) and index (API, EDI), pooled over D+1–D+3, level agreement ≥ 90 % and |relative bias of basin rain| ≤ 10 % (Σ 0.5° − Σ 0.25°, ÷ Σ 0.25°) → the 0.5° grid is acceptable for the ensemble display; all four must pass. Agreement on days at Watch or above on either grid and the size split are descriptive, not part of the criterion. | before results |
 
 ## 12. Known limitations
 
