@@ -701,12 +701,25 @@ def official_records_section(ix):
             )
         )
     obs = r['observed_rule'][ix]
+    base = (r.get('observed_base_rate') or {}).get(ix) or {}
+    vs_base = ('', '')
+    if base.get('share') is not None:
+        b0, b1 = r['observed_base_rate']['from'], r['observed_base_rate']['to']
+        pct, k, n = T.num(base['share'] * 100, 0), T.num(base['at_watch'], 0), T.num(base['municipality_days'], 0)
+        vs_base = (
+            f' Para comparar: no mesmo período ({dm(b0)}–{dm(b1)}), a regra ficou em atenção ou alerta em '
+            f'<b>{pct}% de todos os dias-município</b> dos corredores ({k} de {n}); uma regra que não distinguisse '
+            f'nada pegaria mais ou menos essa proporção dos registros.',
+            f' For comparison: over the same period ({dm(b0)}–{dm(b1)}), the rule was at Watch or Warning on '
+            f'<b>{pct}% of all corridor municipality-days</b> ({k} of {n}); a rule that told nothing apart would catch '
+            f'about that share of the records.',
+        )
     head.append(
         tr(
             f'Com a chuva observada, a regra {ix} marcou atenção ou alerta em <b>{obs["at_watch"]} de {obs["records"]}</b> '
-            f'registros oficiais dos corredores (últimos 60 dias de cadastro).',
+            f'registros oficiais dos corredores (últimos 60 dias de cadastro).' + vs_base[0],
             f'With observed rainfall, the {ix} rule was at Watch or Warning for <b>{obs["at_watch"]} of '
-            f'{obs["records"]}</b> official corridor records (last 60 days of registrations).',
+            f'{obs["records"]}</b> official corridor records (last 60 days of registrations).' + vs_base[1],
         )
     )
     outcome = ' · '.join(
