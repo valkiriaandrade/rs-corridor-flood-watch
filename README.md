@@ -151,12 +151,31 @@ Soil moisture alone is worse than the API (−0.18, CI −0.29 to −0.10), and 
 would add. (A defect found after the first run, which dropped basins partly over lagoons, was fixed and is logged; both
 runs were negative.)
 
+### River discharge: GloFAS benchmark (protocol §9.8)
+
+GloFAS v4.0 reanalysis daily river discharge 1999–2025 (Copernicus EWDS), at each municipality's main-river cell
+(0.05°), divided by that cell's median annual maximum 1999–2012, max of d−1 and d; threshold fitted exactly as the rules
+(leave-one-year-out, maximum TSS), on the same samples as the API rule (358,854 municipality-days, 463 events).
+
+| Design | GloFAS rule TSS | API rule TSS | API − GloFAS (95 % CI) |
+|---|---|---|---|
+| **Leave-one-year-out 2013–2024 (primary)** | 0.51 (0.40–0.59) | 0.56 (0.45–0.63) | **+0.05 (−0.01 to +0.10)** |
+| Holdout: fit 2013–2020, test 2021–2024 | 0.61 (0.40–0.70) | 0.59 (0.31–0.69) | −0.02 (−0.10 to +0.02) |
+| 2025 test, frozen thresholds (67 events, descriptive) | 0.33 | 0.56 | — |
+
+- **River discharge does not beat the rainfall rule.** In the primary design both detect 72 % of the events; the API
+  rule raises fewer alarms on days without one (16 % vs 21 %). The difference is not conclusive in either direction,
+  and on 2025 the API rule is clearly better (detection 70 % vs 57 %). AUC 0.84 (GloFAS) vs 0.86 (API).
+- The GloFAS threshold is about 0.26–0.31 of the median annual maximum discharge of the main river.
+- GloFAS reanalysis is forced by observed weather, so this is compared with the observed-rainfall study, not with the
+  forecast levels. Esteio (27 km²) contains no GloFAS cell centre and is left out (8 events); 31 Dec 2024 is missing in
+  the EWDS dataset (84 days without events).
+
 ### Registered analyses still open
 
 | § | Question | Status |
 |---|---|---|
 | 9.7 | **Ensemble probabilities:** are P(Watch) and P(Warning) from ECMWF ENS (51 members) and GEFS (31) reliable? | archived every day since 2026-11-25 (no back-fill: Open-Meteo serves no past ensemble runs); monitored on the dashboard; evaluated after one year |
-| 9.8 | **GloFAS benchmark:** does a hydrological model's river discharge (GloFAS v4 reanalysis 1999–2025) beat the rainfall rule? | waiting in the Copernicus EWDS queue |
 
 ---
 
@@ -431,16 +450,16 @@ the levels computed from forecast rainfall are verified prospectively, from Nove
 
 ### Quality
 
-- `pytest -q`: 53 tests, covering block bootstrap and scores, event chaining, the 12 UTC window, the rule and
-  trigger, rule compatibility with older runs, the Pfafstetter upstream rule, basin means, GRIB cropping, EDI
-  calibration, API recursion and missing days, forecast-verification counts, preliminary-report filtering, module
-  reachability, the ensemble's shortened API series (identical to the full one) and quantile mapping; plus the
-  operational paths of the daily job: Open-Meteo run selection and its 06/00 UTC fallback (fake responses), the
-  catch-up dates, the SQLite archive writes, the verification pairing, the archive check, the continuous verification
-  of the five models (windows, counts, provisional days, best model, sample notes, ensemble levels with API and EDI
-  probabilities, Brier scores), the S2iD records (protocol date, registration lag, corridor membership,
-  pre-archive records, alarms without a record), and both dashboard pages with every model, index and window (Streamlit `AppTest`,
-  Portuguese and English). Tests never use the network.
+- `pytest -q`: 54 tests, covering block bootstrap and scores, event chaining, the 12 UTC window, the rule and trigger,
+  rule compatibility with older runs, the Pfafstetter upstream rule, basin means, GRIB cropping, EDI calibration, API
+  recursion and missing days, forecast-verification counts, preliminary-report filtering, module reachability, the
+  ensemble's shortened API series (identical to the full one), quantile mapping and the GloFAS day and longitude
+  alignment; plus the operational paths of the daily job: Open-Meteo run selection and its 06/00 UTC fallback (fake
+  responses), the catch-up dates, the SQLite archive writes, the verification pairing, the archive check, the continuous
+  verification of the five models (windows, counts, provisional days, best model, sample notes, ensemble levels with API
+  and EDI probabilities, Brier scores), the S2iD records (protocol date, registration lag, corridor membership,
+  pre-archive records, alarms without a record), and both dashboard pages with every model, index and window (Streamlit
+  `AppTest`, Portuguese and English). Tests never use the network.
 - `ruff` lint and format clean (settings in `ruff.toml`; version pinned in `requirements-dev.txt` and
   `.pre-commit-config.yaml`). Tests and ruff run on every push and pull request (`.github/workflows/tests.yml`). External requests are paced, honour `Retry-After` and never retry aggressively.
 

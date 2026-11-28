@@ -31,7 +31,7 @@ export FLOODWATCH_MERGE_ARCHIVE=data/raw/merge        # folder holding the 1998-
 | 16 | `python -m floodwatch.forecast_skill download` then `evaluate` | ECMWF × GFS verification (paced; can take hours) | hours |
 | 17 | `python -m floodwatch.forecast` | `data/processed/forecast/runs/<utc>/` + SQLite archive | ~3 min |
 | 18 | `streamlit run app.py` | http://localhost:8501 | – |
-| – | `pytest -q` | 53 tests (no network) | ~1 min |
+| – | `pytest -q` | 54 tests (no network) | ~1 min |
 
 ### Supplementary analyses (protocol §§9.5–9.11)
 
