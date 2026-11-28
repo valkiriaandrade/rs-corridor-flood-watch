@@ -1,10 +1,10 @@
 {
- "export_date": "2026-11-26",
+ "export_date": "2026-11-27",
  "archive_start": "2026-11-04",
- "lag_days_median": 3.0,
- "recent_from": "2026-11-23",
+ "lag_days_median": 2.0,
+ "recent_from": "2026-11-25",
  "since_archive": {
-  "rs": 15,
+  "rs": 16,
   "corridor": 1
  },
  "statewide": [
@@ -17,6 +17,17 @@
    "cobrade": "13214",
    "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
    "lag_days": 1,
+   "in_corridor": false
+  },
+  {
+   "protocol": "RS-F-4306452-12200-20261124",
+   "municipio": "Dois Lajeados",
+   "codarea": "4306452",
+   "date": "2026-11-24",
+   "registered": "2026-11-26",
+   "cobrade": "12200",
+   "cobrade_label": "12200 - Enxurradas",
+   "lag_days": 2,
    "in_corridor": false
   },
   {
@@ -590,94 +601,6 @@
    "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
    "lag_days": 9,
    "in_corridor": true
-  },
-  {
-   "protocol": "RS-F-4305132-13214-20260927",
-   "municipio": "Cerro Branco",
-   "codarea": "4305132",
-   "date": "2026-09-27",
-   "registered": "2026-10-05",
-   "cobrade": "13214",
-   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
-   "lag_days": 8,
-   "in_corridor": false
-  },
-  {
-   "protocol": "RS-F-4310306-13214-20260927",
-   "municipio": "Ilópolis",
-   "codarea": "4310306",
-   "date": "2026-09-27",
-   "registered": "2026-10-02",
-   "cobrade": "13214",
-   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
-   "lag_days": 5,
-   "in_corridor": false
-  },
-  {
-   "protocol": "RS-F-4310538-12200-20260927",
-   "municipio": "Itaara",
-   "codarea": "4310538",
-   "date": "2026-09-27",
-   "registered": "2026-10-01",
-   "cobrade": "12200",
-   "cobrade_label": "12200 - Enxurradas",
-   "lag_days": 4,
-   "in_corridor": false
-  },
-  {
-   "protocol": "RS-F-4310538-13214-20260927",
-   "municipio": "Itaara",
-   "codarea": "4310538",
-   "date": "2026-09-27",
-   "registered": "2026-10-05",
-   "cobrade": "13214",
-   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
-   "lag_days": 8,
-   "in_corridor": false
-  },
-  {
-   "protocol": "RS-F-4311130-13214-20260927",
-   "municipio": "Jari",
-   "codarea": "4311130",
-   "date": "2026-09-27",
-   "registered": "2026-09-29",
-   "cobrade": "13214",
-   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
-   "lag_days": 2,
-   "in_corridor": false
-  },
-  {
-   "protocol": "RS-F-4312104-13214-20260927",
-   "municipio": "Mata",
-   "codarea": "4312104",
-   "date": "2026-09-27",
-   "registered": "2026-10-01",
-   "cobrade": "13214",
-   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
-   "lag_days": 4,
-   "in_corridor": false
-  },
-  {
-   "protocol": "RS-F-4315321-13214-20260927",
-   "municipio": "Quevedos",
-   "codarea": "4315321",
-   "date": "2026-09-27",
-   "registered": "2026-09-30",
-   "cobrade": "13214",
-   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
-   "lag_days": 3,
-   "in_corridor": false
-  },
-  {
-   "protocol": "RS-F-4316907-13214-20260927",
-   "municipio": "Santa Maria",
-   "codarea": "4316907",
-   "date": "2026-09-27",
-   "registered": "2026-10-02",
-   "cobrade": "13214",
-   "cobrade_label": "13214 - Tempestade Local/Convectiva - Chuvas Intensas",
-   "lag_days": 5,
-   "in_corridor": false
   }
  ],
  "corridor": [
@@ -743,9 +666,9 @@
    "archived": false,
    "recent": false,
    "observed": {
-    "rain_mm": 2.1,
-    "P3": 19.2,
-    "EDI": 0,
+    "rain_mm": 2.2,
+    "P3": 19.5,
+    "EDI": 1,
     "API": 1
    },
    "forecast": {},
@@ -782,7 +705,7 @@
    "recent": false,
    "observed": {
     "rain_mm": 0.4,
-    "P3": 25.5,
+    "P3": 25.6,
     "EDI": 1,
     "API": 2
    },
@@ -801,7 +724,7 @@
    "recent": false,
    "observed": {
     "rain_mm": 0.4,
-    "P3": 25.5,
+    "P3": 25.6,
     "EDI": 1,
     "API": 2
    },
@@ -820,7 +743,7 @@
    "recent": false,
    "observed": {
     "rain_mm": 0.1,
-    "P3": 0.6,
+    "P3": 0.5,
     "EDI": 1,
     "API": 1
    },
@@ -839,9 +762,9 @@
    "recent": false,
    "observed": {
     "rain_mm": 0.0,
-    "P3": 60.4,
-    "EDI": 0,
-    "API": 1
+    "P3": 65.7,
+    "EDI": 1,
+    "API": 2
    },
    "forecast": {},
    "outcome": {}
@@ -857,8 +780,8 @@
    "archived": false,
    "recent": false,
    "observed": {
-    "rain_mm": 6.6,
-    "P3": 102.1,
+    "rain_mm": 6.7,
+    "P3": 109.6,
     "EDI": 1,
     "API": 2
    },
@@ -895,8 +818,8 @@
    "archived": false,
    "recent": false,
    "observed": {
-    "rain_mm": 49.4,
-    "P3": 98.0,
+    "rain_mm": 50.5,
+    "P3": 99.1,
     "EDI": 1,
     "API": 2
    },
@@ -914,8 +837,8 @@
    "archived": false,
    "recent": false,
    "observed": {
-    "rain_mm": 39.3,
-    "P3": 110.0,
+    "rain_mm": 46.2,
+    "P3": 127.0,
     "EDI": 1,
     "API": 2
    },
@@ -933,8 +856,8 @@
    "archived": false,
    "recent": false,
    "observed": {
-    "rain_mm": 47.5,
-    "P3": 49.1,
+    "rain_mm": 49.4,
+    "P3": 51.1,
     "EDI": 1,
     "API": 1
    },
@@ -952,9 +875,9 @@
    "archived": false,
    "recent": false,
    "observed": {
-    "rain_mm": 37.7,
-    "P3": 51.7,
-    "EDI": 0,
+    "rain_mm": 52.2,
+    "P3": 70.6,
+    "EDI": 1,
     "API": 1
    },
    "forecast": {},
@@ -971,8 +894,8 @@
    "archived": false,
    "recent": false,
    "observed": {
-    "rain_mm": 47.0,
-    "P3": 48.8,
+    "rain_mm": 48.8,
+    "P3": 50.6,
     "EDI": 1,
     "API": 1
    },
@@ -990,8 +913,8 @@
    "archived": false,
    "recent": false,
    "observed": {
-    "rain_mm": 59.6,
-    "P3": 78.4,
+    "rain_mm": 64.1,
+    "P3": 84.4,
     "EDI": 1,
     "API": 1
    },
@@ -1002,7 +925,7 @@
  "observed_rule": {
   "EDI": {
    "records": 15,
-   "at_watch": 12
+   "at_watch": 15
   },
   "API": {
    "records": 15,
@@ -1064,68 +987,68 @@
  "alarms_without_record": {
   "Consensus": {
    "EDI": {
-    "alarms": 450,
-    "without_record": 448,
-    "share": 0.9955555555555555
+    "alarms": 475,
+    "without_record": 473,
+    "share": 0.9957894736842106
    },
    "API": {
-    "alarms": 385,
-    "without_record": 384,
-    "share": 0.9974025974025974
+    "alarms": 417,
+    "without_record": 416,
+    "share": 0.9976019184652278
    }
   },
   "ECMWF": {
    "EDI": {
-    "alarms": 484,
-    "without_record": 482,
-    "share": 0.9958677685950413
+    "alarms": 509,
+    "without_record": 507,
+    "share": 0.9960707269155207
    },
    "API": {
-    "alarms": 426,
-    "without_record": 425,
-    "share": 0.9976525821596244
+    "alarms": 458,
+    "without_record": 457,
+    "share": 0.9978165938864629
    }
   },
   "ECMWF ENS": {
    "EDI": {
-    "alarms": 74,
-    "without_record": 74,
+    "alarms": 99,
+    "without_record": 99,
     "share": 1.0
    },
    "API": {
-    "alarms": 85,
-    "without_record": 85,
+    "alarms": 117,
+    "without_record": 117,
     "share": 1.0
    }
   },
   "GEFS": {
    "EDI": {
-    "alarms": 60,
-    "without_record": 60,
+    "alarms": 85,
+    "without_record": 85,
     "share": 1.0
    },
    "API": {
-    "alarms": 71,
-    "without_record": 71,
+    "alarms": 103,
+    "without_record": 103,
     "share": 1.0
    }
   },
   "GFS": {
    "EDI": {
-    "alarms": 470,
-    "without_record": 468,
-    "share": 0.9957446808510638
+    "alarms": 495,
+    "without_record": 493,
+    "share": 0.9959595959595959
    },
    "API": {
-    "alarms": 396,
-    "without_record": 395,
-    "share": 0.9974747474747475
+    "alarms": 428,
+    "without_record": 427,
+    "share": 0.9976635514018691
    }
   }
  },
  "registration_period": [
-  "2026-09-27",
-  "2026-11-26"
+  "2026-09-28",
+  "2026-11-27"
  ],
- "downloaded_utc": "2026-11-26T15:20:10.238664+00:00"
+ "downloaded_utc": "2026-11-27T15:00:23.091836+00:00"
 }
