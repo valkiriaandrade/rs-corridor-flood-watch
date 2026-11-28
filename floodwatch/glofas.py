@@ -87,7 +87,11 @@ def discharge():
             v = d[list(d.data_vars)[0]]
             v = v.rename({'valid_time': 'time'}) if 'valid_time' in v.dims else v
             arrays.append(v.load())
-    return xr.concat(arrays, 'time').sortby('time')
+    q = xr.concat(arrays, 'time').sortby('time')
+    # 'average river discharge in the last 24 hours': the value valid at d+1 00 UTC is the mean of day d
+    q = q.assign_coords(time=q['time'] - np.timedelta64(1, 'D'))
+    # the EWDS serves longitudes 0..360; the municipalities use -180..180
+    return q.assign_coords(longitude=((q['longitude'] + 180) % 360) - 180).sortby('longitude')
 
 
 def municipal_ratio():
