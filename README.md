@@ -136,6 +136,24 @@ rule with MERGE rainfall on the same days; TSS of Watch or above.
 - Prospective verification of the operational forecasts continues on the dashboard; every run is archived
   (see [Forecast archive](#forecast-archive)).
 
+### Forecast grid: 0.5° vs 0.25° (decision log 2026-11-28)
+
+The ensembles and the hindcast use the 0.5° forecast points (180), the deterministic forecasts the 0.25° points (632).
+The same ECMWF and GFS runs on both grids, 4–27 Nov 2026, D+1–D+3, 86 municipalities; criterion stated before
+computing: same level on ≥ 90 % of municipality-days and |relative bias| ≤ 10 %.
+
+| Model | Bias of 0.5° basin rain | Mean abs. difference | 95th pct. | r | Same level, API | Same level, EDI |
+|---|---|---|---|---|---|---|
+| ECMWF | +0.27 mm (+3.3 %) | 1.1 mm | 5.0 mm | 0.98 | 97.9 % | 98.4 % |
+| GFS | +0.17 mm (+2.7 %) | 0.9 mm | 3.7 mm | 0.98 | 98.4 % | 98.8 % |
+
+- **The criterion is met: the 0.5° grid is acceptable for the ensemble display**, so ensemble and deterministic levels
+  can be compared on the dashboard.
+- On days at Watch or above on either grid the levels agree on 91–95 %; disagreements are always one level apart.
+- The smallest basins (275–3,063 km²) have the largest rain differences (95th percentile 5.7–7.3 mm vs 2.1–2.2 mm for
+  the largest), but about the same level agreement (97.7–98.4 %).
+- One month of data; member spread and the P ≥ 0.5 rule also separate ensemble from deterministic levels.
+
 ### Soil moisture (protocol §9.11)
 
 ERA5-Land soil moisture 0–100 cm over the same upstream basins, standardised per calendar day, leave-one-year-out on the
@@ -416,6 +434,7 @@ flowchart LR
 | `stats_extra` | SEDI, relative economic value and minimum detectable differences (§9.10) |
 | `ground_truth` | PRF accidents with water on the road and Copernicus EMS overlap (§9.9) |
 | `glofas`, `soil_moisture` | Copernicus downloads (sequential, patient retries) and the §9.8 / §9.11 evaluations |
+| `grid_check` | Basin rainfall and levels on the 0.5° vs 0.25° forecast points (§9.7 note) |
 | `page_forecast`, `page_study`, `briefing`, `ui_theme`, `exposure` | Streamlit pages, the PDF briefing, the shared visual system and public logistics references |
 
 ### Data layout
@@ -427,7 +446,7 @@ data/processed/
   study/           results.json, second_trigger.json, validation_2025.json, upstream_results.json,
                    river_validation.json, river_predictor.json, stats_extra.json, ground_truth.json,
                    figure tables, units.geojson, basin rainfall; later hindcast.json, bias_correction.json,
-                   glofas.json, soil_moisture.json
+                   glofas.json, soil_moisture.json, grid_check.json
   forecast/        runs/<utc>/ (metadata.json, municipal_levels.csv, ensemble_levels.csv), latest.json,
                    verification.json, verification_daily.csv (per day, model, lead and index),
                    official_records.json (S2iD records vs the rule and the forecasts),
@@ -452,16 +471,16 @@ the levels computed from forecast rainfall are verified prospectively, from Nove
 
 ### Quality
 
-- `pytest -q`: 54 tests, covering block bootstrap and scores, event chaining, the 12 UTC window, the rule and trigger,
+- `pytest -q`: 58 tests, covering block bootstrap and scores, event chaining, the 12 UTC window, the rule and trigger,
   rule compatibility with older runs, the Pfafstetter upstream rule, basin means, GRIB cropping, EDI calibration, API
   recursion and missing days, forecast-verification counts, preliminary-report filtering, module reachability, the
-  ensemble's shortened API series (identical to the full one), quantile mapping and the GloFAS day and longitude
-  alignment; plus the operational paths of the daily job: Open-Meteo run selection and its 06/00 UTC fallback (fake
-  responses), the catch-up dates, the SQLite archive writes, the verification pairing, the archive check, the continuous
-  verification of the five models (windows, counts, provisional days, best model, sample notes, ensemble levels with API
-  and EDI probabilities, Brier scores), the S2iD records (protocol date, registration lag, corridor membership,
-  pre-archive records, alarms without a record), and both dashboard pages with every model, index and window (Streamlit
-  `AppTest`, Portuguese and English). Tests never use the network.
+  ensemble's shortened API series (identical to the full one), quantile mapping, the GloFAS day and longitude alignment,
+  the grid-check statistics; plus the operational paths of the daily job: Open-Meteo run selection and its 06/00 UTC
+  fallback (fake responses), the catch-up dates, the SQLite archive writes, the verification pairing, the archive check,
+  the continuous verification of the five models (windows, counts, provisional days, best model, sample notes, ensemble
+  levels with API and EDI probabilities, Brier scores), the S2iD records (protocol date, registration lag, corridor
+  membership, pre-archive records, alarms without a record), and both dashboard pages with every model, index and window
+  (Streamlit `AppTest`, Portuguese and English). Tests never use the network.
 - `ruff` lint and format clean (settings in `ruff.toml`; version pinned in `requirements-dev.txt` and
   `.pre-commit-config.yaml`). Tests and ruff run on every push and pull request (`.github/workflows/tests.yml`). External requests are paced, honour `Retry-After` and never retry aggressively.
 
@@ -493,9 +512,10 @@ streamlit run app.py                                # uses the bundled processed
   the project PC (`scripts/install_s2id_task.ps1`) runs `scripts/s2id_export.ps1` at logon and pushes the export to
   the branch `s2id`; every workflow run loads the latest one. Switching the PC on once a week is enough.
 - **Supplementary analyses** (§§9.5–9.11; Copernicus data need a free ECMWF account in `~/.cdsapirc` and the dataset
-  licences accepted): `python -m floodwatch.stats_extra`, `python -m floodwatch.ground_truth [download]`,
-  `python -m floodwatch.hindcast download|evaluate|bias-correction`, `python -m floodwatch.glofas download|evaluate`,
-  `python -m floodwatch.soil_moisture download|evaluate`. Downloads are resumable.
+  licences accepted): `python -m floodwatch.stats_extra`, `python -m floodwatch.ground_truth [download]`, `python -m
+  floodwatch.hindcast download|evaluate|bias-correction`, `python -m floodwatch.glofas download|evaluate`, `python -m
+  floodwatch.soil_moisture download|evaluate`, `python -m floodwatch.grid_check download|evaluate`. Downloads are
+  resumable.
 - **Tests:** `pip install -r requirements-dev.txt && pytest -q`; `ruff check . && ruff format --check .` for
   style (`pre-commit install` runs ruff on every commit).
 

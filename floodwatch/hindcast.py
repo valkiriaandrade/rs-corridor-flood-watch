@@ -118,9 +118,10 @@ def forecast_frames(model):
     return frames
 
 
-def issuance_levels(model, observed, rule, fc=None):
+def issuance_levels(model, observed, rule, fc=None, start=START, end=END, leads=LEADS):
     """Levels of every issuance X (observed through X-1, forecast X .. X+4) -> long table date, codarea, lead, levels.
-    fc: {lead: date x codarea} forecast rainfall (default: the raw previous-runs frames)."""
+    fc: {lead: date x codarea} forecast rainfall (default: the raw previous-runs frames); start/end: first and last day
+    covered (the last issuance is end - len(leads) + 1)."""
     import numpy as np
 
     from . import indices, rules, study
@@ -128,12 +129,12 @@ def issuance_levels(model, observed, rule, fc=None):
     fc = forecast_frames(model) if fc is None else fc
     cols = observed.columns
     out = []
-    for x in pd.date_range(START, END - pd.Timedelta(days=len(LEADS) - 1)):
-        days = [x + pd.Timedelta(days=lead - 1) for lead in LEADS]
+    for x in pd.date_range(start, end - pd.Timedelta(days=len(leads) - 1)):
+        days = [x + pd.Timedelta(days=lead - 1) for lead in leads]
         f = pd.DataFrame(
             [
                 fc[lead].reindex(columns=cols).loc[d] if d in fc[lead].index else pd.Series(np.nan, index=cols)
-                for lead, d in zip(LEADS, days)
+                for lead, d in zip(leads, days)
             ],
             index=pd.DatetimeIndex(days),
         )
