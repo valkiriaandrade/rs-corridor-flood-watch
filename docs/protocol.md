@@ -295,3 +295,5 @@ For each index (`floodwatch/rules.py`):
 - River floods are defined statistically (median annual maximum), not by official flood stages; conventional readings
   (07:00 / 17:00) can miss the peak.
 - The skill of the levels computed with forecast rainfall has not been measured yet (prospective archive, §10).
+  *Update 2026-11-28:* measured by the §9.5 hindcast (March 2024 – December 2025, results in the README); the
+  prospective verification (§10) continues on the dashboard.

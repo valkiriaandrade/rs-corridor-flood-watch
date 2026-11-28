@@ -1,9 +1,14 @@
 {
   "title": "RS Corridor Flood Watch: flood-potential thresholds (EDI, API) for the BR-116, BR-386 and BR-290 corridors, Rio Grande do Sul, Brazil",
+  "version": "1.1.0",
   "upload_type": "software",
   "creators": [{"name": "Andrade, Valkiria"}],
   "license": "MIT",
-  "description": "Independent study that calibrates and validates, out of sample and against S2iD municipal flood records, flood-potential thresholds based on the Effective Drought Index (EDI) and the Antecedent Precipitation Index (API) computed on upstream-basin MERGE rainfall, and applies the frozen rules to ECMWF and GFS forecasts. Pre-registered protocol (docs/protocol.md), decision log and negative results included. Derived study tables are in data/processed/study; raw data belong to their providers (docs/data-sources.md). Not an official warning.",
-  "keywords": ["flood", "effective drought index", "antecedent precipitation index", "forecast verification", "Rio Grande do Sul", "S2iD"],
-  "notes": "Data providers: MERGE/CPTEC-INPE, Atlas Digital de Desastres no Brasil (MIDR/CEPED-UFSC), ANA, IBGE, DNIT, PRF, Open-Meteo (CC BY 4.0), ECMWF open data (CC BY 4.0), NOAA GFS."
+  "description": "Independent study that calibrates and validates, out of sample and against S2iD municipal flood records, flood-potential thresholds based on the Effective Drought Index (EDI) and the Antecedent Precipitation Index (API) computed on upstream-basin MERGE rainfall, and applies the frozen rules to ECMWF and GFS deterministic forecasts and to the ECMWF ENS and GEFS ensembles, with continuous verification of the forecast levels on the dashboard. Version 1.1 adds the results of the registered supplementary analyses: forecast-level hindcast (§9.5), bias correction (§9.6, not adopted), a check that the 0.5° ensemble grid gives the same basin rainfall and levels as the 0.25° grid (§9.7 note, criterion met), GloFAS river-discharge benchmark (§9.8, does not beat the rainfall rule) and soil moisture (§9.11, adds nothing to the API). Pre-registered protocol (docs/protocol.md), decision log and negative results included. Derived study tables are in data/processed/study; raw data belong to their providers (docs/data-sources.md). Not an official warning.",
+  "keywords": ["flood", "effective drought index", "antecedent precipitation index", "forecast verification", "ensemble forecasts", "GloFAS", "Rio Grande do Sul", "S2iD"],
+  "related_identifiers": [
+    {"identifier": "10.5281/zenodo.24508672", "relation": "isNewVersionOf", "scheme": "doi", "resource_type": "software"},
+    {"identifier": "https://rs-corridor-flood-watch.streamlit.app/", "relation": "isSupplementedBy", "scheme": "url", "resource_type": "other"}
+  ],
+  "notes": "Data providers: MERGE/CPTEC-INPE, Atlas Digital de Desastres no Brasil (MIDR/CEPED-UFSC), S2iD (MIDR), ANA, IBGE, DNIT, PRF, Open-Meteo (CC BY 4.0), ECMWF open data (CC BY 4.0), NOAA GFS/GEFS, Copernicus Climate Change Service (ERA5-Land) and Copernicus Emergency Management Service (GloFAS)."
 }

@@ -60,8 +60,9 @@ municipality-days without an event. TSS (Peirce skill score) = detection − fal
 
 - **Warning level** (index above the value exceeded on only 2 % of event-free days): the flood-record rate is
   **13.8×** the all-day average for the API (≥ 122.4 mm) and **7.6×** for the EDI (≥ 3.16).
-- **API vs EDI:** +0.08 TSS (95 % CI −0.01 to +0.15). The API is ahead but the gain is **not proven** on the official
-  records. Against gauged river floods it **is**: +0.14 (+0.07 to +0.23).
+- **API vs EDI:** +0.08 TSS for the indices alone (95 % CI −0.01 to +0.15) and +0.05 for the dashboard rules (−0.03 to
+  +0.11). The API is ahead but the gain is **not proven** on the official records. Against gauged river floods it
+  **is**: +0.14 (+0.07 to +0.23).
 - **Indices vs plain rainfall:** neither index beats 30-day rainfall with statistical confidence (API +0.05, CI −0.04 to
   +0.13; EDI −0.02, CI −0.11 to +0.05). This is reported as a result, not hidden.
 - **3-day trigger:** adding "or 3-day basin rain ≥ b" improves the EDI (+0.03, CI +0.007 to +0.06, leave-one-year-out)
@@ -96,7 +97,7 @@ arrived, while the API (about one month of memory) reacted faster.
 - Flood records occur on 0.13 % of municipality-days, so Watch fires far more often than floods happen: it pays off
   only for very cheap actions (cost under ~0.6 % of the avoided loss); costly ones (re-routing a fleet) should use
   Warning.
-- With 89 episodes the study detects TSS differences of about **0.10–0.12** or more (80 % power). The API − EDI (+0.05)
+- With 89 episodes the study detects TSS differences of about **0.10–0.12** or more (80 % power). The API − EDI rule (+0.05)
   and index − 30-day rainfall (+0.05) differences are below that: "not proven" means the sample is too small, not that
   the rules are equal.
 - Water-on-the-road accidents are only weakly linked to the flood-potential levels: they follow the day's heavy rain
@@ -455,6 +456,7 @@ docs/              protocol.md, runbook.md, data-sources.md
 scripts/           daily_update.ps1 (run by the workflow), s2id_export.ps1 + install_s2id_task.ps1 (PC), keep_alive.py
 tests/             focused tests for the rules behind the published numbers
 CITATION.cff, .zenodo.json   citation metadata for GitHub and Zenodo
+CHANGELOG.md       changes by version
 ```
 
 ### Forecast archive
